@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linkbuilding Artikel Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .anchor-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .anchor-group h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .result.active {
+            display: block;
+        }
+        
+        .result h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-box .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-box.success .value {
+            color: #10b981;
+        }
+        
+        .stat-box.warning .value {
+            color: #f59e0b;
+        }
+        
+        .article-output {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+        
+        .article-output h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+        
+        .article-output h2 {
+            font-size: 22px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #2a2a2a;
+            line-height: 1.4;
+        }
+        
+        .article-output h3 {
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            color: #3a3a3a;
+            line-height: 1.4;
+        }
+        
+        .article-output p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .article-output a {
+            color: #667eea;
+            text-decoration: none;
+            border-bottom: 1px solid #667eea;
+            transition: all 0.3s;
+        }
+        
+        .article-output a:hover {
+            color: #764ba2;
+            border-bottom-color: #764ba2;
+        }
+        
+        .copy-btn {
+            background: #10b981;
+            margin-top: 15px;
+        }
+        
+        .copy-btn:hover {
+            background: #059669;
+        }
+        
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-box {
+            background: #e0e7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            color: #4338ca;
+        }
+        
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        /* Chat section */
+        .chat-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .chat-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .chat-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .chat-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .chat-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .chat-history {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .chat-message.user {
+            background: #e0e7ff;
+            margin-left: 20px;
+        }
+        
+        .chat-message.assistant {
+            background: #f3f4f6;
+            margin-right: 20px;
+        }
+        
+        .chat-message .role {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #667eea;
+        }
+        
+        .chat-message.assistant .role {
+            color: #6b7280;
+        }
+        
+        .chat-message .text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .quick-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .scan-link {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .scan-link a {
+            color: #0ea5e9;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .scan-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .scan-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Linkbuilding Artikel Generator</h1>
+            <p>AI bedenkt automatisch het perfecte onderwerp voor jouw links</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                🤖 <strong>Automatisch onderwerp:</strong> De AI analyseert jouw anchor teksten en bedenkt automatisch een relevant artikel onderwerp van 500 woorden met echte H1, H2, H3 headings en klikbare links. Schrijft met "je" en "jij".
+            </div>
+            
+            <form id="articleForm">
+                <div class="anchor-group">
+                    <h3>🔗 Anchor Tekst 1</h3>
+                    <div class="form-group">
+                        <label for="anchor1">Anchor Tekst *</label>
+                        <input type="text" id="anchor1" required placeholder="Bijv: Skoda Kodiaq lease zakelijk">
+                    </div>
+                    <div class="form-group">
+                        <label for="url1">URL *</label>
+                        <input type="url" id="url1" required placeholder="https://www.example.com/pagina">
+                    </div>
+                </div>
+                
+                <div class="anchor-group">
+                    <h3>🔗 Anchor Tekst 2</h3>
+                    <div class="form-group">
+                        <label for="anchor2">Anchor Tekst *</label>
+                        <input type="text" id="anchor2" required placeholder="Bijv: Golf 8 lease zakelijk">
+                    </div>
+                    <div class="form-group">
+                        <label for="url2">URL *</label>
+                        <input type="url" id="url2" required placeholder="https://www.example.com/pagina">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="extra">💡 Extra Context (optioneel)</label>
+                    <textarea id="extra" placeholder="Voeg extra informatie toe die in het artikel verwerkt moet worden..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn" id="generateBtn">
+                    ✨ Genereer Artikel <span class="ai-badge">GPT-4o</span>
+                </button>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p><strong>AI bedenkt onderwerp en schrijft artikel...</strong></p>
+                <p style="color: #666; font-size: 14px; margin-top: 10px;">Dit kan 30-60 seconden duren</p>
+            </div>
+            
+            <div class="result" id="result">
+                <h2>✅ Artikel Gegenereerd!</h2>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="label">Woorden</div>
+                        <div class="value" id="wordCount">-</div>
+                    </div>
+                    <div class="stat-box success">
+                        <div class="label">Human Score</div>
+                        <div class="value" id="humanScore">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">AI Score</div>
+                        <div class="value" id="aiScore">-</div>
+                    </div>
+                </div>
+                
+                <div id="scanLinkContainer" style="display: none;" class="scan-link">
+                    <span class="scan-icon">📊</span>
+                    <div>
+                        <strong>Originality.AI Scan:</strong>
+                        <a id="scanLink" href="#" target="_blank">Bekijk volledige scan rapport →</a>
+                    </div>
+                </div>
+                
+                <div style="background: #e0e7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong>🎯 AI Gekozen Onderwerp:</strong> <span id="chosenTopic" style="color: #4338ca;"></span>
+                </div>
+                
+                <div class="article-output" id="articleOutput"></div>
+                
+                <button class="btn copy-btn" id="copyBtn">
+                    📋 Kopieer HTML
+                </button>
+                
+                <!-- Chat Section -->
+                <div class="chat-section">
+                    <h3>💬 Aanpassingen Vragen</h3>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="quickRequest('Maak de tekst wat informeler')">Informeler</button>
+                        <button class="quick-btn" onclick="quickRequest('Maak de tekst wat formeler')">Formeler</button>
+                        <button class="quick-btn" onclick="quickRequest('Maak de zinnen korter')">Kortere zinnen</button>
+                        <button class="quick-btn" onclick="quickRequest('Voeg meer details toe')">Meer details</button>
+                        <button class="quick-btn" onclick="quickRequest('Herschrijf de intro')">Nieuwe intro</button>
+                    </div>
+                    
+                    <div class="chat-history" id="chatHistory" style="display: none;"></div>
+                    
+                    <div class="chat-input-group">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Bijv: Maak de intro pakkender, of: Voeg meer voorbeelden toe">
+                        <button class="chat-btn" id="chatSendBtn" onclick="sendChatMessage()">
+                            💬 Verstuur
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                        💡 <strong>Tip:</strong> Vraag om specifieke aanpassingen zoals "Maak de intro pakkender" of "Voeg een voorbeeld toe bij H2 sectie 2"
+                    </div>
+                </div>
+                
+                <div style="margin-top: 15px; font-size: 13px; color: #666;">
+                    💡 <strong>Tip:</strong> Kopieer de HTML en plak in WordPress of Google Docs. De headings en links zijn al correct geformatteerd!
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentArticle = '';
+        let currentTopic = '';
+        let currentAnchors = {};
+        let chatMessages = [];
+        
+        const form = document.getElementById('articleForm');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const generateBtn = document.getElementById('generateBtn');
+        const chatHistory = document.getElementById('chatHistory');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                anchor1: document.getElementById('anchor1').value,
+                url1: document.getElementById('url1').value,
+                anchor2: document.getElementById('anchor2').value,
+                url2: document.getElementById('url2').value,
+                extra: document.getElementById('extra').value,
+                auto_topic: true
+            };
+            
+            // Store for chat
+            currentAnchors = formData;
+            
+            // Show loading
+            loading.classList.add('active');
+            result.classList.remove('active');
+            generateBtn.disabled = true;
+            
+            // Reset chat
+            chatMessages = [];
+            chatHistory.innerHTML = '';
+            chatHistory.style.display = 'none';
+            
+            try {
+                const response = await fetch('/generate-article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentArticle = data.article;
+                    currentTopic = data.generatedTopic;
+                    
+                    displayArticle(data);
+                    
+                    loading.classList.remove('active');
+                    result.classList.add('active');
+                } else {
+                    throw new Error(data.error || 'Er is iets misgegaan');
+                }
+            } catch (error) {
+                loading.classList.remove('active');
+                alert('Fout: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+        
+        function displayArticle(data) {
+            document.getElementById('wordCount').textContent = data.wordCount;
+            document.getElementById('humanScore').textContent = data.humanScore + '%';
+            document.getElementById('aiScore').textContent = data.aiScore + '%';
+            document.getElementById('articleOutput').innerHTML = data.article;
+            document.getElementById('chosenTopic').textContent = data.generatedTopic || 'Automatisch gegenereerd';
+            
+            // Show scan link if available
+            if (data.scanUrl) {
+                document.getElementById('scanLinkContainer').style.display = 'flex';
+                document.getElementById('scanLink').href = data.scanUrl;
+            } else {
+                document.getElementById('scanLinkContainer').style.display = 'none';
+            }
+            
+            const humanScoreBox = document.getElementById('humanScore').parentElement;
+            if (data.humanScore >= 95) {
+                humanScoreBox.classList.add('success');
+                humanScoreBox.classList.remove('warning');
+            } else if (data.humanScore >= 90) {
+                humanScoreBox.classList.add('warning');
+                humanScoreBox.classList.remove('success');
+            }
+        }
+        
+        async function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            if (!currentArticle) {
+                alert('Genereer eerst een artikel voordat je aanpassingen vraagt');
+                return;
+            }
+            
+            // Add user message
+            chatMessages.push({
+                role: 'user',
+                content: message
+            });
+            
+            displayChatMessage('user', message);
+            chatInput.value = '';
+            chatSendBtn.disabled = true;
+            
+            // Show loading in chat
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'chat-message assistant';
+            loadingMsg.innerHTML = '<div class="role">AI</div><div class="text">Bezig met aanpassen...</div>';
+            loadingMsg.id = 'loading-msg';
+            chatHistory.appendChild(loadingMsg);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            try {
+                const response = await fetch('/refine-article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        article: currentArticle,
+                        topic: currentTopic,
+                        anchors: currentAnchors,
+                        request: message,
+                        history: chatMessages
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                document.getElementById('loading-msg').remove();
+                
+                if (data.success) {
+                    currentArticle = data.article;
+                    
+                    // Add assistant message
+                    chatMessages.push({
+                        role: 'assistant',
+                        content: data.message || 'Artikel aangepast!'
+                    });
+                    
+                    displayChatMessage('assistant', data.message || 'Artikel aangepast!');
+                    
+                    // Update article display
+                    displayArticle({
+                        article: data.article,
+                        wordCount: data.wordCount,
+                        humanScore: data.humanScore,
+                        aiScore: data.aiScore,
+                        scanUrl: data.scanUrl,
+                        generatedTopic: currentTopic
+                    });
+                } else {
+                    throw new Error(data.error || 'Er is iets misgegaan');
+                }
+            } catch (error) {
+                document.getElementById('loading-msg').remove();
+                displayChatMessage('assistant', 'Fout: ' + error.message);
+            } finally {
+                chatSendBtn.disabled = false;
+            }
+        }
+        
+        function displayChatMessage(role, text) {
+            chatHistory.style.display = 'block';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+            messageDiv.innerHTML = `
+                <div class="role">${role === 'user' ? 'Jij' : 'AI'}</div>
+                <div class="text">${text}</div>
+            `;
+            
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+        function quickRequest(request) {
+            chatInput.value = request;
+            sendChatMessage();
+        }
+        
+        // Enter key to send
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+        
+        // Copy button - copy HTML
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const article = document.getElementById('articleOutput').innerHTML;
+            navigator.clipboard.writeText(article).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ HTML Gekopieerd!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
