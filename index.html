@@ -1091,15 +1091,23 @@
                     body: JSON.stringify({ anchor1, url1, anchor2, url2, context })
                 });
                 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    const text = await response.text();
+                    console.error('JSON parse error:', jsonError, 'Response:', text);
+                    throw new Error('Server returned invalid response');
+                }
                 
                 if (data.success) {
                     onderwerpField.value = data.topic;
                 } else {
-                    alert('Kon geen onderwerp genereren: ' + data.error);
+                    alert('Kon geen onderwerp genereren: ' + (data.error || 'Onbekende fout'));
                     onderwerpField.value = '';
                 }
             } catch (error) {
+                console.error('Generate topic error:', error);
                 alert('Fout bij genereren onderwerp: ' + error.message);
                 onderwerpField.value = '';
             } finally {
@@ -1132,7 +1140,14 @@
                     body: JSON.stringify({ onderwerp, anchor1, url1, anchor2, url2, extra, model, placement_domain })
                 });
                 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    const text = await response.text();
+                    console.error('JSON parse error:', jsonError, 'Response:', text);
+                    throw new Error('Server returned invalid response. Check console for details.');
+                }
                 
                 if (data.success) {
                     output.innerHTML = `
@@ -1160,9 +1175,10 @@
                         </div>
                     `;
                 } else {
-                    output.innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
+                    output.innerHTML = `<div class="alert alert-error">❌ ${data.error || 'Onbekende fout'}</div>`;
                 }
             } catch (error) {
+                console.error('Generate linkbuilding article error:', error);
                 output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
             }
         }
@@ -1227,7 +1243,14 @@
                     body: JSON.stringify(payload)
                 });
                 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    const text = await response.text();
+                    console.error('JSON parse error:', jsonError, 'Response:', text);
+                    throw new Error('Server returned invalid response. Check console for details.');
+                }
                 
                 if (data.success) {
                     let html = `

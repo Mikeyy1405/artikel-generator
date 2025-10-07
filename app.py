@@ -502,6 +502,12 @@ KRITIEKE EISEN VOOR HET ONDERWERP:
 ✅ GEEN jaartallen
 ✅ Geschikt als H1 titel voor een artikel
 
+❌ ABSOLUUT VERBODEN IN HET ONDERWERP:
+- "voordelen van"
+- "voordeel van"
+- "voor- en nadelen"
+- Gebruik alternatieven: "wat biedt", "waarom kiezen voor", "alles over", "gids voor"
+
 {extra_context}
 
 Geef ALLEEN het onderwerp terug, niets anders."""
@@ -684,7 +690,7 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
         response = call_openai_with_correct_params(
             model=model,
             messages=[
-                {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen."},
+                {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen. ABSOLUUT VERBODEN: 'voordelen van', 'voordeel van'. Gebruik alternatieven zoals 'wat biedt', 'waarom kiezen voor', 'alles over'."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.8,
@@ -696,6 +702,18 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
         topic = topic.replace(':', '').replace('|', '').replace('-', ' ')
         topic = re.sub(r'\b20\d{2}\b', '', topic)
         topic = re.sub(r'\s+', ' ', topic).strip()
+        
+        # Check for forbidden phrases in topic
+        forbidden_in_topic = ['voordelen van', 'voordeel van', 'voor- en nadelen']
+        topic_lower = topic.lower()
+        for phrase in forbidden_in_topic:
+            if phrase in topic_lower:
+                print(f"⚠️ Topic contains forbidden phrase '{phrase}', cleaning...")
+                # Replace with alternatives
+                topic = re.sub(r'\bvoordelen van\b', 'wat biedt', topic, flags=re.IGNORECASE)
+                topic = re.sub(r'\bvoordeel van\b', 'waarom kiezen voor', topic, flags=re.IGNORECASE)
+                topic = re.sub(r'\bvoor- en nadelen\b', 'alles over', topic, flags=re.IGNORECASE)
+                break
         
         return topic
     except Exception as e:
@@ -1580,7 +1598,7 @@ def api_generate_article():
                 extra += domain_analysis
         
         if not all([onderwerp, anchor1, url1, anchor2, url2]):
-            return jsonify({"error": "All fields are required"}), 400
+            return jsonify({"success": False, "error": "All fields are required"}), 400
         
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
@@ -1595,7 +1613,10 @@ def api_generate_article():
         })
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"❌ Error in generate-article: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/generate-general-article', methods=['POST'])
 def api_generate_general_article():
@@ -1620,7 +1641,7 @@ def api_generate_general_article():
         }
         
         if not onderwerp:
-            return jsonify({"error": "Topic is required"}), 400
+            return jsonify({"success": False, "error": "Topic is required"}), 400
         
         article = generate_general_article(onderwerp, word_count, extra, model, elements, use_research=use_research)
         
@@ -1635,7 +1656,10 @@ def api_generate_general_article():
         })
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"❌ Error in generate-general-article: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/refine-article', methods=['POST'])
 def api_refine_article():
