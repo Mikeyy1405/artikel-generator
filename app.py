@@ -7,6 +7,7 @@ Generates articles using OpenAI GPT-4o with AUTO TOPIC generation and CHAT refin
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from openai import OpenAI
+import httpx
 import requests
 import json
 import os
@@ -19,11 +20,19 @@ CORS(app)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 ORIGINALITY_API_KEY = os.environ.get('ORIGINALITY_API_KEY')
 
-# Initialize OpenAI client
+# Initialize OpenAI client with custom httpx client to avoid proxy issues
 client = None
 if OPENAI_API_KEY:
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    print("✅ OpenAI API key loaded")
+    # Create custom httpx client without proxy configuration
+    http_client = httpx.Client(
+        timeout=60.0,
+        follow_redirects=True
+    )
+    client = OpenAI(
+        api_key=OPENAI_API_KEY,
+        http_client=http_client
+    )
+    print("✅ OpenAI API key loaded with custom HTTP client")
 else:
     print("⚠️  OpenAI API key not found in environment")
 
