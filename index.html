@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Writgo Academy - Content Generator v11</title>
+    <title>Writgo Academy - Content Generator v14</title>
     <style>
         :root {
             --dark-blue: #0C1E43;
@@ -438,15 +438,148 @@
         .tab-content.active {
             display: block;
         }
+        
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .mobile-menu-toggle:active {
+            transform: scale(0.95);
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                width: 80%;
+                max-width: 300px;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                box-shadow: 2px 0 20px rgba(0,0,0,0.5);
+            }
+            
+            .sidebar.mobile-open {
+                left: 0;
+            }
+            
+            .main-content {
+                padding: 80px 15px 20px 15px;
+                width: 100%;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card h2 {
+                font-size: 20px;
+            }
+            
+            .form-group label {
+                font-size: 14px;
+            }
+            
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            button {
+                padding: 14px 20px;
+                font-size: 16px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .tab {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+            
+            .logo h1 {
+                font-size: 20px;
+            }
+            
+            .logo p {
+                font-size: 12px;
+            }
+            
+            .menu-item {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wordpress-sites-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Overlay for mobile menu */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .mobile-overlay.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+    
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" onclick="closeMobileMenu()"></div>
+    
     <div class="app-container">
         <!-- Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="logo">
                 <h1>Writgo Academy</h1>
-                <p>Content Generator v10</p>
+                <p>Content Generator v14</p>
             </div>
             
             <div class="menu-item active" onclick="showSection('linkbuilding')">
@@ -512,11 +645,22 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>🤖 GPT Model</label>
+                        <label>🤖 AI Model</label>
                         <select id="gpt-model">
-                            <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
-                            <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
-                            <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
+                            <optgroup label="🌟 Best of All">
+                                <option value="best-of-all">🏆 Best of All (GPT-4.1 + Claude Sonnet 4 + Claude Opus 4)</option>
+                            </optgroup>
+                            <optgroup label="🔵 OpenAI GPT">
+                                <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
+                                <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
+                                <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
+                            </optgroup>
+                            <optgroup label="🟣 Anthropic Claude (Beste voor Writing)">
+                                <option value="claude-sonnet-4">Claude Sonnet 4 ⭐ (Beste voor natuurlijk schrijven)</option>
+                                <option value="claude-opus-4">Claude Opus 4 (Meest creatief & diepgaand)</option>
+                                <option value="claude-sonnet-3.7">Claude Sonnet 3.7</option>
+                                <option value="claude-sonnet-3.5">Claude Sonnet 3.5</option>
+                            </optgroup>
                         </select>
                     </div>
                     
@@ -547,11 +691,22 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>🤖 GPT Model</label>
+                        <label>🤖 AI Model</label>
                         <select id="general-gpt-model">
-                            <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
-                            <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
-                            <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
+                            <optgroup label="🌟 Best of All">
+                                <option value="best-of-all">🏆 Best of All (GPT-4.1 + Claude Sonnet 4 + Claude Opus 4)</option>
+                            </optgroup>
+                            <optgroup label="🔵 OpenAI GPT">
+                                <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
+                                <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
+                                <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
+                            </optgroup>
+                            <optgroup label="🟣 Anthropic Claude (Beste voor Writing)">
+                                <option value="claude-sonnet-4">Claude Sonnet 4 ⭐ (Beste voor natuurlijk schrijven)</option>
+                                <option value="claude-opus-4">Claude Opus 4 (Meest creatief & diepgaand)</option>
+                                <option value="claude-sonnet-3.7">Claude Sonnet 3.7</option>
+                                <option value="claude-sonnet-3.5">Claude Sonnet 3.5</option>
+                            </optgroup>
                         </select>
                     </div>
                     
@@ -1536,6 +1691,34 @@
                 alert('Fout bij kopiëren: ' + err);
             });
         }
+        
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
+        
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+        }
+        
+        // Update showSection to close mobile menu when section is selected
+        const originalShowSection = showSection;
+        showSection = function(sectionId) {
+            originalShowSection(sectionId);
+            
+            // Close mobile menu on mobile devices
+            if (window.innerWidth <= 768) {
+                closeMobileMenu();
+            }
+        };
         
         // Initialize on load
         window.addEventListener('load', () => {

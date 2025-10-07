@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Writgo Academy Content Generator v13
+Writgo Academy Content Generator v14
 Multi-feature content creation platform with WordPress integration
 Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
+NEW: Claude AI models support + "Best of All" combination mode
+Mobile responsive design with hamburger menu
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -15,6 +17,10 @@ import os
 import re
 from datetime import datetime
 import sqlite3
+try:
+    import anthropic
+except ImportError:
+    anthropic = None
 
 app = Flask(__name__)
 CORS(app)
@@ -93,6 +99,7 @@ init_db()
 
 # Load API keys
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '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')
 ORIGINALITY_API_KEY = os.environ.get('ORIGINALITY_API_KEY')
 PIXABAY_API_KEY = os.environ.get('PIXABAY_API_KEY')
 
@@ -104,6 +111,18 @@ if OPENAI_API_KEY:
     print("✅ OpenAI API key loaded")
 else:
     print("⚠️  OpenAI API key not found")
+
+# Initialize Anthropic client
+anthropic_client = None
+if ANTHROPIC_API_KEY:
+    try:
+        import anthropic
+        anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        print("✅ Anthropic API key loaded")
+    except ImportError:
+        print("⚠️  Anthropic library not installed. Run: pip install anthropic")
+else:
+    print("⚠️  Anthropic API key not found")
 
 if ORIGINALITY_API_KEY:
     print("✅ Originality.AI API key loaded")
@@ -141,6 +160,159 @@ def check_forbidden_words(text):
             found_phrases.append(phrase)
     
     return (len(found_phrases) > 0, found_phrases)
+
+def call_claude_api(prompt, system_prompt, model="claude-sonnet-4", max_tokens=4000):
+    """
+    Call Claude API with given prompt
+    
+    Args:
+        prompt: User prompt
+        system_prompt: System prompt
+        model: Claude model to use
+        max_tokens: Maximum tokens to generate
+    
+    Returns:
+        Generated text
+    """
+    if not anthropic_client:
+        raise Exception("Anthropic API key not configured or library not installed")
+    
+    # Map friendly names to actual model IDs
+    model_mapping = {
+        "claude-sonnet-4": "claude-sonnet-4-20250514",
+        "claude-opus-4": "claude-opus-4-20250514",
+        "claude-sonnet-3.7": "claude-3-7-sonnet-20250219",
+        "claude-sonnet-3.5": "claude-3-5-sonnet-20241022",
+        "claude-haiku-3.5": "claude-3-5-haiku-20241022"
+    }
+    
+    actual_model = model_mapping.get(model, model)
+    
+    try:
+        message = anthropic_client.messages.create(
+            model=actual_model,
+            max_tokens=max_tokens,
+            temperature=0.9,
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        return message.content[0].text
+    except Exception as e:
+        raise Exception(f"Claude API error: {str(e)}")
+
+def generate_with_best_of_all(prompt, system_prompt, word_count=500):
+    """
+    Generate content using "Best of All" approach:
+    1. Generate with GPT-4.1 (structure & SEO)
+    2. Generate with Claude Sonnet 4 (natural writing)
+    3. Generate with Claude Opus 4 (creativity & depth)
+    4. Combine the best elements from all three
+    
+    Args:
+        prompt: User prompt
+        system_prompt: System prompt
+        word_count: Target word count
+    
+    Returns:
+        Combined best article
+    """
+    results = {}
+    
+    # 1. GPT-4.1 - Structure & SEO optimization
+    try:
+        if client:
+            response = client.chat.completions.create(
+                model="gpt-4.1",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=4000
+            )
+            results['gpt4'] = response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"GPT-4.1 failed: {e}")
+        results['gpt4'] = None
+    
+    # 2. Claude Sonnet 4 - Natural, human-like writing
+    try:
+        if anthropic_client:
+            results['claude_sonnet'] = call_claude_api(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                model="claude-sonnet-4",
+                max_tokens=4000
+            )
+    except Exception as e:
+        print(f"Claude Sonnet 4 failed: {e}")
+        results['claude_sonnet'] = None
+    
+    # 3. Claude Opus 4 - Creativity & depth
+    try:
+        if anthropic_client:
+            results['claude_opus'] = call_claude_api(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                model="claude-opus-4",
+                max_tokens=4000
+            )
+    except Exception as e:
+        print(f"Claude Opus 4 failed: {e}")
+        results['claude_opus'] = None
+    
+    # Filter out None results
+    valid_results = {k: v for k, v in results.items() if v is not None}
+    
+    if not valid_results:
+        raise Exception("All models failed to generate content")
+    
+    # If only one model succeeded, return that
+    if len(valid_results) == 1:
+        return list(valid_results.values())[0]
+    
+    # Combine the best elements
+    combination_prompt = f"""Je hebt 3 verschillende versies van hetzelfde artikel ontvangen van verschillende AI modellen.
+Jouw taak is om het BESTE artikel te maken door de sterke punten van elk te combineren:
+
+VERSION 1 (GPT-4.1 - Structuur & SEO):
+{results.get('gpt4', 'Niet beschikbaar')}
+
+VERSION 2 (Claude Sonnet 4 - Natuurlijk schrijven):
+{results.get('claude_sonnet', 'Niet beschikbaar')}
+
+VERSION 3 (Claude Opus 4 - Creativiteit & diepgang):
+{results.get('claude_opus', 'Niet beschikbaar')}
+
+OPDRACHT:
+Maak het ULTIEME artikel door:
+✅ De beste structuur te kiezen (waarschijnlijk van GPT-4.1)
+✅ De meest natuurlijke schrijfstijl te gebruiken (waarschijnlijk van Claude Sonnet)
+✅ De meest creatieve en diepgaande inzichten toe te voegen (waarschijnlijk van Claude Opus)
+✅ Alle H1, H2, H3 headers te behouden
+✅ Alle anchor links te behouden
+✅ Ongeveer {word_count} woorden
+✅ GEEN "voordelen" of "voordeel" gebruiken
+
+Geef ALLEEN het gecombineerde artikel terug, geen uitleg."""
+
+    # Use Claude Sonnet 4 for the combination (best at natural writing)
+    try:
+        if anthropic_client:
+            final_article = call_claude_api(
+                prompt=combination_prompt,
+                system_prompt="Je bent een expert editor die het beste uit meerdere artikelen combineert tot één perfect artikel.",
+                model="claude-sonnet-4",
+                max_tokens=4000
+            )
+            return final_article
+    except Exception as e:
+        print(f"Combination failed: {e}")
+        # Fallback: return the longest article
+        return max(valid_results.values(), key=len)
 
 # Topic generation prompt
 TOPIC_GENERATION_PROMPT = """Je bent een SEO expert die perfecte artikel onderwerpen bedenkt voor linkbuilding.
@@ -422,12 +594,13 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
                             elements=None, max_retries=3):
     """
     Generate general article with optional extra elements
+    Supports GPT models, Claude models, and "Best of All" combination
     
     Args:
         onderwerp: Article topic
         word_count: Target word count
         extra: Extra context
-        model: GPT model to use
+        model: Model to use (gpt-4o, gpt-4.1, gpt-5, claude-sonnet-4, claude-opus-4, etc., or "best-of-all")
         elements: Dict with optional elements:
             - include_table: bool
             - include_faq: bool
@@ -438,9 +611,6 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
             - youtube_video: bool
         max_retries: Max retry attempts
     """
-    if not client:
-        raise Exception("OpenAI API key not configured")
-    
     # Default elements
     if elements is None:
         elements = {}
@@ -521,19 +691,50 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
         extra_context=extra_context
     )
     
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."
+    
+    # Check if "Best of All" mode
+    if model == "best-of-all":
+        print("🌟 Using Best of All mode - combining GPT-4.1, Claude Sonnet 4, and Claude Opus 4")
+        article = generate_with_best_of_all(prompt, system_prompt, word_count)
+        
+        # Process and format
+        article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
+        article = process_article_placeholders(article, onderwerp, elements)
+        article = format_article_html(article)
+        return article
+    
+    # Check if Claude model
+    is_claude = model.startswith('claude-')
+    
     for attempt in range(max_retries):
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.9,
-                max_tokens=4000
-            )
-            
-            article = response.choices[0].message.content.strip()
+            if is_claude:
+                # Use Claude API
+                if not anthropic_client:
+                    raise Exception("Anthropic API key not configured")
+                
+                article = call_claude_api(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    model=model,
+                    max_tokens=4000
+                )
+            else:
+                # Use OpenAI API
+                if not client:
+                    raise Exception("OpenAI API key not configured")
+                
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.9,
+                    max_tokens=4000
+                )
+                article = response.choices[0].message.content.strip()
             
             # Check for forbidden words BEFORE formatting
             has_forbidden, found_phrases = check_forbidden_words(article)
@@ -558,11 +759,11 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
             article = process_article_placeholders(article, onderwerp, elements)
             article = format_article_html(article)
             
-            print(f"✅ Article generated successfully (attempt {attempt + 1})")
+            print(f"✅ Article generated successfully with {model} (attempt {attempt + 1})")
             return article
             
         except Exception as e:
-            print(f"OpenAI Error (attempt {attempt + 1}): {e}")
+            print(f"API Error with {model} (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
                 raise
 

@@ -1,27 +1,43 @@
-# 🚀 Writgo Academy Content Generator v12
+# 🚀 Writgo Academy Content Generator v14
 
-**De meest geavanceerde AI content generator met GPT-5 ondersteuning**
+**De meest geavanceerde AI content generator met GPT-5, Claude en "Best of All" ondersteuning**
 
-## ✨ Nieuwe Features in v12
+## ✨ Nieuwe Features in v14
 
-### 🤖 GPT-5 & GPT-4.1 Modellen
-Nu met volledige ondersteuning voor de nieuwste AI modellen:
+### 🌟 BEST OF ALL - Ultieme Kwaliteit!
+**Nieuw: Combineer de beste AI modellen in één artikel!**
 
-**GPT-5 Serie** (Nieuwste generatie)
-- ✅ GPT-5 - Beste voor programmeren & agenten
-- ✅ GPT-5 Mini - Snel & kosteneffectief
-- ✅ GPT-5 Nano - Zeer snel & goedkoop
-- ✅ GPT-5 Chat Latest - Laatste chat optimalisatie
-- ✅ GPT-5 Codex - Gespecialiseerd in code
-- ✅ GPT-5 Pro - Hoogste kwaliteit (premium)
+De "Best of All" modus gebruikt:
+1. **GPT-4.1** - Voor perfecte structuur & SEO optimalisatie
+2. **Claude Sonnet 4** - Voor natuurlijk, menselijk schrijven
+3. **Claude Opus 4** - Voor creativiteit & diepgaande inzichten
 
-**GPT-4.1 Serie** (Verbeterde versie)
-- ✅ GPT-4.1 - Nieuw, verbeterd model
-- ✅ GPT-4.1 Mini - Snelle variant
-- ✅ GPT-4.1 Nano - Goedkope variant
+Het systeem genereert 3 versies en combineert automatisch de beste elementen tot één perfect artikel!
 
-**Legacy Modellen** (Nog steeds beschikbaar)
-- GPT-4o, GPT-4 Turbo, GPT-4, GPT-3.5 Turbo
+### 🤖 Multi-Model Ondersteuning
+
+**🏆 Best of All**
+- ✅ Best of All - Combineert GPT-4.1 + Claude Sonnet 4 + Claude Opus 4
+- ✅ Beste kwaliteit voor professionele content
+- ✅ Natuurlijkste schrijfstijl
+- ✅ Meest creatieve output
+
+**🔵 OpenAI GPT Modellen**
+- ✅ GPT-5 - Nieuwste generatie
+- ✅ GPT-4.1 - Verbeterd model
+- ✅ GPT-4.0 - Stabiele versie
+
+**🟣 Anthropic Claude Modellen** (Beste voor Writing!)
+- ✅ Claude Sonnet 4 ⭐ - Beste voor natuurlijk schrijven
+- ✅ Claude Opus 4 - Meest creatief & diepgaand
+- ✅ Claude Sonnet 3.7 - Uitstekende balans
+- ✅ Claude Sonnet 3.5 - Snelle variant
+
+**Waarom Claude voor Writing?**
+- 🎯 Natuurlijkere schrijfstijl dan GPT
+- 🎯 Minder "AI-achtig" taalgebruik
+- 🎯 Betere context begrip
+- 🎯 Creatievere output
 
 ---
 
@@ -83,10 +99,22 @@ pip install -r requirements.txt
 Maak een `.env` bestand aan:
 
 ```env
+# OpenAI API (voor GPT modellen)
 OPENAI_API_KEY=sk-proj-jouw-api-key-hier
+
+# Anthropic API (voor Claude modellen) - NIEUW!
+ANTHROPIC_API_KEY=sk-ant-api03-jouw-api-key-hier
+
+# Optionele services
 ORIGINALITY_API_KEY=jouw-originality-key
 PIXABAY_API_KEY=jouw-pixabay-key
 ```
+
+**Belangrijk:**
+- Voor GPT modellen: OpenAI API key vereist
+- Voor Claude modellen: Anthropic API key vereist
+- Voor "Best of All": Beide API keys vereist
+- Haal je Anthropic API key op: https://console.anthropic.com/
 
 ### 3. Start de App
 

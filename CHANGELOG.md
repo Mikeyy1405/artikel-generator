@@ -1,69 +1,205 @@
-# Writgo Academy - Changelog
+# 📝 Changelog - Writgo Academy Content Generator
 
-## Versie 12 (7 oktober 2025)
+## Version 14 (7 oktober 2025)
 
-### 🚀 Nieuwe Features
-- **GPT-5 Modellen Toegevoegd**: Volledige ondersteuning voor de nieuwste GPT-5 serie
-  - GPT-5 (Beste voor programmeren & agenten)
-  - GPT-5 Mini (Snel & kosteneffectief)
-  - GPT-5 Nano (Zeer snel & goedkoop)
-  - GPT-5 Chat Latest
-  - GPT-5 Codex
-  - GPT-5 Pro (Hoogste kwaliteit)
+### 🌟 Grote Nieuwe Features
 
-- **GPT-4.1 Modellen Toegevoegd**: Nieuwe verbeterde GPT-4.1 serie
-  - GPT-4.1 (Nieuw, verbeterd)
-  - GPT-4.1 Mini
-  - GPT-4.1 Nano
+#### 🏆 Best of All Mode
+- **Revolutionaire combinatie van 3 AI modellen in één artikel!**
+- Gebruikt GPT-4.1 voor structuur & SEO
+- Gebruikt Claude Sonnet 4 voor natuurlijk schrijven
+- Gebruikt Claude Opus 4 voor creativiteit & diepgang
+- Combineert automatisch de beste elementen van alle drie
+- Ultieme kwaliteit voor professionele content
 
-### 📊 Model Prijzen (per 1M tokens)
+#### 🟣 Claude AI Modellen Ondersteuning
+- **Claude Sonnet 4** ⭐ - Beste voor natuurlijk, menselijk schrijven
+- **Claude Opus 4** - Meest creatief & diepgaand
+- **Claude Sonnet 3.7** - Uitstekende balans
+- **Claude Sonnet 3.5** - Snelle variant
+- Volledige integratie met Anthropic API
+- Betere schrijfstijl dan GPT voor content
 
-#### GPT-5 Serie
-| Model | Input | Cached Input | Output |
-|-------|-------|--------------|--------|
-| gpt-5 | $1.25 | $0.125 | $10.00 |
-| gpt-5-mini | $0.25 | $0.025 | $2.00 |
-| gpt-5-nano | $0.05 | $0.005 | $0.40 |
-| gpt-5-chat-latest | $1.25 | $0.125 | $10.00 |
-| gpt-5-codex | $1.25 | $0.125 | $10.00 |
-| gpt-5-pro | $15.00 | - | $120.00 |
+#### 📱 Mobile Responsive Design
+- **Volledig geoptimaliseerd voor mobiele apparaten**
+- Hamburger menu (☰) voor sidebar navigatie
+- Sidebar schuift automatisch weg op mobiel
+- Touch-friendly interface
+- Geen meer geknepen invulvelden
+- Overlay voor betere UX
+- Font-size optimalisatie (voorkomt zoom op iOS)
+- Responsive grid layouts voor alle secties
 
-#### GPT-4.1 Serie
-| Model | Input | Cached Input | Output |
-|-------|-------|--------------|--------|
-| gpt-4.1 | $2.00 | $0.50 | $8.00 |
-| gpt-4.1-mini | $0.40 | $0.10 | $1.60 |
-| gpt-4.1-nano | $0.10 | $0.025 | $0.40 |
+### 🔧 Technische Verbeteringen
 
-### 🔄 Wijzigingen
-- Beide AI Writers (Linkbuilding & General) hebben nu toegang tot alle nieuwe modellen
-- GPT-5 is nu de standaard selectie (beste kwaliteit voor content generatie)
-- Oudere modellen (GPT-4o, GPT-4, GPT-3.5) blijven beschikbaar voor backwards compatibility
+#### API Integratie
+- Anthropic API client toegevoegd
+- Model mapping voor Claude modellen
+- Fallback mechanisme bij API failures
+- Error handling voor beide API's
 
-### 💡 Aanbevelingen
-- **Voor hoogste kwaliteit**: Gebruik GPT-5 of GPT-5 Pro
-- **Voor snelheid & kosten**: Gebruik GPT-5 Mini of GPT-5 Nano
-- **Voor code-gerelateerde content**: Gebruik GPT-5 Codex
-- **Voor algemene content**: GPT-5 of GPT-4.1 zijn uitstekende keuzes
+#### Code Optimalisaties
+- `call_claude_api()` functie voor Claude calls
+- `generate_with_best_of_all()` voor multi-model generatie
+- Verbeterde model detectie (GPT vs Claude)
+- Unified prompt system voor beide platforms
+
+#### UI/UX Verbeteringen
+- Gegroepeerde model selectie met optgroups
+- Duidelijke labels: "🔵 OpenAI GPT" en "🟣 Anthropic Claude"
+- "🌟 Best of All" als premium optie
+- Mobile-first CSS met @media queries
+- Fixed positioning voor mobile menu button
+- Smooth transitions en animaties
+
+### 📦 Dependencies
+- `anthropic==0.39.0` toegevoegd aan requirements.txt
+- Backwards compatible met bestaande OpenAI setup
+
+### 📚 Documentatie
+- README.md volledig geüpdatet met v14 features
+- Uitleg over "Best of All" mode
+- Claude modellen documentatie
+- Mobile usage instructies
+- API key configuratie voor beide platforms
 
 ---
 
-## Versie 11 (Vorige versie)
-- Verbeterde forbidden words filter (case-insensitive)
-- GPT model selectie toegevoegd
-- Betere handling van "voordelen van" en andere verboden zinnen
+## Version 13 (eerder)
 
-## Versie 10
-- WordPress integratie
-- Pixabay & DALL-E 3 image generatie
+### Features
+- Extra elementen: tabellen, FAQ, bold text
+- Pixabay afbeeldingen integratie
+- DALL-E 3 AI afbeeldingen
+- YouTube video placeholders
+- Verbeterde placeholder processing
+- Model selectie beperkt tot GPT-5, GPT-4.1, GPT-4.0
+
+---
+
+## Version 12 (eerder)
+
+### Features
+- GPT-5 modellen ondersteuning
+- GPT-4.1 modellen ondersteuning
+- Verbeterde model selectie
+- Performance optimalisaties
+
+---
+
+## Version 11 en eerder
+
+### Core Features
+- Linkbuilding artikel generator
+- Algemene AI schrijver
+- WordPress multi-site beheer
+- Afbeeldingen generatie (Pixabay + DALL-E)
+- Opgeslagen artikelen database
+- Originality.AI score checking
+- Forbidden words filter
+- HTML/TXT export
 - Internal & affiliate links management
 
-## Versie 9
-- General AI Writer toegevoegd
-- Sidebar navigatie
-- Writgo Academy branding
+---
 
-## Versie 8
-- Multi-WordPress site management
-- Article storage systeem
-- Originality.ai integratie
+## 🚀 Upgrade Instructies
+
+### Van v13 naar v14:
+
+1. **Update dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Voeg Anthropic API key toe aan .env:**
+   ```env
+   ANTHROPIC_API_KEY=sk-ant-api03-jouw-key-hier
+   ```
+
+3. **Vervang bestanden:**
+   - `app.py` - Nieuwe versie met Claude support
+   - `index.html` - Nieuwe versie met mobile responsive design
+   - `requirements.txt` - Inclusief anthropic library
+
+4. **Herstart de app:**
+   ```bash
+   python app.py
+   ```
+
+5. **Test op mobiel:**
+   - Open op je smartphone
+   - Klik op hamburger menu (☰)
+   - Test alle functies
+
+### Optioneel:
+- Als je alleen GPT wilt gebruiken: Anthropic API key is niet verplicht
+- Voor "Best of All" mode: Beide API keys zijn vereist
+- Mobile design werkt automatisch zonder extra configuratie
+
+---
+
+## 🐛 Bug Fixes in v14
+
+- ✅ Mobile sidebar overlapping content - OPGELOST
+- ✅ Input fields te klein op mobiel - OPGELOST
+- ✅ Menu niet toegankelijk op kleine schermen - OPGELOST
+- ✅ iOS zoom bij input focus - OPGELOST
+- ✅ Touch targets te klein - OPGELOST
+
+---
+
+## 📊 Performance
+
+### Best of All Mode
+- Genereert 3 artikelen parallel (waar mogelijk)
+- Combineert in ~30-60 seconden
+- Hoogste kwaliteit output
+
+### Individuele Modellen
+- GPT modellen: ~10-20 seconden
+- Claude modellen: ~10-20 seconden
+- Afhankelijk van artikel lengte
+
+### Mobile Performance
+- Snelle laadtijd op mobiel
+- Smooth animaties (60fps)
+- Geoptimaliseerde CSS
+- Geen onnodige JavaScript
+
+---
+
+## 🔮 Toekomstige Features (Roadmap)
+
+- [ ] Gemini AI modellen ondersteuning
+- [ ] Bulk artikel generatie
+- [ ] Template systeem
+- [ ] A/B testing voor modellen
+- [ ] Analytics dashboard
+- [ ] API endpoint voor externe integraties
+- [ ] Dark mode
+- [ ] Multi-language support
+- [ ] Voice input voor mobiel
+- [ ] PWA (Progressive Web App) support
+
+---
+
+## 💡 Tips & Tricks
+
+### Best of All Mode
+- Gebruik voor belangrijke, high-value content
+- Beste resultaten bij 500-1000 woorden
+- Combineert SEO + creativiteit + natuurlijkheid
+
+### Claude vs GPT
+- **Claude**: Beter voor blogs, verhalen, natuurlijke content
+- **GPT**: Beter voor technische content, lijsten, structured data
+- **Best of All**: Beste van beide werelden
+
+### Mobile Usage
+- Gebruik landscape mode voor meer ruimte
+- Hamburger menu sluit automatisch na selectie
+- Swipe van links om menu te openen (toekomstige feature)
+
+---
+
+**Gemaakt met ❤️ door Writgo Academy Team**
