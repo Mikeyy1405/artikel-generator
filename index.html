@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Writgo Academy - Content Generator</title>
+    <title>Writgo Academy - Content Generator v11</title>
     <style>
         :root {
             --dark-blue: #0C1E43;
@@ -53,10 +53,7 @@
         
         .logo h1 {
             font-size: 24px;
-            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--light-blue);
             margin-bottom: 5px;
         }
         
@@ -87,11 +84,6 @@
             border-left-color: var(--orange);
         }
         
-        .menu-item i {
-            margin-right: 10px;
-            color: var(--orange);
-        }
-        
         /* Main Content */
         .main-content {
             flex: 1;
@@ -100,93 +92,69 @@
             background: #f5f7fa;
         }
         
-        .content-section {
+        .section {
             display: none;
-            animation: fadeIn 0.3s;
         }
         
-        .content-section.active {
+        .section.active {
             display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .page-header {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--orange);
-        }
-        
-        .page-header h2 {
-            color: var(--dark-blue);
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        
-        .page-header p {
-            color: #666;
-            font-size: 14px;
         }
         
         .card {
             background: white;
-            padding: 25px;
             border-radius: 12px;
+            padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .card h3 {
+        .card h2 {
             color: var(--dark-blue);
             margin-bottom: 20px;
-            font-size: 20px;
-            border-bottom: 2px solid var(--light-blue);
             padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-blue);
         }
         
         .form-group {
             margin-bottom: 20px;
         }
         
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 8px;
             color: var(--dark-blue);
             font-weight: 600;
-            font-size: 14px;
         }
         
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        input[type="text"],
+        input[type="url"],
+        input[type="number"],
+        input[type="password"],
+        textarea,
+        select {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
-            transition: all 0.3s;
+            transition: border-color 0.3s;
         }
         
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
+        input:focus,
+        textarea:focus,
+        select:focus {
             outline: none;
             border-color: var(--light-blue);
-            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.1);
         }
         
-        .form-group textarea {
-            resize: vertical;
+        textarea {
             min-height: 100px;
+            resize: vertical;
         }
         
-        .btn {
+        button {
+            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
+            color: white;
             padding: 12px 30px;
             border: none;
             border-radius: 8px;
@@ -194,229 +162,29 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: inline-block;
-            text-align: center;
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
-            color: white;
-        }
-        
-        .btn-primary:hover {
+        button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 174, 239, 0.3);
+            box-shadow: 0 5px 15px rgba(0,174,239,0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .btn-secondary {
             background: linear-gradient(135deg, var(--orange), var(--dark-orange));
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 166, 43, 0.3);
         }
         
         .btn-danger {
-            background: #e74c3c;
-            color: white;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
         
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--light-blue);
-        }
-        
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--light-blue);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .result-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid var(--orange);
-        }
-        
-        .result-box h4 {
-            color: var(--dark-blue);
-            margin-bottom: 15px;
-        }
-        
-        .stats {
-            display: flex;
-            gap: 20px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .stat-card {
-            flex: 1;
-            min-width: 150px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card .value {
-            font-size: 32px;
-            font-weight: bold;
-            color: var(--light-blue);
-            margin-bottom: 5px;
-        }
-        
-        .stat-card .label {
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .article-preview {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        
-        .article-preview h1 {
-            color: var(--dark-blue);
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-        
-        .article-preview h2 {
-            color: var(--deep-blue);
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-size: 22px;
-        }
-        
-        .article-preview h3 {
-            color: var(--icon-blue);
-            margin-top: 20px;
-            margin-bottom: 12px;
-            font-size: 18px;
-        }
-        
-        .article-preview p {
-            line-height: 1.8;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .article-preview a {
-            color: var(--orange);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .article-preview a:hover {
-            text-decoration: underline;
-        }
-        
-        .chat-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .chat-message {
-            margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 8px;
-        }
-        
-        .chat-message.user {
-            background: var(--light-blue);
-            color: white;
-            margin-left: 20%;
-        }
-        
-        .chat-message.assistant {
-            background: white;
-            margin-right: 20%;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .list-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .list-item:hover {
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-        
-        .list-item-content {
-            flex: 1;
-        }
-        
-        .list-item-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        .badge-linkbuilding {
-            background: var(--light-blue);
-            color: white;
-        }
-        
-        .badge-general {
-            background: var(--orange);
-            color: white;
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
         }
         
         .alert {
@@ -428,13 +196,106 @@
         .alert-success {
             background: #d4edda;
             color: #155724;
-            border-left: 4px solid #28a745;
+            border: 1px solid #c3e6cb;
         }
         
         .alert-error {
             background: #f8d7da;
             color: #721c24;
-            border-left: 4px solid #dc3545;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--light-blue);
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--light-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .article-output {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            margin-top: 20px;
+        }
+        
+        .article-output h1 {
+            color: var(--dark-blue);
+            margin-bottom: 15px;
+        }
+        
+        .article-output h2 {
+            color: var(--deep-blue);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .article-output h3 {
+            color: var(--icon-dark-blue);
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .article-output p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        .article-output a {
+            color: var(--light-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .article-output a:hover {
+            text-decoration: underline;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--light-blue);
+        }
+        
+        .stat-box h4 {
+            color: var(--dark-blue);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box p {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--light-blue);
         }
         
         .two-column {
@@ -443,19 +304,139 @@
             gap: 20px;
         }
         
-        @media (max-width: 768px) {
-            .app-container {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-            }
-            
-            .two-column {
-                grid-template-columns: 1fr;
-            }
+        .site-list {
+            list-style: none;
+        }
+        
+        .site-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--light-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .site-info h4 {
+            color: var(--dark-blue);
+            margin-bottom: 5px;
+        }
+        
+        .site-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .site-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .site-actions button {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .link-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .link-item {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .link-info {
+            flex: 1;
+        }
+        
+        .link-info strong {
+            color: var(--dark-blue);
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        .link-info small {
+            color: #666;
+            word-break: break-all;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .image-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .image-item:hover {
+            border-color: var(--light-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .image-item.selected {
+            border-color: var(--orange);
+            border-width: 3px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            color: var(--light-blue);
+        }
+        
+        .tab.active {
+            color: var(--light-blue);
+            border-bottom-color: var(--light-blue);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
     </style>
 </head>
@@ -464,802 +445,532 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <h1>WRITGO</h1>
-                <p>ACADEMY</p>
+                <h1>Writgo Academy</h1>
+                <p>Content Generator v10</p>
             </div>
             
             <div class="menu-item active" onclick="showSection('linkbuilding')">
-                <span>🔗 Linkbuilding Artikelen</span>
+                📝 Linkbuilding Schrijver
             </div>
             
-            <div class="menu-item" onclick="showSection('general-writer')">
-                <span>✍️ Algemene AI Schrijver</span>
-            </div>
-            
-            <div class="menu-item" onclick="showSection('saved-articles')">
-                <span>📚 Opgeslagen Artikelen</span>
+            <div class="menu-item" onclick="showSection('general')">
+                ✍️ Algemene AI Schrijver
             </div>
             
             <div class="menu-item" onclick="showSection('wordpress')">
-                <span>🌐 WordPress Beheer</span>
+                🌐 WordPress Beheer
             </div>
             
-            <div class="menu-item" onclick="showSection('internal-links')">
-                <span>🔗 Interne Links</span>
+            <div class="menu-item" onclick="showSection('images')">
+                🖼️ Afbeeldingen
             </div>
             
-            <div class="menu-item" onclick="showSection('affiliate-links')">
-                <span>💰 Affiliate Links</span>
+            <div class="menu-item" onclick="showSection('saved')">
+                💾 Opgeslagen Artikelen
             </div>
         </div>
         
         <!-- Main Content -->
         <div class="main-content">
             <!-- Linkbuilding Section -->
-            <div id="linkbuilding" class="content-section active">
-                <div class="page-header">
-                    <h2>🔗 Linkbuilding Artikelen</h2>
-                    <p>Genereer SEO-geoptimaliseerde artikelen met anchor teksten</p>
-                </div>
-                
+            <div id="linkbuilding" class="section active">
                 <div class="card">
-                    <h3>Artikel Genereren</h3>
+                    <h2>📝 Linkbuilding Artikel Generator</h2>
                     
                     <div class="form-group">
-                        <label>Anchor Tekst 1</label>
-                        <input type="text" id="lb-anchor1" placeholder="Bijv: Volkswagen Golf 8 lease zakelijk">
+                        <label>Onderwerp</label>
+                        <input type="text" id="onderwerp" placeholder="Bijv: Hoe kies je de juiste boekhoudsoftware">
                     </div>
                     
-                    <div class="form-group">
-                        <label>URL 1</label>
-                        <input type="url" id="lb-url1" placeholder="https://...">
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label>Anchor Tekst 1</label>
+                            <input type="text" id="anchor1" placeholder="Bijv: zakelijke lease">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>URL 1</label>
+                            <input type="url" id="url1" placeholder="https://example.com">
+                        </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Anchor Tekst 2</label>
-                        <input type="text" id="lb-anchor2" placeholder="Bijv: Audi A3 zakelijk leasen">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>URL 2</label>
-                        <input type="url" id="lb-url2" placeholder="https://...">
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label>Anchor Tekst 2</label>
+                            <input type="text" id="anchor2" placeholder="Bijv: elektrische auto lease">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>URL 2</label>
+                            <input type="url" id="url2" placeholder="https://example.com">
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label>Extra Context (optioneel)</label>
-                        <textarea id="lb-extra" placeholder="Extra informatie of specifieke wensen..."></textarea>
+                        <textarea id="extra" placeholder="Extra informatie of specifieke wensen..."></textarea>
                     </div>
                     
-                    <button class="btn btn-primary" onclick="generateLinkbuilding()">
-                        🚀 Genereer Artikel
-                    </button>
+                    <div class="form-group">
+                        <label>🤖 GPT Model</label>
+                        <select id="gpt-model">
+                            <option value="gpt-5" selected>GPT-5 (Nieuwste, Beste voor Programmeren & Agenten)</option>
+                            <option value="gpt-5-mini">GPT-5 Mini (Snel & Kosteneffectief)</option>
+                            <option value="gpt-5-nano">GPT-5 Nano (Zeer Snel & Goedkoop)</option>
+                            <option value="gpt-5-chat-latest">GPT-5 Chat Latest</option>
+                            <option value="gpt-5-codex">GPT-5 Codex</option>
+                            <option value="gpt-5-pro">GPT-5 Pro (Hoogste Kwaliteit)</option>
+                            <option value="gpt-4.1">GPT-4.1 (Nieuw, Verbeterd)</option>
+                            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                            <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
+                            <option value="gpt-4o">GPT-4o (Vorige Generatie)</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Goedkoper, Sneller)</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="generateLinkbuildingArticle()">🚀 Genereer Artikel</button>
                 </div>
                 
-                <div id="lb-loading" class="loading" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p>Artikel wordt gegenereerd...</p>
-                </div>
-                
-                <div id="lb-result" style="display: none;">
-                    <div class="stats">
-                        <div class="stat-card">
-                            <div class="value" id="lb-word-count">0</div>
-                            <div class="label">Woorden</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="value" id="lb-human-score">0%</div>
-                            <div class="label">Menselijk</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="value" id="lb-ai-score">0%</div>
-                            <div class="label">AI Score</div>
-                        </div>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-secondary" onclick="saveLinkbuildingArticle()">
-                            💾 Opslaan
-                        </button>
-                        <button class="btn btn-primary" onclick="copyToClipboard('lb-article-html')">
-                            📋 Kopieer HTML
-                        </button>
-                        <button class="btn btn-primary" onclick="showPublishModal('linkbuilding')">
-                            🌐 Publiceer naar WordPress
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Artikel Aanpassen</h3>
-                        <div class="form-group">
-                            <label>Wat wil je aanpassen?</label>
-                            <textarea id="lb-refine-instruction" placeholder="Bijv: Maak de intro korter en voeg meer voorbeelden toe"></textarea>
-                        </div>
-                        <button class="btn btn-secondary" onclick="refineLinkbuilding()">
-                            ✨ Pas Aan
-                        </button>
-                    </div>
-                    
-                    <div class="article-preview" id="lb-article-preview"></div>
-                    <textarea id="lb-article-html" style="display: none;"></textarea>
-                </div>
+                <div id="linkbuilding-output"></div>
             </div>
             
-            <!-- General Writer Section -->
-            <div id="general-writer" class="content-section">
-                <div class="page-header">
-                    <h2>✍️ Algemene AI Schrijver</h2>
-                    <p>Schrijf artikelen over elk onderwerp</p>
-                </div>
-                
+            <!-- General AI Writer Section -->
+            <div id="general" class="section">
                 <div class="card">
-                    <h3>Artikel Genereren</h3>
+                    <h2>✍️ Algemene AI Schrijver</h2>
                     
                     <div class="form-group">
                         <label>Onderwerp</label>
-                        <input type="text" id="gw-topic" placeholder="Bijv: De toekomst van elektrisch rijden">
+                        <input type="text" id="general-onderwerp" placeholder="Waar wil je over schrijven?">
                     </div>
                     
                     <div class="form-group">
                         <label>Aantal Woorden</label>
-                        <input type="number" id="gw-word-count" value="500" min="100" max="2000">
+                        <input type="number" id="general-words" value="500" min="100" max="3000">
                     </div>
                     
                     <div class="form-group">
                         <label>Extra Context (optioneel)</label>
-                        <textarea id="gw-extra" placeholder="Extra informatie of specifieke wensen..."></textarea>
+                        <textarea id="general-extra" placeholder="Extra informatie of specifieke wensen..."></textarea>
                     </div>
                     
-                    <button class="btn btn-primary" onclick="generateGeneral()">
-                        🚀 Genereer Artikel
-                    </button>
-                </div>
-                
-                <div id="gw-loading" class="loading" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p>Artikel wordt gegenereerd...</p>
-                </div>
-                
-                <div id="gw-result" style="display: none;">
-                    <div class="stats">
-                        <div class="stat-card">
-                            <div class="value" id="gw-word-count-result">0</div>
-                            <div class="label">Woorden</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="value" id="gw-human-score">0%</div>
-                            <div class="label">Menselijk</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="value" id="gw-ai-score">0%</div>
-                            <div class="label">AI Score</div>
-                        </div>
+                    <div class="form-group">
+                        <label>🤖 GPT Model</label>
+                        <select id="general-gpt-model">
+                            <option value="gpt-5" selected>GPT-5 (Nieuwste, Beste voor Programmeren & Agenten)</option>
+                            <option value="gpt-5-mini">GPT-5 Mini (Snel & Kosteneffectief)</option>
+                            <option value="gpt-5-nano">GPT-5 Nano (Zeer Snel & Goedkoop)</option>
+                            <option value="gpt-5-chat-latest">GPT-5 Chat Latest</option>
+                            <option value="gpt-5-codex">GPT-5 Codex</option>
+                            <option value="gpt-5-pro">GPT-5 Pro (Hoogste Kwaliteit)</option>
+                            <option value="gpt-4.1">GPT-4.1 (Nieuw, Verbeterd)</option>
+                            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                            <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
+                            <option value="gpt-4o">GPT-4o (Vorige Generatie)</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Goedkoper, Sneller)</option>
+                        </select>
                     </div>
                     
-                    <div class="button-group">
-                        <button class="btn btn-secondary" onclick="saveGeneralArticle()">
-                            💾 Opslaan
-                        </button>
-                        <button class="btn btn-primary" onclick="copyToClipboard('gw-article-html')">
-                            📋 Kopieer HTML
-                        </button>
-                        <button class="btn btn-primary" onclick="showPublishModal('general')">
-                            🌐 Publiceer naar WordPress
-                        </button>
+                    <div class="form-group">
+                        <label>Direct Publiceren naar WordPress (optioneel)</label>
+                        <select id="general-site">
+                            <option value="">-- Niet publiceren --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="general-status-group" style="display:none;">
+                        <label>Status</label>
+                        <select id="general-status">
+                            <option value="draft">Concept</option>
+                            <option value="publish">Publiceren</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="generateGeneralArticle()">🚀 Genereer Artikel</button>
+                </div>
+                
+                <div id="general-output"></div>
+            </div>
+            
+            <!-- WordPress Management Section -->
+            <div id="wordpress" class="section">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('wp-sites')">🌐 Websites</button>
+                    <button class="tab" onclick="showTab('wp-internal')">🔗 Interne Links</button>
+                    <button class="tab" onclick="showTab('wp-affiliate')">💰 Affiliate Links</button>
+                </div>
+                
+                <!-- Sites Tab -->
+                <div id="wp-sites" class="tab-content active">
+                    <div class="card">
+                        <h2>WordPress Sites Toevoegen</h2>
+                        
+                        <div class="form-group">
+                            <label>Site Naam</label>
+                            <input type="text" id="wp-site-name" placeholder="Bijv: Mijn Blog">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Site URL</label>
+                            <input type="url" id="wp-site-url" placeholder="https://example.com/">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Gebruikersnaam</label>
+                            <input type="text" id="wp-username" placeholder="WordPress gebruikersnaam">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Application Password</label>
+                            <input type="password" id="wp-app-password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx">
+                        </div>
+                        
+                        <button onclick="addWordPressSite()">➕ Site Toevoegen</button>
+                        <p style="margin-top:10px; color:#666; font-size:14px;">
+                            💡 Bij toevoegen worden automatisch alle interne links opgehaald!
+                        </p>
                     </div>
                     
                     <div class="card">
-                        <h3>Artikel Aanpassen</h3>
-                        <div class="form-group">
-                            <label>Wat wil je aanpassen?</label>
-                            <textarea id="gw-refine-instruction" placeholder="Bijv: Maak de intro korter en voeg meer voorbeelden toe"></textarea>
-                        </div>
-                        <button class="btn btn-secondary" onclick="refineGeneral()">
-                            ✨ Pas Aan
-                        </button>
+                        <h2>Mijn WordPress Sites</h2>
+                        <ul id="wp-sites-list" class="site-list"></ul>
                     </div>
-                    
-                    <div class="article-preview" id="gw-article-preview"></div>
-                    <textarea id="gw-article-html" style="display: none;"></textarea>
+                </div>
+                
+                <!-- Internal Links Tab -->
+                <div id="wp-internal" class="tab-content">
+                    <div class="card">
+                        <h2>🔗 Interne Links Beheren</h2>
+                        
+                        <div class="form-group">
+                            <label>Selecteer Website</label>
+                            <select id="internal-site-select" onchange="loadInternalLinks()">
+                                <option value="">-- Kies een website --</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="refreshInternalLinks()" class="btn-secondary">
+                            🔄 Links Verversen
+                        </button>
+                        
+                        <div style="margin-top:20px;">
+                            <h3>Links Toevoegen</h3>
+                            <div class="two-column" style="margin-top:15px;">
+                                <div class="form-group">
+                                    <label>Anchor Tekst</label>
+                                    <input type="text" id="internal-anchor" placeholder="Link tekst">
+                                </div>
+                                <div class="form-group">
+                                    <label>URL</label>
+                                    <input type="url" id="internal-url" placeholder="https://...">
+                                </div>
+                            </div>
+                            <button onclick="addInternalLink()">➕ Link Toevoegen</button>
+                        </div>
+                        
+                        <div style="margin-top:30px;">
+                            <h3>Huidige Links</h3>
+                            <div id="internal-links-list" class="link-list"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Affiliate Links Tab -->
+                <div id="wp-affiliate" class="tab-content">
+                    <div class="card">
+                        <h2>💰 Affiliate Links Beheren</h2>
+                        
+                        <div class="form-group">
+                            <label>Selecteer Website</label>
+                            <select id="affiliate-site-select" onchange="loadAffiliateLinks()">
+                                <option value="">-- Kies een website --</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-top:20px;">
+                            <h3>Affiliate Link Toevoegen</h3>
+                            <div class="two-column" style="margin-top:15px;">
+                                <div class="form-group">
+                                    <label>Anchor Tekst</label>
+                                    <input type="text" id="affiliate-anchor" placeholder="Product naam">
+                                </div>
+                                <div class="form-group">
+                                    <label>Affiliate URL</label>
+                                    <input type="url" id="affiliate-url" placeholder="https://affiliate-link.com">
+                                </div>
+                            </div>
+                            <button onclick="addAffiliateLink()">➕ Link Toevoegen</button>
+                        </div>
+                        
+                        <div style="margin-top:30px;">
+                            <h3>Huidige Affiliate Links</h3>
+                            <div id="affiliate-links-list" class="link-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Images Section -->
+            <div id="images" class="section">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('img-pixabay')">📷 Pixabay</button>
+                    <button class="tab" onclick="showTab('img-dalle')">🎨 DALL-E 3</button>
+                </div>
+                
+                <!-- Pixabay Tab -->
+                <div id="img-pixabay" class="tab-content active">
+                    <div class="card">
+                        <h2>📷 Zoek Afbeeldingen op Pixabay</h2>
+                        
+                        <div class="form-group">
+                            <label>Zoekterm</label>
+                            <input type="text" id="pixabay-query" placeholder="Bijv: business meeting">
+                        </div>
+                        
+                        <button onclick="searchPixabay()">🔍 Zoeken</button>
+                        
+                        <div id="pixabay-results"></div>
+                    </div>
+                </div>
+                
+                <!-- DALL-E Tab -->
+                <div id="img-dalle" class="tab-content">
+                    <div class="card">
+                        <h2>🎨 Genereer Afbeelding met DALL-E 3</h2>
+                        
+                        <div class="form-group">
+                            <label>Beschrijving</label>
+                            <textarea id="dalle-prompt" placeholder="Beschrijf de afbeelding die je wilt genereren..."></textarea>
+                        </div>
+                        
+                        <button onclick="generateDalleImage()">🎨 Genereer Afbeelding</button>
+                        
+                        <div id="dalle-result"></div>
+                    </div>
                 </div>
             </div>
             
             <!-- Saved Articles Section -->
-            <div id="saved-articles" class="content-section">
-                <div class="page-header">
-                    <h2>📚 Opgeslagen Artikelen</h2>
-                    <p>Beheer je opgeslagen artikelen</p>
-                </div>
-                
+            <div id="saved" class="section">
                 <div class="card">
-                    <h3>Mijn Artikelen</h3>
-                    <div id="articles-list"></div>
-                </div>
-            </div>
-            
-            <!-- WordPress Section -->
-            <div id="wordpress" class="content-section">
-                <div class="page-header">
-                    <h2>🌐 WordPress Beheer</h2>
-                    <p>Beheer je WordPress websites</p>
-                </div>
-                
-                <div class="card">
-                    <h3>WordPress Site Toevoegen</h3>
-                    
-                    <div class="form-group">
-                        <label>Site Naam</label>
-                        <input type="text" id="wp-site-name" placeholder="Bijv: Mijn Blog">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Site URL</label>
-                        <input type="url" id="wp-site-url" placeholder="https://mijnsite.nl/">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Gebruikersnaam</label>
-                        <input type="text" id="wp-username" placeholder="admin">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Applicatie Wachtwoord</label>
-                        <input type="password" id="wp-app-password" placeholder="xxxx xxxx xxxx xxxx">
-                        <small style="color: #666; display: block; margin-top: 5px;">
-                            Maak een applicatie wachtwoord aan in WordPress onder Gebruikers → Profiel
-                        </small>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="addWordPressSite()">
-                        ➕ Site Toevoegen
-                    </button>
-                </div>
-                
-                <div class="card">
-                    <h3>Mijn WordPress Sites</h3>
-                    <div id="wp-sites-list"></div>
-                </div>
-            </div>
-            
-            <!-- Internal Links Section -->
-            <div id="internal-links" class="content-section">
-                <div class="page-header">
-                    <h2>🔗 Interne Links</h2>
-                    <p>Beheer interne links per website</p>
-                </div>
-                
-                <div class="card">
-                    <h3>Selecteer Website</h3>
-                    <div class="form-group">
-                        <select id="il-site-select" onchange="loadInternalLinks()">
-                            <option value="">-- Selecteer een website --</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="il-content" style="display: none;">
-                    <div class="card">
-                        <h3>Interne Link Toevoegen</h3>
-                        
-                        <div class="form-group">
-                            <label>Anchor Tekst</label>
-                            <input type="text" id="il-anchor" placeholder="Bijv: Over ons">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>URL</label>
-                            <input type="url" id="il-url" placeholder="https://...">
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="addInternalLink()">
-                            ➕ Link Toevoegen
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Interne Links</h3>
-                        <div id="il-list"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Affiliate Links Section -->
-            <div id="affiliate-links" class="content-section">
-                <div class="page-header">
-                    <h2>💰 Affiliate Links</h2>
-                    <p>Beheer affiliate links per website</p>
-                </div>
-                
-                <div class="card">
-                    <h3>Selecteer Website</h3>
-                    <div class="form-group">
-                        <select id="al-site-select" onchange="loadAffiliateLinks()">
-                            <option value="">-- Selecteer een website --</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="al-content" style="display: none;">
-                    <div class="card">
-                        <h3>Affiliate Link Toevoegen</h3>
-                        
-                        <div class="form-group">
-                            <label>Anchor Tekst</label>
-                            <input type="text" id="al-anchor" placeholder="Bijv: Product naam">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Affiliate URL</label>
-                            <input type="url" id="al-url" placeholder="https://...">
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="addAffiliateLink()">
-                            ➕ Link Toevoegen
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Affiliate Links</h3>
-                        <div id="al-list"></div>
-                    </div>
+                    <h2>💾 Opgeslagen Artikelen</h2>
+                    <button onclick="loadSavedArticles()" class="btn-secondary">🔄 Ververs Lijst</button>
+                    <div id="saved-articles-list" style="margin-top:20px;"></div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Publish Modal -->
-    <div id="publish-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
-            <h3 style="color: var(--dark-blue); margin-bottom: 20px;">Publiceer naar WordPress</h3>
-            
-            <div class="form-group">
-                <label>Selecteer Website</label>
-                <select id="publish-site-select">
-                    <option value="">-- Selecteer een website --</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Status</label>
-                <select id="publish-status">
-                    <option value="draft">Concept</option>
-                    <option value="publish">Publiceren</option>
-                </select>
-            </div>
-            
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="publishToWordPress()">
-                    🌐 Publiceer
-                </button>
-                <button class="btn btn-danger" onclick="closePublishModal()">
-                    ❌ Annuleren
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Global state
-        let currentArticleType = '';
-        let currentArticleData = {};
+        const API_URL = '';
         
-        // Show section
+        // Navigation
         function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             
-            // Remove active from all menu items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Show selected section
             document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
             
-            // Add active to clicked menu item
-            event.target.closest('.menu-item').classList.add('active');
-            
-            // Load data for specific sections
-            if (sectionId === 'saved-articles') {
-                loadSavedArticles();
-            } else if (sectionId === 'wordpress') {
+            // Load data when switching to certain sections
+            if (sectionId === 'wordpress') {
                 loadWordPressSites();
-            } else if (sectionId === 'internal-links') {
+            } else if (sectionId === 'saved') {
+                loadSavedArticles();
+            } else if (sectionId === 'general') {
+                loadWordPressSitesForSelect();
+            }
+        }
+        
+        function showTab(tabId) {
+            const parent = event.target.closest('.section');
+            parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            parent.querySelector(`#${tabId}`).classList.add('active');
+            
+            // Load data for specific tabs
+            if (tabId === 'wp-sites') {
+                loadWordPressSites();
+            } else if (tabId === 'wp-internal') {
                 loadSitesForInternalLinks();
-            } else if (sectionId === 'affiliate-links') {
+            } else if (tabId === 'wp-affiliate') {
                 loadSitesForAffiliateLinks();
             }
         }
         
-        // Generate Linkbuilding Article
-        async function generateLinkbuilding() {
-            const anchor1 = document.getElementById('lb-anchor1').value.trim();
-            const url1 = document.getElementById('lb-url1').value.trim();
-            const anchor2 = document.getElementById('lb-anchor2').value.trim();
-            const url2 = document.getElementById('lb-url2').value.trim();
-            const extra = document.getElementById('lb-extra').value.trim();
+        // Show/hide publish status
+        document.getElementById('general-site')?.addEventListener('change', function() {
+            const statusGroup = document.getElementById('general-status-group');
+            if (this.value) {
+                statusGroup.style.display = 'block';
+            } else {
+                statusGroup.style.display = 'none';
+            }
+        });
+        
+        // Linkbuilding Article Generation
+        async function generateLinkbuildingArticle() {
+            const onderwerp = document.getElementById('onderwerp').value;
+            const anchor1 = document.getElementById('anchor1').value;
+            const url1 = document.getElementById('url1').value;
+            const anchor2 = document.getElementById('anchor2').value;
+            const url2 = document.getElementById('url2').value;
+            const extra = document.getElementById('extra').value;
+            const model = document.getElementById('gpt-model').value;
             
-            if (!anchor1 || !url1 || !anchor2 || !url2) {
+            if (!onderwerp || !anchor1 || !url1 || !anchor2 || !url2) {
                 alert('Vul alle verplichte velden in!');
                 return;
             }
             
-            document.getElementById('lb-loading').style.display = 'block';
-            document.getElementById('lb-result').style.display = 'none';
+            const output = document.getElementById('linkbuilding-output');
+            output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Artikel wordt gegenereerd...</p></div>';
             
             try {
-                const response = await fetch('/generate-linkbuilding', {
+                const response = await fetch(`${API_URL}/generate-article`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ anchor1, url1, anchor2, url2, extra })
+                    body: JSON.stringify({ onderwerp, anchor1, url1, anchor2, url2, extra, model })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    currentArticleType = 'linkbuilding';
-                    currentArticleData = {
-                        topic: data.topic,
-                        article_html: data.article_html,
-                        article_text: data.article_text,
-                        word_count: data.word_count,
-                        human_score: data.originality_data.human_score,
-                        ai_score: data.originality_data.ai_score,
-                        anchor1, url1, anchor2, url2
-                    };
-                    
-                    document.getElementById('lb-word-count').textContent = data.word_count;
-                    document.getElementById('lb-human-score').textContent = data.originality_data.human_score + '%';
-                    document.getElementById('lb-ai-score').textContent = data.originality_data.ai_score + '%';
-                    document.getElementById('lb-article-preview').innerHTML = data.article_html;
-                    document.getElementById('lb-article-html').value = data.article_html;
-                    
-                    document.getElementById('lb-loading').style.display = 'none';
-                    document.getElementById('lb-result').style.display = 'block';
-                } else {
-                    alert('Fout: ' + data.error);
-                    document.getElementById('lb-loading').style.display = 'none';
-                }
-            } catch (error) {
-                alert('Fout bij genereren: ' + error.message);
-                document.getElementById('lb-loading').style.display = 'none';
-            }
-        }
-        
-        // Refine Linkbuilding Article
-        async function refineLinkbuilding() {
-            const instruction = document.getElementById('lb-refine-instruction').value.trim();
-            
-            if (!instruction) {
-                alert('Geef aan wat je wilt aanpassen!');
-                return;
-            }
-            
-            document.getElementById('lb-loading').style.display = 'block';
-            
-            try {
-                const response = await fetch('/refine-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        article: currentArticleData.article_html,
-                        instruction: instruction,
-                        topic: currentArticleData.topic,
-                        anchors: {
-                            anchor1: currentArticleData.anchor1,
-                            url1: currentArticleData.url1,
-                            anchor2: currentArticleData.anchor2,
-                            url2: currentArticleData.url2
-                        }
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentArticleData.article_html = data.article_html;
-                    currentArticleData.article_text = data.article_text;
-                    currentArticleData.word_count = data.word_count;
-                    currentArticleData.human_score = data.originality_data.human_score;
-                    currentArticleData.ai_score = data.originality_data.ai_score;
-                    
-                    document.getElementById('lb-word-count').textContent = data.word_count;
-                    document.getElementById('lb-human-score').textContent = data.originality_data.human_score + '%';
-                    document.getElementById('lb-ai-score').textContent = data.originality_data.ai_score + '%';
-                    document.getElementById('lb-article-preview').innerHTML = data.article_html;
-                    document.getElementById('lb-article-html').value = data.article_html;
-                    
-                    document.getElementById('lb-refine-instruction').value = '';
-                    document.getElementById('lb-loading').style.display = 'none';
-                } else {
-                    alert('Fout: ' + data.error);
-                    document.getElementById('lb-loading').style.display = 'none';
-                }
-            } catch (error) {
-                alert('Fout bij aanpassen: ' + error.message);
-                document.getElementById('lb-loading').style.display = 'none';
-            }
-        }
-        
-        // Save Linkbuilding Article
-        async function saveLinkbuildingArticle() {
-            try {
-                const response = await fetch('/save-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: currentArticleData.topic,
-                        content_html: currentArticleData.article_html,
-                        content_text: currentArticleData.article_text,
-                        article_type: 'linkbuilding',
-                        anchor1: currentArticleData.anchor1,
-                        url1: currentArticleData.url1,
-                        anchor2: currentArticleData.anchor2,
-                        url2: currentArticleData.url2,
-                        word_count: currentArticleData.word_count,
-                        human_score: currentArticleData.human_score,
-                        ai_score: currentArticleData.ai_score
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('✅ Artikel opgeslagen!');
-                } else {
-                    alert('Fout: ' + data.error);
-                }
-            } catch (error) {
-                alert('Fout bij opslaan: ' + error.message);
-            }
-        }
-        
-        // Generate General Article
-        async function generateGeneral() {
-            const topic = document.getElementById('gw-topic').value.trim();
-            const word_count = parseInt(document.getElementById('gw-word-count').value);
-            const extra = document.getElementById('gw-extra').value.trim();
-            
-            if (!topic) {
-                alert('Vul een onderwerp in!');
-                return;
-            }
-            
-            document.getElementById('gw-loading').style.display = 'block';
-            document.getElementById('gw-result').style.display = 'none';
-            
-            try {
-                const response = await fetch('/generate-general', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic, word_count, extra })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentArticleType = 'general';
-                    currentArticleData = {
-                        topic: data.topic,
-                        article_html: data.article_html,
-                        article_text: data.article_text,
-                        word_count: data.word_count,
-                        human_score: data.originality_data.human_score,
-                        ai_score: data.originality_data.ai_score
-                    };
-                    
-                    document.getElementById('gw-word-count-result').textContent = data.word_count;
-                    document.getElementById('gw-human-score').textContent = data.originality_data.human_score + '%';
-                    document.getElementById('gw-ai-score').textContent = data.originality_data.ai_score + '%';
-                    document.getElementById('gw-article-preview').innerHTML = data.article_html;
-                    document.getElementById('gw-article-html').value = data.article_html;
-                    
-                    document.getElementById('gw-loading').style.display = 'none';
-                    document.getElementById('gw-result').style.display = 'block';
-                } else {
-                    alert('Fout: ' + data.error);
-                    document.getElementById('gw-loading').style.display = 'none';
-                }
-            } catch (error) {
-                alert('Fout bij genereren: ' + error.message);
-                document.getElementById('gw-loading').style.display = 'none';
-            }
-        }
-        
-        // Refine General Article
-        async function refineGeneral() {
-            const instruction = document.getElementById('gw-refine-instruction').value.trim();
-            
-            if (!instruction) {
-                alert('Geef aan wat je wilt aanpassen!');
-                return;
-            }
-            
-            document.getElementById('gw-loading').style.display = 'block';
-            
-            try {
-                const response = await fetch('/refine-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        article: currentArticleData.article_html,
-                        instruction: instruction,
-                        topic: currentArticleData.topic,
-                        anchors: {}
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentArticleData.article_html = data.article_html;
-                    currentArticleData.article_text = data.article_text;
-                    currentArticleData.word_count = data.word_count;
-                    currentArticleData.human_score = data.originality_data.human_score;
-                    currentArticleData.ai_score = data.originality_data.ai_score;
-                    
-                    document.getElementById('gw-word-count-result').textContent = data.word_count;
-                    document.getElementById('gw-human-score').textContent = data.originality_data.human_score + '%';
-                    document.getElementById('gw-ai-score').textContent = data.originality_data.ai_score + '%';
-                    document.getElementById('gw-article-preview').innerHTML = data.article_html;
-                    document.getElementById('gw-article-html').value = data.article_html;
-                    
-                    document.getElementById('gw-refine-instruction').value = '';
-                    document.getElementById('gw-loading').style.display = 'none';
-                } else {
-                    alert('Fout: ' + data.error);
-                    document.getElementById('gw-loading').style.display = 'none';
-                }
-            } catch (error) {
-                alert('Fout bij aanpassen: ' + error.message);
-                document.getElementById('gw-loading').style.display = 'none';
-            }
-        }
-        
-        // Save General Article
-        async function saveGeneralArticle() {
-            try {
-                const response = await fetch('/save-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: currentArticleData.topic,
-                        content_html: currentArticleData.article_html,
-                        content_text: currentArticleData.article_text,
-                        article_type: 'general',
-                        word_count: currentArticleData.word_count,
-                        human_score: currentArticleData.human_score,
-                        ai_score: currentArticleData.ai_score
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('✅ Artikel opgeslagen!');
-                } else {
-                    alert('Fout: ' + data.error);
-                }
-            } catch (error) {
-                alert('Fout bij opslaan: ' + error.message);
-            }
-        }
-        
-        // Load Saved Articles
-        async function loadSavedArticles() {
-            try {
-                const response = await fetch('/get-articles');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const listDiv = document.getElementById('articles-list');
-                    
-                    if (data.articles.length === 0) {
-                        listDiv.innerHTML = '<p style="color: #666;">Nog geen opgeslagen artikelen</p>';
-                        return;
-                    }
-                    
-                    listDiv.innerHTML = data.articles.map(article => `
-                        <div class="list-item">
-                            <div class="list-item-content">
-                                <strong>${article.title}</strong>
-                                <span class="badge badge-${article.article_type}">${article.article_type === 'linkbuilding' ? 'Linkbuilding' : 'Algemeen'}</span>
-                                <br>
-                                <small style="color: #666;">${article.word_count} woorden • ${article.human_score}% menselijk • ${new Date(article.created_at).toLocaleDateString('nl-NL')}</small>
+                    output.innerHTML = `
+                        <div class="card">
+                            <h2>✅ Artikel Gegenereerd!</h2>
+                            <div class="stats">
+                                <div class="stat-box">
+                                    <h4>Woorden</h4>
+                                    <p>${data.word_count}</p>
+                                </div>
+                                <div class="stat-box">
+                                    <h4>Human Score</h4>
+                                    <p>${data.human_score}%</p>
+                                </div>
+                                <div class="stat-box">
+                                    <h4>AI Score</h4>
+                                    <p>${data.ai_score}%</p>
+                                </div>
                             </div>
-                            <div class="list-item-actions">
-                                <button class="btn btn-primary" onclick="viewArticle(${article.id})">👁️ Bekijk</button>
-                                <button class="btn btn-danger" onclick="deleteArticle(${article.id})">🗑️</button>
+                            <div class="article-output">${data.article}</div>
+                            <div style="margin-top:20px;">
+                                <button onclick="saveArticle('${onderwerp}', \`${data.article.replace(/`/g, '\\`')}\`, '${anchor1}', '${url1}', '${anchor2}', '${url2}', ${data.word_count}, ${data.human_score}, ${data.ai_score})">💾 Opslaan</button>
+                                <button onclick="copyToClipboard(\`${data.article.replace(/`/g, '\\`')}\`)" class="btn-secondary">📋 Kopieer HTML</button>
                             </div>
                         </div>
-                    `).join('');
+                    `;
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
                 }
             } catch (error) {
-                alert('Fout bij laden artikelen: ' + error.message);
+                output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
             }
         }
         
-        // Delete Article
-        async function deleteArticle(id) {
-            if (!confirm('Weet je zeker dat je dit artikel wilt verwijderen?')) {
+        // General Article Generation
+        async function generateGeneralArticle() {
+            const onderwerp = document.getElementById('general-onderwerp').value;
+            const word_count = document.getElementById('general-words').value;
+            const extra = document.getElementById('general-extra').value;
+            const model = document.getElementById('general-gpt-model').value;
+            const site_id = document.getElementById('general-site').value;
+            const status = document.getElementById('general-status').value;
+            
+            if (!onderwerp) {
+                alert('Vul het onderwerp in!');
                 return;
             }
             
+            const output = document.getElementById('general-output');
+            output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Artikel wordt gegenereerd...</p></div>';
+            
             try {
-                const response = await fetch(`/delete-article/${id}`, {
-                    method: 'DELETE'
+                const payload = { onderwerp, word_count: parseInt(word_count), extra, model };
+                if (site_id) {
+                    payload.site_id = parseInt(site_id);
+                    payload.status = status;
+                }
+                
+                const response = await fetch(`${API_URL}/generate-general-article`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Artikel verwijderd!');
-                    loadSavedArticles();
-                } else {
-                    alert('Fout: ' + data.error);
-                }
-            } catch (error) {
-                alert('Fout bij verwijderen: ' + error.message);
-            }
-        }
-        
-        // View Article
-        async function viewArticle(id) {
-            try {
-                const response = await fetch('/get-articles');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const article = data.articles.find(a => a.id === id);
-                    if (article) {
-                        alert('Artikel: ' + article.title + '\n\n' + article.content_text.substring(0, 500) + '...');
+                    let html = `
+                        <div class="card">
+                            <h2>✅ Artikel Gegenereerd!</h2>
+                    `;
+                    
+                    if (data.published) {
+                        html += `
+                            <div class="alert alert-success">
+                                🎉 Artikel gepubliceerd op WordPress!<br>
+                                <a href="${data.post_url}" target="_blank">Bekijk artikel →</a>
+                            </div>
+                        `;
                     }
+                    
+                    html += `
+                            <div class="article-output">${data.article}</div>
+                            <div style="margin-top:20px;">
+                                <button onclick="copyToClipboard(\`${data.article.replace(/`/g, '\\`')}\`)" class="btn-secondary">📋 Kopieer HTML</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    output.innerHTML = html;
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
                 }
             } catch (error) {
-                alert('Fout bij laden artikel: ' + error.message);
+                output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
             }
         }
         
-        // WordPress Sites
+        // WordPress Sites Management
         async function loadWordPressSites() {
             try {
-                const response = await fetch('/wordpress-sites');
+                const response = await fetch(`${API_URL}/wordpress-sites`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    const listDiv = document.getElementById('wp-sites-list');
-                    
-                    if (data.sites.length === 0) {
-                        listDiv.innerHTML = '<p style="color: #666;">Nog geen WordPress sites toegevoegd</p>';
-                        return;
-                    }
-                    
-                    listDiv.innerHTML = data.sites.map(site => `
-                        <div class="list-item">
-                            <div class="list-item-content">
-                                <strong>${site.site_name}</strong><br>
-                                <small style="color: #666;">${site.site_url}</small>
+                const list = document.getElementById('wp-sites-list');
+                
+                if (data.sites && data.sites.length > 0) {
+                    list.innerHTML = data.sites.map(site => `
+                        <li class="site-item">
+                            <div class="site-info">
+                                <h4>${site.site_name}</h4>
+                                <p>${site.site_url}</p>
                             </div>
-                            <div class="list-item-actions">
-                                <button class="btn btn-danger" onclick="deleteWordPressSite(${site.id})">🗑️ Verwijder</button>
+                            <div class="site-actions">
+                                <button onclick="deleteSite(${site.id})" class="btn-danger">🗑️ Verwijder</button>
                             </div>
-                        </div>
+                        </li>
                     `).join('');
-                    
-                    // Update publish modal select
-                    updatePublishSiteSelect(data.sites);
+                } else {
+                    list.innerHTML = '<p style="color:#666;">Nog geen WordPress sites toegevoegd.</p>';
                 }
             } catch (error) {
-                alert('Fout bij laden sites: ' + error.message);
+                console.error('Error loading sites:', error);
             }
         }
         
         async function addWordPressSite() {
-            const site_name = document.getElementById('wp-site-name').value.trim();
-            const site_url = document.getElementById('wp-site-url').value.trim();
-            const username = document.getElementById('wp-username').value.trim();
-            const app_password = document.getElementById('wp-app-password').value.trim();
+            const site_name = document.getElementById('wp-site-name').value;
+            const site_url = document.getElementById('wp-site-url').value;
+            const username = document.getElementById('wp-username').value;
+            const app_password = document.getElementById('wp-app-password').value;
             
             if (!site_name || !site_url || !username || !app_password) {
                 alert('Vul alle velden in!');
@@ -1267,7 +978,7 @@
             }
             
             try {
-                const response = await fetch('/wordpress-sites', {
+                const response = await fetch(`${API_URL}/wordpress-sites`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ site_name, site_url, username, app_password })
@@ -1276,7 +987,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ WordPress site toegevoegd!');
+                    alert(data.message);
                     document.getElementById('wp-site-name').value = '';
                     document.getElementById('wp-site-url').value = '';
                     document.getElementById('wp-username').value = '';
@@ -1286,100 +997,171 @@
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij toevoegen site: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        async function deleteWordPressSite(id) {
-            if (!confirm('Weet je zeker dat je deze site wilt verwijderen?')) {
-                return;
-            }
+        async function deleteSite(siteId) {
+            if (!confirm('Weet je zeker dat je deze site wilt verwijderen?')) return;
             
             try {
-                const response = await fetch(`/wordpress-sites/${id}`, {
+                const response = await fetch(`${API_URL}/wordpress-sites/${siteId}`, {
                     method: 'DELETE'
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ WordPress site verwijderd!');
+                    alert(data.message);
                     loadWordPressSites();
                 } else {
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij verwijderen site: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        // Internal Links
-        async function loadSitesForInternalLinks() {
+        // Load sites for select dropdowns
+        async function loadWordPressSitesForSelect() {
             try {
-                const response = await fetch('/wordpress-sites');
+                const response = await fetch(`${API_URL}/wordpress-sites`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    const select = document.getElementById('il-site-select');
-                    select.innerHTML = '<option value="">-- Selecteer een website --</option>' +
-                        data.sites.map(site => `<option value="${site.id}">${site.site_name}</option>`).join('');
+                const select = document.getElementById('general-site');
+                select.innerHTML = '<option value="">-- Niet publiceren --</option>';
+                
+                if (data.sites) {
+                    data.sites.forEach(site => {
+                        const option = document.createElement('option');
+                        option.value = site.id;
+                        option.textContent = site.site_name;
+                        select.appendChild(option);
+                    });
                 }
             } catch (error) {
-                alert('Fout bij laden sites: ' + error.message);
+                console.error('Error loading sites:', error);
             }
         }
         
+        async function loadSitesForInternalLinks() {
+            try {
+                const response = await fetch(`${API_URL}/wordpress-sites`);
+                const data = await response.json();
+                
+                const select = document.getElementById('internal-site-select');
+                select.innerHTML = '<option value="">-- Kies een website --</option>';
+                
+                if (data.sites) {
+                    data.sites.forEach(site => {
+                        const option = document.createElement('option');
+                        option.value = site.id;
+                        option.textContent = site.site_name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading sites:', error);
+            }
+        }
+        
+        async function loadSitesForAffiliateLinks() {
+            try {
+                const response = await fetch(`${API_URL}/wordpress-sites`);
+                const data = await response.json();
+                
+                const select = document.getElementById('affiliate-site-select');
+                select.innerHTML = '<option value="">-- Kies een website --</option>';
+                
+                if (data.sites) {
+                    data.sites.forEach(site => {
+                        const option = document.createElement('option');
+                        option.value = site.id;
+                        option.textContent = site.site_name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading sites:', error);
+            }
+        }
+        
+        // Internal Links Management
         async function loadInternalLinks() {
-            const siteId = document.getElementById('il-site-select').value;
-            
+            const siteId = document.getElementById('internal-site-select').value;
             if (!siteId) {
-                document.getElementById('il-content').style.display = 'none';
+                document.getElementById('internal-links-list').innerHTML = '<p style="color:#666;">Selecteer eerst een website.</p>';
                 return;
             }
             
-            document.getElementById('il-content').style.display = 'block';
+            try {
+                const response = await fetch(`${API_URL}/internal-links/${siteId}`);
+                const data = await response.json();
+                
+                const list = document.getElementById('internal-links-list');
+                
+                if (data.links && data.links.length > 0) {
+                    list.innerHTML = data.links.map(link => `
+                        <div class="link-item">
+                            <div class="link-info">
+                                <strong>${link.anchor_text}</strong>
+                                <small>${link.url}</small>
+                            </div>
+                            <button onclick="deleteInternalLink(${link.id})" class="btn-danger" style="padding:6px 12px; font-size:12px;">🗑️</button>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="color:#666;">Geen interne links gevonden.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading internal links:', error);
+            }
+        }
+        
+        async function refreshInternalLinks() {
+            const siteId = document.getElementById('internal-site-select').value;
+            if (!siteId) {
+                alert('Selecteer eerst een website!');
+                return;
+            }
+            
+            if (!confirm('Alle huidige interne links worden vervangen door de links van WordPress. Doorgaan?')) return;
             
             try {
-                const response = await fetch(`/internal-links/${siteId}`);
+                const response = await fetch(`${API_URL}/internal-links/${siteId}/refresh`, {
+                    method: 'POST'
+                });
+                
                 const data = await response.json();
                 
                 if (data.success) {
-                    const listDiv = document.getElementById('il-list');
-                    
-                    if (data.links.length === 0) {
-                        listDiv.innerHTML = '<p style="color: #666;">Nog geen interne links toegevoegd</p>';
-                        return;
-                    }
-                    
-                    listDiv.innerHTML = data.links.map(link => `
-                        <div class="list-item">
-                            <div class="list-item-content">
-                                <strong>${link.anchor_text}</strong><br>
-                                <small style="color: #666;">${link.url}</small>
-                            </div>
-                            <div class="list-item-actions">
-                                <button class="btn btn-danger" onclick="deleteInternalLink(${link.id})">🗑️</button>
-                            </div>
-                        </div>
-                    `).join('');
+                    alert(data.message);
+                    loadInternalLinks();
+                } else {
+                    alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij laden links: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
         async function addInternalLink() {
-            const siteId = document.getElementById('il-site-select').value;
-            const anchor_text = document.getElementById('il-anchor').value.trim();
-            const url = document.getElementById('il-url').value.trim();
+            const siteId = document.getElementById('internal-site-select').value;
+            const anchor_text = document.getElementById('internal-anchor').value;
+            const url = document.getElementById('internal-url').value;
+            
+            if (!siteId) {
+                alert('Selecteer eerst een website!');
+                return;
+            }
             
             if (!anchor_text || !url) {
-                alert('Vul alle velden in!');
+                alert('Vul beide velden in!');
                 return;
             }
             
             try {
-                const response = await fetch(`/internal-links/${siteId}`, {
+                const response = await fetch(`${API_URL}/internal-links/${siteId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ anchor_text, url })
@@ -1388,108 +1170,87 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Interne link toegevoegd!');
-                    document.getElementById('il-anchor').value = '';
-                    document.getElementById('il-url').value = '';
+                    alert(data.message);
+                    document.getElementById('internal-anchor').value = '';
+                    document.getElementById('internal-url').value = '';
                     loadInternalLinks();
                 } else {
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij toevoegen link: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        async function deleteInternalLink(id) {
-            if (!confirm('Weet je zeker dat je deze link wilt verwijderen?')) {
-                return;
-            }
+        async function deleteInternalLink(linkId) {
+            if (!confirm('Weet je zeker dat je deze link wilt verwijderen?')) return;
             
             try {
-                const response = await fetch(`/internal-links/${id}`, {
+                const response = await fetch(`${API_URL}/internal-links/${linkId}`, {
                     method: 'DELETE'
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Interne link verwijderd!');
                     loadInternalLinks();
                 } else {
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij verwijderen link: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        // Affiliate Links
-        async function loadSitesForAffiliateLinks() {
-            try {
-                const response = await fetch('/wordpress-sites');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const select = document.getElementById('al-site-select');
-                    select.innerHTML = '<option value="">-- Selecteer een website --</option>' +
-                        data.sites.map(site => `<option value="${site.id}">${site.site_name}</option>`).join('');
-                }
-            } catch (error) {
-                alert('Fout bij laden sites: ' + error.message);
-            }
-        }
-        
+        // Affiliate Links Management
         async function loadAffiliateLinks() {
-            const siteId = document.getElementById('al-site-select').value;
-            
+            const siteId = document.getElementById('affiliate-site-select').value;
             if (!siteId) {
-                document.getElementById('al-content').style.display = 'none';
+                document.getElementById('affiliate-links-list').innerHTML = '<p style="color:#666;">Selecteer eerst een website.</p>';
                 return;
             }
             
-            document.getElementById('al-content').style.display = 'block';
-            
             try {
-                const response = await fetch(`/affiliate-links/${siteId}`);
+                const response = await fetch(`${API_URL}/affiliate-links/${siteId}`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    const listDiv = document.getElementById('al-list');
-                    
-                    if (data.links.length === 0) {
-                        listDiv.innerHTML = '<p style="color: #666;">Nog geen affiliate links toegevoegd</p>';
-                        return;
-                    }
-                    
-                    listDiv.innerHTML = data.links.map(link => `
-                        <div class="list-item">
-                            <div class="list-item-content">
-                                <strong>${link.anchor_text}</strong><br>
-                                <small style="color: #666;">${link.url}</small>
+                const list = document.getElementById('affiliate-links-list');
+                
+                if (data.links && data.links.length > 0) {
+                    list.innerHTML = data.links.map(link => `
+                        <div class="link-item">
+                            <div class="link-info">
+                                <strong>${link.anchor_text}</strong>
+                                <small>${link.url}</small>
                             </div>
-                            <div class="list-item-actions">
-                                <button class="btn btn-danger" onclick="deleteAffiliateLink(${link.id})">🗑️</button>
-                            </div>
+                            <button onclick="deleteAffiliateLink(${link.id})" class="btn-danger" style="padding:6px 12px; font-size:12px;">🗑️</button>
                         </div>
                     `).join('');
+                } else {
+                    list.innerHTML = '<p style="color:#666;">Geen affiliate links gevonden.</p>';
                 }
             } catch (error) {
-                alert('Fout bij laden links: ' + error.message);
+                console.error('Error loading affiliate links:', error);
             }
         }
         
         async function addAffiliateLink() {
-            const siteId = document.getElementById('al-site-select').value;
-            const anchor_text = document.getElementById('al-anchor').value.trim();
-            const url = document.getElementById('al-url').value.trim();
+            const siteId = document.getElementById('affiliate-site-select').value;
+            const anchor_text = document.getElementById('affiliate-anchor').value;
+            const url = document.getElementById('affiliate-url').value;
+            
+            if (!siteId) {
+                alert('Selecteer eerst een website!');
+                return;
+            }
             
             if (!anchor_text || !url) {
-                alert('Vul alle velden in!');
+                alert('Vul beide velden in!');
                 return;
             }
             
             try {
-                const response = await fetch(`/affiliate-links/${siteId}`, {
+                const response = await fetch(`${API_URL}/affiliate-links/${siteId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ anchor_text, url })
@@ -1498,112 +1259,242 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Affiliate link toegevoegd!');
-                    document.getElementById('al-anchor').value = '';
-                    document.getElementById('al-url').value = '';
+                    alert(data.message);
+                    document.getElementById('affiliate-anchor').value = '';
+                    document.getElementById('affiliate-url').value = '';
                     loadAffiliateLinks();
                 } else {
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij toevoegen link: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        async function deleteAffiliateLink(id) {
-            if (!confirm('Weet je zeker dat je deze link wilt verwijderen?')) {
-                return;
-            }
+        async function deleteAffiliateLink(linkId) {
+            if (!confirm('Weet je zeker dat je deze link wilt verwijderen?')) return;
             
             try {
-                const response = await fetch(`/affiliate-links/${id}`, {
+                const response = await fetch(`${API_URL}/affiliate-links/${linkId}`, {
                     method: 'DELETE'
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Affiliate link verwijderd!');
                     loadAffiliateLinks();
                 } else {
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij verwijderen link: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        // Publish to WordPress
-        function showPublishModal(type) {
-            currentArticleType = type;
-            document.getElementById('publish-modal').style.display = 'flex';
-            loadWordPressSitesForPublish();
-        }
-        
-        function closePublishModal() {
-            document.getElementById('publish-modal').style.display = 'none';
-        }
-        
-        async function loadWordPressSitesForPublish() {
-            try {
-                const response = await fetch('/wordpress-sites');
-                const data = await response.json();
-                
-                if (data.success) {
-                    updatePublishSiteSelect(data.sites);
-                }
-            } catch (error) {
-                alert('Fout bij laden sites: ' + error.message);
-            }
-        }
-        
-        function updatePublishSiteSelect(sites) {
-            const select = document.getElementById('publish-site-select');
-            select.innerHTML = '<option value="">-- Selecteer een website --</option>' +
-                sites.map(site => `<option value="${site.id}">${site.site_name}</option>`).join('');
-        }
-        
-        async function publishToWordPress() {
-            const siteId = document.getElementById('publish-site-select').value;
-            const status = document.getElementById('publish-status').value;
-            
-            if (!siteId) {
-                alert('Selecteer een website!');
+        // Image Generation - Pixabay
+        async function searchPixabay() {
+            const query = document.getElementById('pixabay-query').value;
+            if (!query) {
+                alert('Vul een zoekterm in!');
                 return;
             }
             
+            const results = document.getElementById('pixabay-results');
+            results.innerHTML = '<div class="loading"><div class="spinner"></div><p>Afbeeldingen zoeken...</p></div>';
+            
             try {
-                const response = await fetch('/publish-to-wordpress', {
+                const response = await fetch(`${API_URL}/search-images-pixabay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, per_page: 20 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.images.length > 0) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
+                        <div class="image-grid">
+                            ${data.images.map(img => `
+                                <div class="image-item" onclick="selectImage('${img.large_url}')">
+                                    <img src="${img.preview_url}" alt="${img.tags}">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = '<div class="alert alert-info">Geen afbeeldingen gevonden.</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        function selectImage(url) {
+            // Copy URL to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Afbeelding URL gekopieerd naar klembord!\n\n' + url);
+            });
+        }
+        
+        // Image Generation - DALL-E
+        async function generateDalleImage() {
+            const prompt = document.getElementById('dalle-prompt').value;
+            if (!prompt) {
+                alert('Vul een beschrijving in!');
+                return;
+            }
+            
+            const result = document.getElementById('dalle-result');
+            result.innerHTML = '<div class="loading"><div class="spinner"></div><p>Afbeelding wordt gegenereerd...</p></div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/generate-image-dalle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <div style="margin-top:20px;">
+                            <h3>✅ Afbeelding Gegenereerd!</h3>
+                            <img src="${data.image_url}" style="max-width:100%; border-radius:8px; margin-top:15px;" alt="Generated image">
+                            <div style="margin-top:15px;">
+                                <button onclick="copyToClipboard('${data.image_url}')" class="btn-secondary">📋 Kopieer URL</button>
+                                <a href="${data.image_url}" download class="btn-success" style="display:inline-block; text-decoration:none; margin-left:10px;">💾 Download</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // Saved Articles
+        async function loadSavedArticles() {
+            try {
+                const response = await fetch(`${API_URL}/articles`);
+                const data = await response.json();
+                
+                const list = document.getElementById('saved-articles-list');
+                
+                if (data.articles && data.articles.length > 0) {
+                    list.innerHTML = data.articles.map(article => `
+                        <div class="card" style="margin-bottom:15px;">
+                            <h3>${article.title}</h3>
+                            <p style="color:#666; font-size:14px; margin:10px 0;">
+                                ${article.word_count} woorden | Human: ${article.human_score}% | AI: ${article.ai_score}%
+                            </p>
+                            <div style="margin-top:10px;">
+                                <button onclick="viewArticle(${article.id})" class="btn-secondary">👁️ Bekijken</button>
+                                <button onclick="deleteArticle(${article.id})" class="btn-danger">🗑️ Verwijderen</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="color:#666;">Nog geen opgeslagen artikelen.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading articles:', error);
+            }
+        }
+        
+        async function saveArticle(title, content, anchor1, url1, anchor2, url2, word_count, human_score, ai_score) {
+            try {
+                const response = await fetch(`${API_URL}/articles`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        site_id: siteId,
-                        title: currentArticleData.topic,
-                        content: currentArticleData.article_html,
-                        status: status
+                        title,
+                        content_html: content,
+                        content_text: content.replace(/<[^>]+>/g, ''),
+                        article_type: 'linkbuilding',
+                        anchor1, url1, anchor2, url2,
+                        word_count, human_score, ai_score
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Artikel gepubliceerd naar WordPress!\n\nPost URL: ' + data.post_url);
-                    closePublishModal();
+                    alert('✅ Artikel opgeslagen!');
                 } else {
                     alert('Fout: ' + data.error);
                 }
             } catch (error) {
-                alert('Fout bij publiceren: ' + error.message);
+                alert('Fout: ' + error.message);
             }
         }
         
-        // Copy to clipboard
-        function copyToClipboard(elementId) {
-            const element = document.getElementById(elementId);
-            element.select();
-            document.execCommand('copy');
-            alert('✅ Gekopieerd naar klembord!');
+        async function viewArticle(articleId) {
+            try {
+                const response = await fetch(`${API_URL}/articles/${articleId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const article = data.article;
+                    const modal = document.createElement('div');
+                    modal.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:9999; overflow:auto; padding:20px;';
+                    modal.innerHTML = `
+                        <div style="max-width:900px; margin:0 auto; background:white; border-radius:12px; padding:30px;">
+                            <h2>${article.title}</h2>
+                            <p style="color:#666; margin:10px 0;">
+                                ${article.word_count} woorden | Human: ${article.human_score}% | AI: ${article.ai_score}%
+                            </p>
+                            <div class="article-output">${article.content_html}</div>
+                            <div style="margin-top:20px;">
+                                <button onclick="this.closest('div').parentElement.parentElement.remove()" class="btn-secondary">✖️ Sluiten</button>
+                                <button onclick="copyToClipboard(\`${article.content_html.replace(/`/g, '\\`')}\`)" class="btn-success">📋 Kopieer HTML</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
         }
+        
+        async function deleteArticle(articleId) {
+            if (!confirm('Weet je zeker dat je dit artikel wilt verwijderen?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/articles/${articleId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Artikel verwijderd!');
+                    loadSavedArticles();
+                } else {
+                    alert('Fout: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
+        }
+        
+        // Utility Functions
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Gekopieerd naar klembord!');
+            }).catch(err => {
+                alert('Fout bij kopiëren: ' + err);
+            });
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            loadWordPressSites();
+        });
     </script>
 </body>
 </html>

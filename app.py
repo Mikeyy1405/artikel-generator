@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Writgo Academy Content Generator
+Writgo Academy Content Generator v11
 Multi-feature content creation platform with WordPress integration
 """
 
@@ -93,6 +93,7 @@ init_db()
 # Load API keys
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 ORIGINALITY_API_KEY = os.environ.get('ORIGINALITY_API_KEY')
+PIXABAY_API_KEY = os.environ.get('PIXABAY_API_KEY')
 
 # Initialize OpenAI client
 client = None
@@ -108,12 +109,32 @@ if ORIGINALITY_API_KEY:
 else:
     print("⚠️  Originality.AI API key not found")
 
-# FORBIDDEN PHRASES - Updated list
+# FORBIDDEN PHRASES - Comprehensive list with variations
 FORBIDDEN_PHRASES = [
     "voordelen van",
     "voordelen",
-    "dat is best een opluchting, toch?"
+    "voordeel van",
+    "voordeel",
+    "dat is best een opluchting, toch?",
+    "dat is best een opluchting toch",
+    "dat is best een opluchting"
 ]
+
+def check_forbidden_words(text):
+    """
+    Check if text contains forbidden phrases (case-insensitive)
+    Returns: (has_forbidden, list_of_found_phrases)
+    """
+    text_lower = text.lower()
+    found_phrases = []
+    
+    for phrase in FORBIDDEN_PHRASES:
+        # Use word boundaries to avoid false positives
+        pattern = r'\b' + re.escape(phrase.lower()) + r'\b'
+        if re.search(pattern, text_lower):
+            found_phrases.append(phrase)
+    
+    return (len(found_phrases) > 0, found_phrases)
 
 # Topic generation prompt
 TOPIC_GENERATION_PROMPT = """Je bent een SEO expert die perfecte artikel onderwerpen bedenkt voor linkbuilding.
@@ -139,7 +160,7 @@ KRITIEKE EISEN VOOR HET ONDERWERP:
 
 Geef ALLEEN het onderwerp terug, niets anders."""
 
-# Article generation prompt - UPDATED with forbidden phrases
+# Article generation prompt - UPDATED with stronger forbidden words enforcement
 ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
 
 OPDRACHT:
@@ -179,11 +200,27 @@ HEADINGS - ZEER BELANGRIJK:
 ✅ Markeer alle headings met "H1: ", "H2: ", "H3: " ervoor
 ✅ Laatste H2 moet zijn: "H2: Conclusie" (met hoofdletter C)
 
-VERBODEN WOORDEN EN ZINNEN:
-❌ NOOIT "voordelen" gebruiken
-❌ NOOIT "voordelen van" gebruiken
-❌ NOOIT "Dat is best een opluchting, toch?" gebruiken
-❌ Gebruik alternatieven: pluspunten, sterke punten, wat het biedt, waarom het werkt, de kracht van, wat je ermee bereikt, etc.
+⚠️ VERBODEN WOORDEN EN ZINNEN - ZEER STRENG:
+❌ ABSOLUUT VERBODEN: "voordelen" in ELKE vorm
+❌ ABSOLUUT VERBODEN: "voordeel" in ELKE vorm
+❌ ABSOLUUT VERBODEN: "voordelen van"
+❌ ABSOLUUT VERBODEN: "voordeel van"
+❌ ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
+❌ ABSOLUUT VERBODEN: "Dat is best een opluchting"
+
+✅ GEBRUIK IN PLAATS DAARVAN:
+- pluspunten
+- sterke punten
+- wat het biedt
+- waarom het werkt
+- de kracht van
+- wat je ermee bereikt
+- wat het je oplevert
+- de meerwaarde
+- het nut van
+- de waarde van
+- wat het bijzonder maakt
+- waarom het interessant is
 
 SCHRIJFSTIJL - ZEER BELANGRIJK:
 
@@ -228,7 +265,8 @@ TECHNISCHE EISEN:
 
 {extra_context}
 
-Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}"."""
+Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}".
+ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
 
 # General AI writer prompt
 GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
@@ -247,10 +285,19 @@ SCHRIJFSTIJL:
 ✅ Professioneel maar toegankelijk
 ✅ Concrete voorbeelden
 
+⚠️ VERBODEN WOORDEN EN ZINNEN - ZEER STRENG:
+❌ ABSOLUUT VERBODEN: "voordelen" in ELKE vorm
+❌ ABSOLUUT VERBODEN: "voordeel" in ELKE vorm
+❌ ABSOLUUT VERBODEN: "voordelen van"
+❌ ABSOLUUT VERBODEN: "voordeel van"
+❌ ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
+
+✅ GEBRUIK IN PLAATS DAARVAN:
+- pluspunten, sterke punten, wat het biedt, waarom het werkt, de kracht van, wat je ermee bereikt, de meerwaarde, het nut van
+
 VERBODEN:
 ❌ NOOIT "u" gebruiken
-❌ NOOIT "voordelen" gebruiken
-❌ NOOIT "voordelen van" gebruiken
+❌ NOOIT "voordelen" of "voordeel" gebruiken
 ❌ NOOIT "Dat is best een opluchting, toch?" gebruiken
 ❌ Geen AI-clichés zoals "In de wereld van...", "Het is belangrijk om te..."
 ❌ Geen marketing-taal
@@ -263,9 +310,9 @@ STRUCTUUR:
 
 {extra_context}
 
-Schrijf nu het artikel."""
+Schrijf nu het artikel. ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
 
-def generate_topic(anchor1, anchor2, extra=""):
+def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
     """Generate article topic based on anchor texts"""
     if not client:
         raise Exception("OpenAI API key not configured")
@@ -282,7 +329,7 @@ def generate_topic(anchor1, anchor2, extra=""):
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model=model,
             messages=[
                 {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen."},
                 {"role": "user", "content": prompt}
@@ -302,8 +349,8 @@ def generate_topic(anchor1, anchor2, extra=""):
         print(f"OpenAI Topic Generation Error: {e}")
         raise
 
-def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra=""):
-    """Generate linkbuilding article"""
+def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="gpt-4o", max_retries=3):
+    """Generate linkbuilding article with forbidden words check"""
     if not client:
         raise Exception("OpenAI API key not configured")
     
@@ -320,28 +367,51 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra=""):
         extra_context=extra_context
     )
     
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": f"Je bent een expert Nederlandse contentschrijver. H1 is EXACT '{onderwerp}'. NOOIT verboden woorden/zinnen gebruiken."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.9,
-            max_tokens=2000
-        )
-        
-        article = response.choices[0].message.content.strip()
-        article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
-        article = format_article_html(article, anchor1, url1, anchor2, url2)
-        
-        return article
-    except Exception as e:
-        print(f"OpenAI Error: {e}")
-        raise
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": f"Je bent een expert Nederlandse contentschrijver. H1 is EXACT '{onderwerp}'. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.9,
+                max_tokens=2000
+            )
+            
+            article = response.choices[0].message.content.strip()
+            
+            # Check for forbidden words BEFORE formatting
+            has_forbidden, found_phrases = check_forbidden_words(article)
+            
+            if has_forbidden:
+                print(f"⚠️ Attempt {attempt + 1}: Found forbidden phrases: {found_phrases}")
+                if attempt < max_retries - 1:
+                    # Add stronger warning to prompt
+                    prompt += f"\n\n⚠️ KRITIEK: Je gebruikte verboden woorden: {', '.join(found_phrases)}. Herschrijf ZONDER deze woorden!"
+                    continue
+                else:
+                    # Last attempt - manually remove forbidden words
+                    print("⚠️ Max retries reached. Manually removing forbidden words...")
+                    article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', article, flags=re.IGNORECASE)
+                    article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', article, flags=re.IGNORECASE)
+                    article = re.sub(r'\bvoordelen\b', 'pluspunten', article, flags=re.IGNORECASE)
+                    article = re.sub(r'\bvoordeel\b', 'pluspunt', article, flags=re.IGNORECASE)
+                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
+            
+            article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
+            article = format_article_html(article, anchor1, url1, anchor2, url2)
+            
+            print(f"✅ Article generated successfully (attempt {attempt + 1})")
+            return article
+            
+        except Exception as e:
+            print(f"OpenAI Error (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                raise
 
-def generate_general_article(onderwerp, word_count=500, extra=""):
-    """Generate general article without anchor texts"""
+def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", max_retries=3):
+    """Generate general article without anchor texts with forbidden words check"""
     if not client:
         raise Exception("OpenAI API key not configured")
     
@@ -357,25 +427,47 @@ def generate_general_article(onderwerp, word_count=500, extra=""):
         extra_context=extra_context
     )
     
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "Je bent een expert Nederlandse contentschrijver. NOOIT verboden woorden/zinnen gebruiken."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.9,
-            max_tokens=3000
-        )
-        
-        article = response.choices[0].message.content.strip()
-        article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
-        article = format_article_html(article)
-        
-        return article
-    except Exception as e:
-        print(f"OpenAI Error: {e}")
-        raise
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.9,
+                max_tokens=3000
+            )
+            
+            article = response.choices[0].message.content.strip()
+            
+            # Check for forbidden words BEFORE formatting
+            has_forbidden, found_phrases = check_forbidden_words(article)
+            
+            if has_forbidden:
+                print(f"⚠️ Attempt {attempt + 1}: Found forbidden phrases: {found_phrases}")
+                if attempt < max_retries - 1:
+                    prompt += f"\n\n⚠️ KRITIEK: Je gebruikte verboden woorden: {', '.join(found_phrases)}. Herschrijf ZONDER deze woorden!"
+                    continue
+                else:
+                    # Last attempt - manually remove forbidden words
+                    print("⚠️ Max retries reached. Manually removing forbidden words...")
+                    article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', article, flags=re.IGNORECASE)
+                    article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', article, flags=re.IGNORECASE)
+                    article = re.sub(r'\bvoordelen\b', 'pluspunten', article, flags=re.IGNORECASE)
+                    article = re.sub(r'\bvoordeel\b', 'pluspunt', article, flags=re.IGNORECASE)
+                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
+            
+            article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
+            article = format_article_html(article)
+            
+            print(f"✅ Article generated successfully (attempt {attempt + 1})")
+            return article
+            
+        except Exception as e:
+            print(f"OpenAI Error (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                raise
 
 def format_article_html(article, anchor1=None, url1=None, anchor2=None, url2=None):
     """Convert article with H1/H2/H3 markers to HTML"""
@@ -418,7 +510,7 @@ def format_article_html(article, anchor1=None, url1=None, anchor2=None, url2=Non
     
     return '\n'.join(formatted_lines)
 
-def refine_article(article, topic, anchors, user_request, history=[]):
+def refine_article(article, topic, anchors, user_request, history=[], model="gpt-4o"):
     """Refine article based on user request"""
     if not client:
         raise Exception("OpenAI API key not configured")
@@ -434,7 +526,9 @@ HUIDIGE ARTIKEL ONDERWERP: {topic}
 
 BELANGRIJKE REGELS:
 - Gebruik ALTIJD "je" en "jij" (NOOIT "u")
-- NOOIT verboden woorden/zinnen gebruiken: {', '.join(FORBIDDEN_PHRASES)}
+- ABSOLUUT VERBODEN: "voordelen", "voordeel" in ELKE vorm
+- ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
+- Gebruik alternatieven: pluspunten, sterke punten, wat het biedt, de meerwaarde
 - Blijf rond de oorspronkelijke woordenaantal
 - Schrijf natuurlijk en menselijk
 - Geen AI-clichés
@@ -448,13 +542,23 @@ Pas het artikel aan volgens de vraag van de gebruiker."""
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model=model,
             messages=messages,
             temperature=0.8,
             max_tokens=3000
         )
         
         refined_article = response.choices[0].message.content.strip()
+        
+        # Check for forbidden words
+        has_forbidden, found_phrases = check_forbidden_words(refined_article)
+        if has_forbidden:
+            print(f"⚠️ Refined article contains forbidden phrases: {found_phrases}. Cleaning...")
+            refined_article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', refined_article, flags=re.IGNORECASE)
+            refined_article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', refined_article, flags=re.IGNORECASE)
+            refined_article = re.sub(r'\bvoordelen\b', 'pluspunten', refined_article, flags=re.IGNORECASE)
+            refined_article = re.sub(r'\bvoordeel\b', 'pluspunt', refined_article, flags=re.IGNORECASE)
+        
         refined_article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', refined_article, flags=re.MULTILINE | re.IGNORECASE)
         
         # Convert to HTML with anchors if provided
@@ -474,725 +578,673 @@ Pas het artikel aan volgens de vraag van de gebruiker."""
         print(f"OpenAI Refinement Error: {e}")
         raise
 
-def check_originality(text):
-    """Check originality using Originality.AI"""
-    text_plain = re.sub(r'<[^>]+>', '', text)
+def fetch_wordpress_posts(site_url, username, app_password):
+    """Fetch all posts from WordPress site for internal links"""
+    posts = []
+    page = 1
+    per_page = 100
     
+    while True:
+        try:
+            url = f"{site_url}/wp-json/wp/v2/posts"
+            params = {
+                'per_page': per_page,
+                'page': page,
+                'status': 'publish'
+            }
+            
+            response = requests.get(
+                url,
+                params=params,
+                auth=(username, app_password),
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                break
+            
+            batch = response.json()
+            if not batch:
+                break
+            
+            for post in batch:
+                posts.append({
+                    'id': post['id'],
+                    'title': post['title']['rendered'],
+                    'url': post['link']
+                })
+            
+            page += 1
+            
+            # Check if there are more pages
+            total_pages = int(response.headers.get('X-WP-TotalPages', 1))
+            if page > total_pages:
+                break
+                
+        except Exception as e:
+            print(f"Error fetching WordPress posts: {e}")
+            break
+    
+    return posts
+
+def check_originality(content):
+    """Check content with Originality.AI"""
     if not ORIGINALITY_API_KEY:
-        print("⚠️  Originality.AI key not configured, skipping check")
-        return {
-            'ai_score': 0,
-            'human_score': 100,
-            'success': True,
-            'skipped': True
-        }
-    
-    url = "https://api.originality.ai/api/v1/scan/ai"
-    
-    headers = {
-        "X-OAI-API-KEY": ORIGINALITY_API_KEY,
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "content": text_plain,
-        "title": "Article Check",
-        "aiModelVersion": "multi",
-        "storeScan": "true"
-    }
+        return {"error": "Originality.AI API key not configured"}
     
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        
-        ai_score = round(data['score']['ai'] * 100, 1)
-        human_score = round(data['score']['original'] * 100, 1)
-        
-        scan_url = None
-        if 'public_link' in data:
-            scan_url = data['public_link']
-        elif 'id' in data:
-            scan_url = f"https://app.originality.ai/scan/{data['id']}"
-        
-        print(f"✅ Originality check: AI={ai_score}%, Human={human_score}%")
-        
-        return {
-            'ai_score': ai_score,
-            'human_score': human_score,
-            'success': True,
-            'scan_url': scan_url
+        url = "https://api.originality.ai/api/v1/scan/ai"
+        headers = {
+            "X-OAI-API-KEY": ORIGINALITY_API_KEY,
+            "Accept": "application/json",
+            "Content-Type": "application/json"
         }
+        
+        # Remove HTML tags for scanning
+        text_content = re.sub(r'<[^>]+>', '', content)
+        text_content = text_content.replace('\n', ' ').strip()
+        
+        payload = {
+            "content": text_content,
+            "title": "Article Scan",
+            "aiModelVersion": "1"
+        }
+        
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "success": True,
+                "ai_score": round(data.get('score', {}).get('ai', 0) * 100, 1),
+                "human_score": round(data.get('score', {}).get('original', 0) * 100, 1)
+            }
+        else:
+            return {"error": f"API Error: {response.status_code}"}
+            
     except Exception as e:
-        print(f"Originality.AI Error: {e}")
-        return {
-            'ai_score': 0,
-            'human_score': 0,
-            'success': False,
-            'error': str(e)
+        return {"error": str(e)}
+
+def search_pixabay_images(query, per_page=5):
+    """Search for images on Pixabay"""
+    if not PIXABAY_API_KEY:
+        return {"error": "Pixabay API key not configured"}
+    
+    try:
+        url = "https://pixabay.com/api/"
+        params = {
+            "key": PIXABAY_API_KEY,
+            "q": query,
+            "image_type": "photo",
+            "per_page": per_page,
+            "safesearch": "true"
         }
+        
+        response = requests.get(url, params=params, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            images = []
+            for hit in data.get('hits', []):
+                images.append({
+                    'id': hit['id'],
+                    'url': hit['largeImageURL'],
+                    'preview': hit['previewURL'],
+                    'width': hit['imageWidth'],
+                    'height': hit['imageHeight']
+                })
+            return {"success": True, "images": images}
+        else:
+            return {"error": f"API Error: {response.status_code}"}
+            
+    except Exception as e:
+        return {"error": str(e)}
 
-def count_words(text):
-    """Count words in text"""
-    text = re.sub(r'<[^>]+>', '', text)
-    words = text.split()
-    return len(words)
+def generate_dalle_image(prompt):
+    """Generate image using DALL-E 3"""
+    if not client:
+        raise Exception("OpenAI API key not configured")
+    
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        
+        image_url = response.data[0].url
+        return {"success": True, "image_url": image_url}
+        
+    except Exception as e:
+        return {"error": str(e)}
 
-# ============= ROUTES =============
+# ============================================================================
+# API ENDPOINTS
+# ============================================================================
 
 @app.route('/')
 def index():
-    """Serve the HTML frontend"""
+    """Serve the main HTML page"""
     return send_file('index.html')
 
-@app.route('/generate-linkbuilding', methods=['POST'])
-def generate_linkbuilding_endpoint():
+@app.route('/api/generate-topic', methods=['POST'])
+def api_generate_topic():
+    """Generate article topic"""
+    try:
+        data = request.json
+        anchor1 = data.get('anchor1', '').strip()
+        anchor2 = data.get('anchor2', '').strip()
+        extra = data.get('extra', '').strip()
+        model = data.get('model', 'gpt-4o')
+        
+        if not anchor1 or not anchor2:
+            return jsonify({"error": "Both anchor texts are required"}), 400
+        
+        topic = generate_topic(anchor1, anchor2, extra, model)
+        return jsonify({"success": True, "topic": topic})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/generate-article', methods=['POST'])
+def api_generate_article():
     """Generate linkbuilding article"""
     try:
         data = request.json
+        onderwerp = data.get('onderwerp', '').strip()
+        anchor1 = data.get('anchor1', '').strip()
+        url1 = data.get('url1', '').strip()
+        anchor2 = data.get('anchor2', '').strip()
+        url2 = data.get('url2', '').strip()
+        extra = data.get('extra', '').strip()
+        model = data.get('model', 'gpt-4o')
         
-        anchor1 = data.get('anchor1')
-        url1 = data.get('url1')
-        anchor2 = data.get('anchor2')
-        url2 = data.get('url2')
-        extra = data.get('extra', '')
+        if not all([onderwerp, anchor1, url1, anchor2, url2]):
+            return jsonify({"error": "All fields are required"}), 400
         
-        if not all([anchor1, url1, anchor2, url2]):
-            return jsonify({
-                'success': False,
-                'error': 'Alle verplichte velden moeten ingevuld zijn'
-            }), 400
+        article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
-        print(f"Generating topic for anchors: {anchor1}, {anchor2}")
-        onderwerp = generate_topic(anchor1, anchor2, extra)
-        print(f"Generated topic: {onderwerp}")
-        
-        print(f"Generating article for: {onderwerp}")
-        article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra)
-        
-        article_text = re.sub(r'<[^>]+>', '', article)
-        article_text = article_text.replace('</h1>', '\n').replace('</h2>', '\n').replace('</h3>', '\n').replace('</p>', '\n\n')
-        article_text = re.sub(r'\n\n+', '\n\n', article_text).strip()
-        
-        word_count = count_words(article)
-        print(f"Article generated: {word_count} words")
-        
-        print("Checking originality...")
-        originality = check_originality(article)
+        # Count words
+        text_content = re.sub(r'<[^>]+>', '', article)
+        word_count = len(text_content.split())
         
         return jsonify({
-            'success': True,
-            'article_html': article,
-            'article_text': article_text,
-            'topic': onderwerp,
-            'originality_data': {
-                'human_score': originality['human_score'],
-                'ai_score': originality['ai_score'],
-                'report_url': originality.get('scan_url')
-            },
-            'word_count': word_count
+            "success": True,
+            "article": article,
+            "word_count": word_count
         })
         
     except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/generate-general', methods=['POST'])
-def generate_general_endpoint():
+@app.route('/api/generate-general-article', methods=['POST'])
+def api_generate_general_article():
     """Generate general article"""
     try:
         data = request.json
-        
-        onderwerp = data.get('topic')
-        word_count = data.get('word_count', 500)
-        extra = data.get('extra', '')
+        onderwerp = data.get('onderwerp', '').strip()
+        word_count = int(data.get('word_count', 500))
+        extra = data.get('extra', '').strip()
+        model = data.get('model', 'gpt-4o')
         
         if not onderwerp:
-            return jsonify({
-                'success': False,
-                'error': 'Onderwerp is verplicht'
-            }), 400
+            return jsonify({"error": "Topic is required"}), 400
         
-        print(f"Generating general article: {onderwerp}")
-        article = generate_general_article(onderwerp, word_count, extra)
+        article = generate_general_article(onderwerp, word_count, extra, model)
         
-        article_text = re.sub(r'<[^>]+>', '', article)
-        article_text = article_text.replace('</h1>', '\n').replace('</h2>', '\n').replace('</h3>', '\n').replace('</p>', '\n\n')
-        article_text = re.sub(r'\n\n+', '\n\n', article_text).strip()
-        
-        word_count_actual = count_words(article)
-        print(f"Article generated: {word_count_actual} words")
-        
-        print("Checking originality...")
-        originality = check_originality(article)
+        # Count words
+        text_content = re.sub(r'<[^>]+>', '', article)
+        actual_word_count = len(text_content.split())
         
         return jsonify({
-            'success': True,
-            'article_html': article,
-            'article_text': article_text,
-            'topic': onderwerp,
-            'originality_data': {
-                'human_score': originality['human_score'],
-                'ai_score': originality['ai_score'],
-                'report_url': originality.get('scan_url')
-            },
-            'word_count': word_count_actual
+            "success": True,
+            "article": article,
+            "word_count": actual_word_count
         })
         
     except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/refine-article', methods=['POST'])
-def refine_article_endpoint():
+@app.route('/api/refine-article', methods=['POST'])
+def api_refine_article():
     """Refine article based on user request"""
     try:
         data = request.json
-        
-        article = data.get('article')
-        instruction = data.get('instruction')
-        topic = data.get('topic', 'Artikel')
+        article = data.get('article', '').strip()
+        topic = data.get('topic', '').strip()
+        user_request = data.get('request', '').strip()
         anchors = data.get('anchors', {})
+        model = data.get('model', 'gpt-4o')
         
-        if not all([article, instruction]):
-            return jsonify({
-                'success': False,
-                'error': 'Ontbrekende gegevens'
-            }), 400
+        if not all([article, user_request]):
+            return jsonify({"error": "Article and request are required"}), 400
         
-        print(f"Refining article: {instruction}")
-        refined_article = refine_article(article, topic, anchors, instruction, [])
+        refined_article = refine_article(article, topic, anchors, user_request, model=model)
         
-        article_text = re.sub(r'<[^>]+>', '', refined_article)
-        article_text = article_text.replace('</h1>', '\n').replace('</h2>', '\n').replace('</h3>', '\n').replace('</p>', '\n\n')
-        article_text = re.sub(r'\n\n+', '\n\n', article_text).strip()
-        
-        word_count = count_words(refined_article)
-        print(f"Article refined: {word_count} words")
-        
-        print("Checking originality...")
-        originality = check_originality(refined_article)
+        # Count words
+        text_content = re.sub(r'<[^>]+>', '', refined_article)
+        word_count = len(text_content.split())
         
         return jsonify({
-            'success': True,
-            'article_html': refined_article,
-            'article_text': article_text,
-            'originality_data': {
-                'human_score': originality['human_score'],
-                'ai_score': originality['ai_score'],
-                'report_url': originality.get('scan_url')
-            },
-            'word_count': word_count
+            "success": True,
+            "article": refined_article,
+            "word_count": word_count
         })
         
     except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-# ============= ARTICLE STORAGE =============
-
-@app.route('/save-article', methods=['POST'])
-def save_article():
-    """Save article to database"""
+@app.route('/api/check-originality', methods=['POST'])
+def api_check_originality():
+    """Check content originality"""
     try:
         data = request.json
+        content = data.get('content', '').strip()
         
-        title = data.get('title')
-        content_html = data.get('content_html')
-        content_text = data.get('content_text')
-        article_type = data.get('article_type', 'linkbuilding')
-        anchor1 = data.get('anchor1', '')
-        url1 = data.get('url1', '')
-        anchor2 = data.get('anchor2', '')
-        url2 = data.get('url2', '')
-        word_count = data.get('word_count', 0)
-        human_score = data.get('human_score', 0)
-        ai_score = data.get('ai_score', 0)
+        if not content:
+            return jsonify({"error": "Content is required"}), 400
         
-        if not all([title, content_html, content_text]):
-            return jsonify({
-                'success': False,
-                'error': 'Titel en content zijn verplicht'
-            }), 400
-        
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO articles (title, content_html, content_text, article_type, anchor1, url1, anchor2, url2, word_count, human_score, ai_score)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (title, content_html, content_text, article_type, anchor1, url1, anchor2, url2, word_count, human_score, ai_score))
-        conn.commit()
-        article_id = cursor.lastrowid
-        conn.close()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Artikel opgeslagen!',
-            'article_id': article_id
-        })
+        result = check_originality(content)
+        return jsonify(result)
         
     except Exception as e:
-        print(f"Error saving article: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/get-articles', methods=['GET'])
+@app.route('/api/search-images', methods=['POST'])
+def api_search_images():
+    """Search for images on Pixabay"""
+    try:
+        data = request.json
+        query = data.get('query', '').strip()
+        
+        if not query:
+            return jsonify({"error": "Search query is required"}), 400
+        
+        result = search_pixabay_images(query)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/generate-dalle-image', methods=['POST'])
+def api_generate_dalle_image():
+    """Generate image using DALL-E 3"""
+    try:
+        data = request.json
+        prompt = data.get('prompt', '').strip()
+        
+        if not prompt:
+            return jsonify({"error": "Prompt is required"}), 400
+        
+        result = generate_dalle_image(prompt)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================================================================
+# ARTICLE STORAGE ENDPOINTS
+# ============================================================================
+
+@app.route('/api/articles', methods=['GET'])
 def get_articles():
     """Get all saved articles"""
     try:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM articles ORDER BY created_at DESC')
-        rows = cursor.fetchall()
+        
+        cursor.execute('''
+            SELECT * FROM articles 
+            ORDER BY created_at DESC
+        ''')
+        
+        articles = [dict(row) for row in cursor.fetchall()]
         conn.close()
         
-        articles = []
-        for row in rows:
-            articles.append({
-                'id': row['id'],
-                'title': row['title'],
-                'content_html': row['content_html'],
-                'content_text': row['content_text'],
-                'article_type': row['article_type'],
-                'anchor1': row['anchor1'],
-                'url1': row['url1'],
-                'anchor2': row['anchor2'],
-                'url2': row['url2'],
-                'word_count': row['word_count'],
-                'human_score': row['human_score'],
-                'ai_score': row['ai_score'],
-                'created_at': row['created_at'],
-                'updated_at': row['updated_at']
-            })
-        
-        return jsonify({
-            'success': True,
-            'articles': articles
-        })
+        return jsonify({"success": True, "articles": articles})
         
     except Exception as e:
-        print(f"Error getting articles: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/delete-article/<int:article_id>', methods=['DELETE'])
-def delete_article(article_id):
-    """Delete an article"""
+@app.route('/api/articles/<int:article_id>', methods=['GET'])
+def get_article(article_id):
+    """Get specific article"""
     try:
         conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM articles WHERE id = ?', (article_id,))
+        
+        cursor.execute('SELECT * FROM articles WHERE id = ?', (article_id,))
+        article = cursor.fetchone()
+        conn.close()
+        
+        if article:
+            return jsonify({"success": True, "article": dict(article)})
+        else:
+            return jsonify({"error": "Article not found"}), 404
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/articles', methods=['POST'])
+def save_article():
+    """Save new article"""
+    try:
+        data = request.json
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Extract text content
+        content_html = data.get('content_html', '')
+        content_text = re.sub(r'<[^>]+>', '', content_html)
+        word_count = len(content_text.split())
+        
+        cursor.execute('''
+            INSERT INTO articles (
+                title, content_html, content_text, article_type,
+                anchor1, url1, anchor2, url2,
+                word_count, human_score, ai_score
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data.get('title', ''),
+            content_html,
+            content_text,
+            data.get('article_type', 'linkbuilding'),
+            data.get('anchor1'),
+            data.get('url1'),
+            data.get('anchor2'),
+            data.get('url2'),
+            word_count,
+            data.get('human_score'),
+            data.get('ai_score')
+        ))
+        
+        article_id = cursor.lastrowid
         conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'Artikel verwijderd!'
-        })
+        return jsonify({"success": True, "article_id": article_id})
         
     except Exception as e:
-        print(f"Error deleting article: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-# ============= WORDPRESS SITES =============
+@app.route('/api/articles/<int:article_id>', methods=['PUT'])
+def update_article(article_id):
+    """Update existing article"""
+    try:
+        data = request.json
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Extract text content
+        content_html = data.get('content_html', '')
+        content_text = re.sub(r'<[^>]+>', '', content_html)
+        word_count = len(content_text.split())
+        
+        cursor.execute('''
+            UPDATE articles SET
+                title = ?,
+                content_html = ?,
+                content_text = ?,
+                anchor1 = ?,
+                url1 = ?,
+                anchor2 = ?,
+                url2 = ?,
+                word_count = ?,
+                human_score = ?,
+                ai_score = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (
+            data.get('title', ''),
+            content_html,
+            content_text,
+            data.get('anchor1'),
+            data.get('url1'),
+            data.get('anchor2'),
+            data.get('url2'),
+            word_count,
+            data.get('human_score'),
+            data.get('ai_score'),
+            article_id
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/wordpress-sites', methods=['GET'])
+@app.route('/api/articles/<int:article_id>', methods=['DELETE'])
+def delete_article(article_id):
+    """Delete article"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM articles WHERE id = ?', (article_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================================================================
+# WORDPRESS SITES MANAGEMENT
+# ============================================================================
+
+@app.route('/api/wordpress-sites', methods=['GET'])
 def get_wordpress_sites():
     """Get all WordPress sites"""
     try:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM wordpress_sites ORDER BY site_name')
-        rows = cursor.fetchall()
+        
+        cursor.execute('SELECT id, site_name, site_url, username FROM wordpress_sites ORDER BY site_name')
+        sites = [dict(row) for row in cursor.fetchall()]
         conn.close()
         
-        sites = []
-        for row in rows:
-            sites.append({
-                'id': row['id'],
-                'site_name': row['site_name'],
-                'site_url': row['site_url'],
-                'username': row['username'],
-                'created_at': row['created_at']
-            })
-        
-        return jsonify({
-            'success': True,
-            'sites': sites
-        })
+        return jsonify({"success": True, "sites": sites})
         
     except Exception as e:
-        print(f"Error getting sites: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/wordpress-sites', methods=['POST'])
+@app.route('/api/wordpress-sites', methods=['POST'])
 def add_wordpress_site():
     """Add new WordPress site"""
     try:
         data = request.json
         
-        site_name = data.get('site_name')
-        site_url = data.get('site_url')
-        username = data.get('username')
-        app_password = data.get('app_password')
-        
-        if not all([site_name, site_url, username, app_password]):
-            return jsonify({
-                'success': False,
-                'error': 'Alle velden zijn verplicht'
-            }), 400
-        
-        # Ensure site_url ends with /
-        if not site_url.endswith('/'):
-            site_url += '/'
-        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         cursor.execute('''
             INSERT INTO wordpress_sites (site_name, site_url, username, app_password)
             VALUES (?, ?, ?, ?)
-        ''', (site_name, site_url, username, app_password))
-        conn.commit()
+        ''', (
+            data.get('site_name'),
+            data.get('site_url'),
+            data.get('username'),
+            data.get('app_password')
+        ))
+        
         site_id = cursor.lastrowid
+        conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'WordPress site toegevoegd!',
-            'site_id': site_id
-        })
+        return jsonify({"success": True, "site_id": site_id})
         
-    except sqlite3.IntegrityError:
-        return jsonify({
-            'success': False,
-            'error': 'Deze site naam bestaat al'
-        }), 400
     except Exception as e:
-        print(f"Error adding site: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/wordpress-sites/<int:site_id>', methods=['DELETE'])
+@app.route('/api/wordpress-sites/<int:site_id>', methods=['DELETE'])
 def delete_wordpress_site(site_id):
     """Delete WordPress site"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         cursor.execute('DELETE FROM wordpress_sites WHERE id = ?', (site_id,))
+        
         conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'WordPress site verwijderd!'
-        })
+        return jsonify({"success": True})
         
     except Exception as e:
-        print(f"Error deleting site: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-# ============= INTERNAL LINKS =============
+@app.route('/api/wordpress-sites/<int:site_id>/posts', methods=['GET'])
+def get_wordpress_posts(site_id):
+    """Fetch posts from WordPress site"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM wordpress_sites WHERE id = ?', (site_id,))
+        site = cursor.fetchone()
+        conn.close()
+        
+        if not site:
+            return jsonify({"error": "Site not found"}), 404
+        
+        posts = fetch_wordpress_posts(site['site_url'], site['username'], site['app_password'])
+        
+        return jsonify({"success": True, "posts": posts})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/internal-links/<int:site_id>', methods=['GET'])
+# ============================================================================
+# INTERNAL & AFFILIATE LINKS MANAGEMENT
+# ============================================================================
+
+@app.route('/api/wordpress-sites/<int:site_id>/internal-links', methods=['GET'])
 def get_internal_links(site_id):
     """Get internal links for a site"""
     try:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        
         cursor.execute('SELECT * FROM internal_links WHERE site_id = ? ORDER BY anchor_text', (site_id,))
-        rows = cursor.fetchall()
+        links = [dict(row) for row in cursor.fetchall()]
         conn.close()
         
-        links = []
-        for row in rows:
-            links.append({
-                'id': row['id'],
-                'anchor_text': row['anchor_text'],
-                'url': row['url']
-            })
-        
-        return jsonify({
-            'success': True,
-            'links': links
-        })
+        return jsonify({"success": True, "links": links})
         
     except Exception as e:
-        print(f"Error getting internal links: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/internal-links/<int:site_id>', methods=['POST'])
+@app.route('/api/wordpress-sites/<int:site_id>/internal-links', methods=['POST'])
 def add_internal_link(site_id):
-    """Add internal link for a site"""
+    """Add internal link"""
     try:
         data = request.json
         
-        anchor_text = data.get('anchor_text')
-        url = data.get('url')
-        
-        if not all([anchor_text, url]):
-            return jsonify({
-                'success': False,
-                'error': 'Anchor tekst en URL zijn verplicht'
-            }), 400
-        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         cursor.execute('''
             INSERT INTO internal_links (site_id, anchor_text, url)
             VALUES (?, ?, ?)
-        ''', (site_id, anchor_text, url))
-        conn.commit()
+        ''', (site_id, data.get('anchor_text'), data.get('url')))
+        
         link_id = cursor.lastrowid
+        conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'Interne link toegevoegd!',
-            'link_id': link_id
-        })
+        return jsonify({"success": True, "link_id": link_id})
         
     except Exception as e:
-        print(f"Error adding internal link: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/internal-links/<int:link_id>', methods=['DELETE'])
+@app.route('/api/internal-links/<int:link_id>', methods=['DELETE'])
 def delete_internal_link(link_id):
     """Delete internal link"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         cursor.execute('DELETE FROM internal_links WHERE id = ?', (link_id,))
+        
         conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'Interne link verwijderd!'
-        })
+        return jsonify({"success": True})
         
     except Exception as e:
-        print(f"Error deleting internal link: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-# ============= AFFILIATE LINKS =============
-
-@app.route('/affiliate-links/<int:site_id>', methods=['GET'])
+@app.route('/api/wordpress-sites/<int:site_id>/affiliate-links', methods=['GET'])
 def get_affiliate_links(site_id):
     """Get affiliate links for a site"""
     try:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        
         cursor.execute('SELECT * FROM affiliate_links WHERE site_id = ? ORDER BY anchor_text', (site_id,))
-        rows = cursor.fetchall()
+        links = [dict(row) for row in cursor.fetchall()]
         conn.close()
         
-        links = []
-        for row in rows:
-            links.append({
-                'id': row['id'],
-                'anchor_text': row['anchor_text'],
-                'url': row['url']
-            })
-        
-        return jsonify({
-            'success': True,
-            'links': links
-        })
+        return jsonify({"success": True, "links": links})
         
     except Exception as e:
-        print(f"Error getting affiliate links: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/affiliate-links/<int:site_id>', methods=['POST'])
+@app.route('/api/wordpress-sites/<int:site_id>/affiliate-links', methods=['POST'])
 def add_affiliate_link(site_id):
-    """Add affiliate link for a site"""
+    """Add affiliate link"""
     try:
         data = request.json
         
-        anchor_text = data.get('anchor_text')
-        url = data.get('url')
-        
-        if not all([anchor_text, url]):
-            return jsonify({
-                'success': False,
-                'error': 'Anchor tekst en URL zijn verplicht'
-            }), 400
-        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         cursor.execute('''
             INSERT INTO affiliate_links (site_id, anchor_text, url)
             VALUES (?, ?, ?)
-        ''', (site_id, anchor_text, url))
-        conn.commit()
+        ''', (site_id, data.get('anchor_text'), data.get('url')))
+        
         link_id = cursor.lastrowid
+        conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'Affiliate link toegevoegd!',
-            'link_id': link_id
-        })
+        return jsonify({"success": True, "link_id": link_id})
         
     except Exception as e:
-        print(f"Error adding affiliate link: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/affiliate-links/<int:link_id>', methods=['DELETE'])
+@app.route('/api/affiliate-links/<int:link_id>', methods=['DELETE'])
 def delete_affiliate_link(link_id):
     """Delete affiliate link"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         cursor.execute('DELETE FROM affiliate_links WHERE id = ?', (link_id,))
+        
         conn.commit()
         conn.close()
         
-        return jsonify({
-            'success': True,
-            'message': 'Affiliate link verwijderd!'
-        })
+        return jsonify({"success": True})
         
     except Exception as e:
-        print(f"Error deleting affiliate link: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-# ============= WORDPRESS PUBLISHING =============
-
-@app.route('/publish-to-wordpress', methods=['POST'])
-def publish_to_wordpress():
-    """Publish article to WordPress"""
-    try:
-        data = request.json
-        
-        site_id = data.get('site_id')
-        title = data.get('title')
-        content = data.get('content')
-        status = data.get('status', 'draft')  # draft or publish
-        
-        if not all([site_id, title, content]):
-            return jsonify({
-                'success': False,
-                'error': 'Site, titel en content zijn verplicht'
-            }), 400
-        
-        # Get site credentials
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM wordpress_sites WHERE id = ?', (site_id,))
-        site = cursor.fetchone()
-        conn.close()
-        
-        if not site:
-            return jsonify({
-                'success': False,
-                'error': 'WordPress site niet gevonden'
-            }), 404
-        
-        # Publish to WordPress
-        wp_url = f"{site['site_url']}wp-json/wp/v2/posts"
-        
-        auth = (site['username'], site['app_password'])
-        
-        post_data = {
-            'title': title,
-            'content': content,
-            'status': status
-        }
-        
-        response = requests.post(wp_url, json=post_data, auth=auth)
-        response.raise_for_status()
-        
-        post_info = response.json()
-        
-        return jsonify({
-            'success': True,
-            'message': f'Artikel gepubliceerd als {status}!',
-            'post_id': post_info.get('id'),
-            'post_url': post_info.get('link')
-        })
-        
-    except requests.exceptions.HTTPError as e:
-        print(f"WordPress API Error: {e}")
-        return jsonify({
-            'success': False,
-            'error': f'WordPress fout: {str(e)}'
-        }), 500
-    except Exception as e:
-        print(f"Error publishing to WordPress: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    print("🚀 Starting Writgo Academy Content Generator...")
-    print("🎨 BRANDING: Writgo Academy kleuren")
-    print("📝 LINKBUILDING: Artikelen met anchor teksten")
-    print("✍️  ALGEMENE SCHRIJVER: Vrije artikelen")
-    print("🌐 WORDPRESS: Multi-site beheer met app wachtwoorden")
-    print("🔗 INTERNE LINKS: Per website beheren")
-    print("💰 AFFILIATE LINKS: Per website beheren")
-    print("🚫 VERBODEN: voordelen, voordelen van, 'Dat is best een opluchting, toch?'")
-    print(f"📍 Running on port: {port}")
-    print("")
-    if not client:
-        print("⚠️  WARNING: OpenAI API key not configured!")
+    port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=False)
