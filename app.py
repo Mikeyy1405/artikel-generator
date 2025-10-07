@@ -833,21 +833,34 @@ Hou het KORT en PRAKTISCH."""
 
 def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens=2000):
     """Call OpenAI API with correct parameters based on model"""
-    # o1 models use max_completion_tokens and don't support temperature
-    if model in ["o1-preview", "o1-mini"]:
-        return client.chat.completions.create(
-            model=model,
-            messages=messages,
-            max_completion_tokens=max_tokens
-        )
+
+    def uses_max_completion_tokens(model_name: str) -> bool:
+        """Return True when the model expects the `max_completion_tokens` parameter."""
+        if model_name in ["o1-preview", "o1-mini"]:
+            return True
+        # GPT-5 modellen ondersteunen geen `max_tokens` parameter meer
+        return model_name.startswith("gpt-5")
+
+    if uses_max_completion_tokens(model):
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "max_completion_tokens": max_tokens
+        }
+
+        # Alleen o1 modellen negeren temperature volgens OpenAI specificaties
+        if not model.startswith("o1"):
+            kwargs["temperature"] = temperature
+
+        return client.chat.completions.create(**kwargs)
+
     # Regular models use max_tokens
-    else:
-        return client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
+    return client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
 
 def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="gpt-4o", max_retries=3):
     """Generate linkbuilding article with forbidden words check"""
