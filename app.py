@@ -104,8 +104,7 @@ def load_api_keys():
         'openai': None,
         'anthropic': None,
         'originality': None,
-        'pixabay': None,
-        'perplexity': None
+        'pixabay': None
     }
     
     # First, try to load from environment variables (for Render deployment)
@@ -113,7 +112,6 @@ def load_api_keys():
     keys['anthropic'] = os.getenv('ANTHROPIC_API_KEY')
     keys['originality'] = os.getenv('ORIGINALITY_API_KEY')
     keys['pixabay'] = os.getenv('PIXABAY_API_KEY')
-    keys['perplexity'] = os.getenv('PERPLEXITY_API_KEY')
     
     # If not found in env vars, try loading from secrets file (for local development)
     secrets_path = '/home/ubuntu/.config/abacusai_auth_secrets.json'
@@ -141,11 +139,6 @@ def load_api_keys():
             if not keys['pixabay'] and 'pixabay' in secrets and 'secrets' in secrets['pixabay']:
                 if 'api_key' in secrets['pixabay']['secrets']:
                     keys['pixabay'] = secrets['pixabay']['secrets']['api_key']['value']
-            
-            # Perplexity
-            if not keys['perplexity'] and 'perplexity' in secrets and 'secrets' in secrets['perplexity']:
-                if 'api_key' in secrets['perplexity']['secrets']:
-                    keys['perplexity'] = secrets['perplexity']['secrets']['api_key']['value']
         except Exception as e:
             print(f"⚠️  Error loading API keys from secrets file: {e}")
     
@@ -156,7 +149,6 @@ OPENAI_API_KEY = api_keys['openai']
 ANTHROPIC_API_KEY = api_keys['anthropic']
 ORIGINALITY_API_KEY = api_keys['originality']
 PIXABAY_API_KEY = api_keys['pixabay']
-PERPLEXITY_API_KEY = api_keys.get('perplexity')  # Safe get
 
 # Initialize OpenAI client
 client = None
@@ -188,11 +180,6 @@ if PIXABAY_API_KEY:
     print("✅ Pixabay API key loaded")
 else:
     print("⚠️  Pixabay API key not found")
-
-if PERPLEXITY_API_KEY:
-    print("✅ Perplexity API key loaded")
-else:
-    print("⚠️  Perplexity API key not found")
 
 # FORBIDDEN PHRASES - Comprehensive list with variations
 FORBIDDEN_PHRASES = [
@@ -239,9 +226,9 @@ def call_claude_api(prompt, system_prompt, model="claude-sonnet-4", max_tokens=4
     
     # Map friendly names to actual model IDs
     model_mapping = {
-        "claude-sonnet-4": "claude-3-5-sonnet-20241022",  # Latest available
-        "claude-opus-4": "claude-3-opus-20240229",  # Latest opus
-        "claude-sonnet-3.7": "claude-3-5-sonnet-20241022",
+        "claude-sonnet-4": "claude-sonnet-4-20250514",
+        "claude-opus-4": "claude-opus-4-20250514",
+        "claude-sonnet-3.7": "claude-3-7-sonnet-20250219",
         "claude-sonnet-3.5": "claude-3-5-sonnet-20241022",
         "claude-haiku-3.5": "claude-3-5-haiku-20241022"
     }
@@ -262,114 +249,6 @@ def call_claude_api(prompt, system_prompt, model="claude-sonnet-4", max_tokens=4
         return message.content[0].text
     except Exception as e:
         raise Exception(f"Claude API error: {str(e)}")
-
-def perplexity_research(topic, num_results=5):
-    """
-    Use Perplexity AI to research a topic and gather information from top Google results
-    
-    Args:
-        topic: The topic to research
-        num_results: Number of sources to consider (default 5)
-    
-    Returns:
-        dict with 'summary', 'sources', and 'key_points'
-    """
-    if not PERPLEXITY_API_KEY:
-        return {
-            'summary': '',
-            'sources': [],
-            'key_points': [],
-            'error': 'Perplexity API key not configured'
-        }
-    
-    try:
-        # Perplexity API endpoint
-        url = "https://api.perplexity.ai/chat/completions"
-        
-        headers = {
-            "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        
-        # Research prompt
-        research_prompt = f"""Onderzoek het volgende onderwerp grondig: "{topic}"
-
-Geef me:
-1. Een uitgebreide samenvatting van de belangrijkste informatie
-2. De top {num_results} belangrijkste punten die ik moet behandelen
-3. Actuele trends en ontwikkelingen
-4. Wat de beste artikelen over dit onderwerp bespreken
-5. Unieke invalshoeken die ik kan gebruiken
-
-Wees specifiek en geef concrete informatie die ik kan gebruiken om een beter artikel te schrijven dan wat er al online staat."""
-
-        payload = {
-            "model": "llama-3.1-sonar-large-128k-online",  # Perplexity's online search model
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "Je bent een expert content researcher. Zoek actuele, betrouwbare informatie en geef concrete, bruikbare inzichten."
-                },
-                {
-                    "role": "user",
-                    "content": research_prompt
-                }
-            ],
-            "temperature": 0.2,
-            "top_p": 0.9,
-            "return_citations": True,
-            "search_recency_filter": "month",  # Focus on recent content
-            "stream": False
-        }
-        
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        
-        data = response.json()
-        
-        # Extract research results
-        content = data['choices'][0]['message']['content']
-        citations = data.get('citations', [])
-        
-        # Parse key points from the response
-        key_points = []
-        lines = content.split('\n')
-        for line in lines:
-            line = line.strip()
-            if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
-                # Remove numbering/bullets
-                clean_line = re.sub(r'^[\d\.\-•\*\s]+', '', line).strip()
-                if len(clean_line) > 20:  # Only substantial points
-                    key_points.append(clean_line)
-        
-        return {
-            'summary': content,
-            'sources': citations[:num_results],  # Limit to requested number
-            'key_points': key_points[:10],  # Top 10 key points
-            'success': True
-        }
-        
-    except requests.exceptions.Timeout:
-        return {
-            'summary': '',
-            'sources': [],
-            'key_points': [],
-            'error': 'Perplexity API timeout - research took too long'
-        }
-    except requests.exceptions.RequestException as e:
-        return {
-            'summary': '',
-            'sources': [],
-            'key_points': [],
-            'error': f'Perplexity API error: {str(e)}'
-        }
-    except Exception as e:
-        return {
-            'summary': '',
-            'sources': [],
-            'key_points': [],
-            'error': f'Research error: {str(e)}'
-        }
 
 def generate_with_best_of_all(prompt, system_prompt, word_count=500):
     """
@@ -392,7 +271,7 @@ def generate_with_best_of_all(prompt, system_prompt, word_count=500):
     # 1. GPT-4.1 - Structure & SEO optimization
     try:
         if client:
-            response = call_openai_with_correct_params(
+            response = client.chat.completions.create(
                 model="gpt-4.1",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -501,12 +380,6 @@ KRITIEKE EISEN VOOR HET ONDERWERP:
 ✅ GEEN dubbele punten (:) of andere scheidingstekens
 ✅ GEEN jaartallen
 ✅ Geschikt als H1 titel voor een artikel
-
-❌ ABSOLUUT VERBODEN IN HET ONDERWERP:
-- "voordelen van"
-- "voordeel van"
-- "voor- en nadelen"
-- Gebruik alternatieven: "wat biedt", "waarom kiezen voor", "alles over", "gids voor"
 
 {extra_context}
 
@@ -621,12 +494,10 @@ Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}".
 ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
 
 # General AI writer prompt - ENHANCED with extra elements
-GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse SEO contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
+GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
 
 OPDRACHT:
-Schrijf een SEO-geoptimaliseerd artikel over: {onderwerp}
-
-{seo_instructions}
+Schrijf een artikel over: {onderwerp}
 
 {word_count_instruction}
 
@@ -673,11 +544,6 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
     if not client:
         raise Exception("OpenAI API key not configured")
     
-    # Check if "Best of All" mode - use GPT-4.1
-    if model == "best-of-all":
-        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
-        model = "gpt-4.1"
-    
     extra_context = ""
     if extra:
         extra_context = f"\nEXTRA CONTEXT:\n{extra}"
@@ -689,10 +555,10 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
     )
     
     try:
-        response = call_openai_with_correct_params(
+        response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen. ABSOLUUT VERBODEN: 'voordelen van', 'voordeel van'. Gebruik alternatieven zoals 'wat biedt', 'waarom kiezen voor', 'alles over'."},
+                {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.8,
@@ -705,53 +571,32 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
         topic = re.sub(r'\b20\d{2}\b', '', topic)
         topic = re.sub(r'\s+', ' ', topic).strip()
         
-        # Check for forbidden phrases in topic
-        forbidden_in_topic = ['voordelen van', 'voordeel van', 'voor- en nadelen']
-        topic_lower = topic.lower()
-        for phrase in forbidden_in_topic:
-            if phrase in topic_lower:
-                print(f"⚠️ Topic contains forbidden phrase '{phrase}', cleaning...")
-                # Replace with alternatives
-                topic = re.sub(r'\bvoordelen van\b', 'wat biedt', topic, flags=re.IGNORECASE)
-                topic = re.sub(r'\bvoordeel van\b', 'waarom kiezen voor', topic, flags=re.IGNORECASE)
-                topic = re.sub(r'\bvoor- en nadelen\b', 'alles over', topic, flags=re.IGNORECASE)
-                break
-        
         return topic
     except Exception as e:
         print(f"OpenAI Topic Generation Error: {e}")
         raise
 
-def extract_topic_from_urls(anchor1, url1, anchor2, url2, context="", placement_domain=""):
+def extract_topic_from_urls(anchor1, url1, anchor2, url2, context=""):
     """Extract topic suggestion from URLs and anchors using AI"""
     if not client:
         return None
     
     try:
-        # Build comprehensive context
-        full_context = f"""Analyseer deze linkbuilding informatie en suggereer een KORT en SPECIFIEK onderwerp voor een artikel.
+        prompt = f"""Analyseer deze linkbuilding informatie en suggereer een KORT en SPECIFIEK onderwerp voor een artikel.
 
 ANCHOR 1: {anchor1}
 URL 1: {url1}
 
 ANCHOR 2: {anchor2}
-URL 2: {url2}"""
+URL 2: {url2}
 
-        if placement_domain:
-            full_context += f"\n\nPLAATSINGS DOMEIN: {placement_domain}"
-        
-        if context:
-            full_context += f"\n\nEXTRA CONTEXT: {context}"
-
-        full_context += """
+{f"EXTRA CONTEXT: {context}" if context else ""}
 
 Geef ALLEEN het onderwerp terug, zonder uitleg. Het onderwerp moet:
 - Kort zijn (max 5-7 woorden)
-- Relevant zijn voor BEIDE anchors EN urls
+- Relevant zijn voor beide anchors
 - Natuurlijk klinken als artikel titel
 - In het Nederlands zijn
-- GEEN "voordelen van" of "voordeel van" bevatten
-- Gebruik alternatieven zoals "wat biedt", "waarom kiezen voor", "alles over"
 
 Voorbeeld output: "Kleine lease auto voor zakelijk gebruik"
 """
@@ -759,8 +604,8 @@ Voorbeeld output: "Kleine lease auto voor zakelijk gebruik"
         response = call_openai_with_correct_params(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Je bent een SEO expert die perfecte artikel onderwerpen bedenkt. VERBODEN: 'voordelen van', 'voordeel van'. Gebruik alternatieven."},
-                {"role": "user", "content": full_context}
+                {"role": "system", "content": "Je bent een SEO expert die perfecte artikel onderwerpen bedenkt."},
+                {"role": "user", "content": prompt}
             ],
             temperature=0.7,
             max_tokens=50
@@ -835,14 +680,14 @@ Hou het KORT en PRAKTISCH."""
 
 def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens=2000):
     """Call OpenAI API with correct parameters based on model"""
-    # o1 models use max_completion_tokens and don't support temperature
-    if model in ["o1-preview", "o1-mini"]:
+    # GPT-5 and newer models use max_completion_tokens instead of max_tokens
+    if model in ["gpt-5", "o1-preview", "o1-mini"]:
         return client.chat.completions.create(
             model=model,
             messages=messages,
+            temperature=temperature,
             max_completion_tokens=max_tokens
         )
-    # Regular models use max_tokens
     else:
         return client.chat.completions.create(
             model=model,
@@ -855,11 +700,6 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
     """Generate linkbuilding article with forbidden words check"""
     if not client:
         raise Exception("OpenAI API key not configured")
-    
-    # Check if "Best of All" mode - use GPT-4.1 (best available model)
-    if model == "best-of-all":
-        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
-        model = "gpt-4.1"
     
     extra_context = ""
     if extra:
@@ -917,18 +757,17 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
             if attempt == max_retries - 1:
                 raise
 
-def generate_general_article(onderwerp, word_count=800, extra="", model="gpt-4o", 
-                            elements=None, max_retries=3, use_research=False,
-                            keyword="", seo_title="", meta_description=""):
+def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", 
+                            elements=None, max_retries=3):
     """
-    Generate SEO-optimized article with optional extra elements
+    Generate general article with optional extra elements
     Supports GPT models, Claude models, and "Best of All" combination
     
     Args:
         onderwerp: Article topic
         word_count: Target word count
         extra: Extra context
-        model: Model to use (gpt-4o, gpt-4.1, claude-sonnet-4, claude-opus-4, etc., or "best-of-all")
+        model: Model to use (gpt-4o, gpt-4.1, gpt-5, claude-sonnet-4, claude-opus-4, etc., or "best-of-all")
         elements: Dict with optional elements:
             - include_table: bool
             - include_faq: bool
@@ -938,46 +777,10 @@ def generate_general_article(onderwerp, word_count=800, extra="", model="gpt-4o"
             - dalle_style: str (style for DALL-E images)
             - youtube_video: bool
         max_retries: Max retry attempts
-        use_research: If True, use Perplexity to research topic first
-        keyword: Main SEO keyword
-        seo_title: SEO title (max 55 chars)
-        meta_description: Meta description (max 130 chars)
     """
     # Default elements
     if elements is None:
         elements = {}
-    
-    # Perform research if requested
-    research_context = ""
-    research_sources = []
-    if use_research and PERPLEXITY_API_KEY:
-        print(f"🔍 Researching topic: {onderwerp}")
-        research_result = perplexity_research(onderwerp, num_results=5)
-        
-        if research_result.get('success'):
-            research_context = f"""
-RESEARCH RESULTATEN (gebruik deze informatie om een beter artikel te schrijven):
-
-{research_result['summary']}
-
-BELANGRIJKE PUNTEN OM TE BEHANDELEN:
-{chr(10).join(f"• {point}" for point in research_result['key_points'])}
-
-BRONNEN (voeg deze toe aan het einde van het artikel):
-{chr(10).join(f"• {source}" for source in research_result['sources'])}
-
-Gebruik deze research om:
-1. Actuele en accurate informatie te geven
-2. Unieke invalshoeken te vinden die andere artikelen niet hebben
-3. Diepgaander in te gaan op belangrijke aspecten
-4. Betere content te maken dan wat er al online staat
-"""
-            research_sources = research_result['sources']
-            print(f"✅ Research completed: {len(research_result['key_points'])} key points, {len(research_sources)} sources")
-        else:
-            print(f"⚠️ Research failed: {research_result.get('error', 'Unknown error')}")
-    elif use_research and not PERPLEXITY_API_KEY:
-        print("⚠️ Research requested but Perplexity API key not configured")
     
     word_count_instruction = f"Schrijf een artikel van ongeveer {word_count} woorden."
     
@@ -1048,28 +851,8 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
     if extra:
         extra_context = f"\nEXTRA CONTEXT:\n{extra}"
     
-    # Add research context if available
-    if research_context:
-        extra_context += f"\n\n{research_context}"
-    
-    # Build SEO instructions
-    seo_instructions = ""
-    if keyword:
-        seo_instructions += f"\n🎯 MAIN KEYWORD: {keyword}"
-        seo_instructions += f"\n✅ Gebruik dit keyword natuurlijk door het artikel (niet geforceerd)"
-        seo_instructions += f"\n✅ Gebruik het keyword in de H1, enkele H2's en door de tekst"
-    
-    if seo_title:
-        seo_instructions += f"\n\n📝 SEO TITEL: {seo_title}"
-        seo_instructions += f"\n✅ Gebruik deze titel als H1 (of een variatie ervan)"
-    
-    if meta_description:
-        seo_instructions += f"\n\n📄 META OMSCHRIJVING: {meta_description}"
-        seo_instructions += f"\n✅ Zorg dat de intro aansluit bij deze omschrijving"
-    
     prompt = GENERAL_ARTICLE_PROMPT.format(
         onderwerp=onderwerp,
-        seo_instructions=seo_instructions,
         word_count_instruction=word_count_instruction,
         extra_elements=extra_elements_instruction,
         extra_context=extra_context
@@ -1191,11 +974,6 @@ def refine_article(article, topic, anchors, user_request, history=[], model="gpt
     if not client:
         raise Exception("OpenAI API key not configured")
     
-    # Check if "Best of All" mode - use GPT-4.1
-    if model == "best-of-all":
-        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
-        model = "gpt-4.1"
-    
     article_plain = re.sub(r'<[^>]+>', '', article)
     article_plain = article_plain.replace('<h1>', 'H1: ').replace('</h1>', '')
     article_plain = article_plain.replace('<h2>', 'H2: ').replace('</h2>', '')
@@ -1222,7 +1000,7 @@ Pas het artikel aan volgens de vraag van de gebruiker."""
     ]
     
     try:
-        response = call_openai_with_correct_params(
+        response = client.chat.completions.create(
             model=model,
             messages=messages,
             temperature=0.8,
@@ -1594,12 +1372,11 @@ def api_suggest_topic():
         anchor2 = data.get('anchor2', '').strip()
         url2 = data.get('url2', '').strip()
         context = data.get('context', '').strip()
-        placement_domain = data.get('placement_domain', '').strip()
         
         if not all([anchor1, url1, anchor2, url2]):
             return jsonify({"error": "All anchors and URLs are required"}), 400
         
-        topic = extract_topic_from_urls(anchor1, url1, anchor2, url2, context, placement_domain)
+        topic = extract_topic_from_urls(anchor1, url1, anchor2, url2, context)
         
         if topic:
             return jsonify({"success": True, "topic": topic})
@@ -1614,14 +1391,13 @@ def api_generate_article():
     """Generate linkbuilding article"""
     try:
         data = request.json
-        onderwerp = data.get('topic', data.get('onderwerp', '')).strip()
+        onderwerp = data.get('onderwerp', '').strip()
         anchor1 = data.get('anchor1', '').strip()
         url1 = data.get('url1', '').strip()
         anchor2 = data.get('anchor2', '').strip()
         url2 = data.get('url2', '').strip()
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
-        word_count = int(data.get('word_count', 800))
         placement_domain = data.get('placement_domain', '').strip()
         
         # Add domain analysis to extra context if provided
@@ -1630,63 +1406,49 @@ def api_generate_article():
             if domain_analysis:
                 extra += domain_analysis
         
-        if not all([onderwerp, anchor1, url1]):
-            return jsonify({"success": False, "error": "Topic, anchor1 and url1 are required"}), 400
+        if not all([onderwerp, anchor1, url1, anchor2, url2]):
+            return jsonify({"error": "All fields are required"}), 400
         
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
         # Count words
         text_content = re.sub(r'<[^>]+>', '', article)
-        actual_word_count = len(text_content.split())
+        word_count = len(text_content.split())
         
         return jsonify({
             "success": True,
-            "content_html": article,
             "article": article,
-            "word_count": actual_word_count
+            "word_count": word_count
         })
         
     except Exception as e:
-        print(f"❌ Error in generate-article: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/generate-general-article', methods=['POST'])
 def api_generate_general_article():
-    """Generate SEO-optimized article with optional extra elements"""
+    """Generate general article with optional extra elements"""
     try:
         data = request.json
-        onderwerp = data.get('topic', data.get('onderwerp', '')).strip()
-        keyword = data.get('keyword', '').strip()
-        seo_title = data.get('seo_title', '').strip()
-        meta_description = data.get('meta_description', '').strip()
-        word_count = int(data.get('word_count', 800))
+        onderwerp = data.get('onderwerp', '').strip()
+        word_count = int(data.get('word_count', 500))
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
-        use_research = data.get('use_research', False)
         
         # Extract extra elements
         elements = {
-            'include_table': data.get('add_table', data.get('include_table', False)),
-            'include_faq': data.get('add_faq', data.get('include_faq', False)),
-            'include_bold': data.get('include_bold', True),
-            'pixabay_images': int(data.get('add_images', 0)) if data.get('add_images') else int(data.get('pixabay_images', 0)),
+            'include_table': data.get('include_table', False),
+            'include_faq': data.get('include_faq', False),
+            'include_bold': data.get('include_bold', False),
+            'pixabay_images': int(data.get('pixabay_images', 0)),
             'dalle_images': int(data.get('dalle_images', 0)),
             'dalle_style': data.get('dalle_style', 'realistic photo'),
             'youtube_video': data.get('youtube_video', False)
         }
         
         if not onderwerp:
-            return jsonify({"success": False, "error": "Topic is required"}), 400
+            return jsonify({"error": "Topic is required"}), 400
         
-        article = generate_general_article(
-            onderwerp, word_count, extra, model, elements, 
-            use_research=use_research,
-            keyword=keyword,
-            seo_title=seo_title,
-            meta_description=meta_description
-        )
+        article = generate_general_article(onderwerp, word_count, extra, model, elements)
         
         # Count words
         text_content = re.sub(r'<[^>]+>', '', article)
@@ -1694,16 +1456,12 @@ def api_generate_general_article():
         
         return jsonify({
             "success": True,
-            "content_html": article,
             "article": article,
             "word_count": actual_word_count
         })
         
     except Exception as e:
-        print(f"❌ Error in generate-general-article: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/refine-article', methods=['POST'])
 def api_refine_article():
@@ -2159,242 +1917,3 @@ def delete_affiliate_link(link_id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-# ============================================
-# NEW ENDPOINTS FOR v1.1 COMPLETE
-# ============================================
-
-@app.route('/api/generate-perplexity-article', methods=['POST'])
-def api_generate_perplexity_article():
-    """Generate research-based article using Perplexity"""
-    try:
-        data = request.json
-        topic = data.get('topic', '').strip()
-        word_count = int(data.get('word_count', 1200))
-        model = data.get('model', 'llama-3.1-sonar-large-128k-online')
-        
-        if not topic:
-            return jsonify({"success": False, "error": "Topic is required"}), 400
-        
-        # Use existing perplexity function
-        article = generate_perplexity_article(topic, word_count, model)
-        
-        # Count words
-        text_content = re.sub(r'<[^>]+>', '', article)
-        actual_word_count = len(text_content.split())
-        
-        return jsonify({
-            "success": True,
-            "content_html": article,
-            "word_count": actual_word_count
-        })
-        
-    except Exception as e:
-        print(f"❌ Error in generate-perplexity-article: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route('/api/generate-youtube-post', methods=['POST'])
-def api_generate_youtube_post():
-    """Generate article about YouTube video with embed"""
-    try:
-        data = request.json
-        video_url = data.get('video_url', '').strip()
-        style = data.get('style', 'review')
-        word_count = int(data.get('word_count', 600))
-        
-        if not video_url:
-            return jsonify({"success": False, "error": "Video URL is required"}), 400
-        
-        # Extract video ID
-        video_id = None
-        if 'youtube.com/watch?v=' in video_url:
-            video_id = video_url.split('watch?v=')[1].split('&')[0]
-        elif 'youtu.be/' in video_url:
-            video_id = video_url.split('youtu.be/')[1].split('?')[0]
-        
-        if not video_id:
-            return jsonify({"success": False, "error": "Invalid YouTube URL"}), 400
-        
-        # Generate article
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        
-        style_prompts = {
-            'review': 'Schrijf een uitgebreide review van deze YouTube video',
-            'summary': 'Schrijf een gedetailleerde samenvatting van deze YouTube video',
-            'tutorial': 'Schrijf een tutorial-stijl artikel over deze YouTube video',
-            'analysis': 'Schrijf een diepgaande analyse van deze YouTube video'
-        }
-        
-        prompt = f"""
-{style_prompts.get(style, style_prompts['review'])}.
-
-Video URL: {video_url}
-
-Schrijf een artikel van ongeveer {word_count} woorden in het Nederlands.
-
-Structuur:
-1. Inleiding met context
-2. Hoofdinhoud (meerdere paragrafen)
-3. Belangrijkste punten
-4. Conclusie
-
-Gebruik HTML formatting:
-- <h2> voor hoofdkoppen
-- <h3> voor subkoppen
-- <p> voor paragrafen
-- <ul> en <li> voor lijsten (GEEN markdown!)
-- <strong> voor belangrijke tekst
-
-Voeg AAN HET EINDE van het artikel deze YouTube embed code toe:
-<div style="margin: 30px 0;">
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/{video_id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
-"""
-        
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
-        
-        article = response.choices[0].message.content.strip()
-        
-        # Ensure proper HTML
-        if not article.startswith('<'):
-            article = f'<div>{article}</div>'
-        
-        # Count words
-        text_content = re.sub(r'<[^>]+>', '', article)
-        actual_word_count = len(text_content.split())
-        
-        return jsonify({
-            "success": True,
-            "content_html": article,
-            "word_count": actual_word_count,
-            "video_id": video_id
-        })
-        
-    except Exception as e:
-        print(f"❌ Error in generate-youtube-post: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route('/api/generate-list-article', methods=['POST'])
-def api_generate_list_article():
-    """Generate list-style article"""
-    try:
-        data = request.json
-        topic = data.get('topic', '').strip()
-        item_count = int(data.get('item_count', 10))
-        words_per_item = int(data.get('words_per_item', 100))
-        
-        if not topic:
-            return jsonify({"success": False, "error": "Topic is required"}), 400
-        
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        
-        prompt = f"""
-Schrijf een lijst artikel in het Nederlands over: {topic}
-
-Het artikel moet {item_count} items bevatten, elk met ongeveer {words_per_item} woorden.
-
-Structuur:
-1. Inleiding (100 woorden)
-2. {item_count} genummerde items, elk met:
-   - Titel/naam
-   - Beschrijving ({words_per_item} woorden)
-   - Belangrijkste kenmerken
-3. Conclusie (100 woorden)
-
-BELANGRIJK - Gebruik ALLEEN HTML formatting:
-- <h1> voor hoofdtitel
-- <h2> voor item titels (bijv. "1. [Item Naam]")
-- <p> voor paragrafen
-- <ul> en <li> voor opsommingen (GEEN markdown bullets!)
-- <strong> voor belangrijke tekst
-- <ol> en <li> voor genummerde lijsten indien nodig
-
-GEEN markdown formatting! Alles moet proper HTML zijn.
-"""
-        
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
-        
-        article = response.choices[0].message.content.strip()
-        
-        # Convert any remaining markdown to HTML
-        article = article.replace('**', '')
-        article = re.sub(r'^\* ', '<li>', article, flags=re.MULTILINE)
-        article = re.sub(r'^\- ', '<li>', article, flags=re.MULTILINE)
-        
-        # Ensure proper HTML
-        if not article.startswith('<'):
-            article = f'<div>{article}</div>'
-        
-        # Count words
-        text_content = re.sub(r'<[^>]+>', '', article)
-        actual_word_count = len(text_content.split())
-        
-        return jsonify({
-            "success": True,
-            "content_html": article,
-            "word_count": actual_word_count
-        })
-        
-    except Exception as e:
-        print(f"❌ Error in generate-list-article: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route('/api/modify-article', methods=['POST'])
-def api_modify_article():
-    """Modify article based on AI chat instruction"""
-    try:
-        data = request.json
-        content = data.get('content', '').strip()
-        instruction = data.get('instruction', '').strip()
-        
-        if not content or not instruction:
-            return jsonify({"success": False, "error": "Content and instruction are required"}), 400
-        
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        
-        prompt = f"""
-Je bent een professionele content editor. Je krijgt een HTML artikel en een instructie om het aan te passen.
-
-HUIDIGE ARTIKEL:
-{content}
-
-INSTRUCTIE:
-{instruction}
-
-Pas het artikel aan volgens de instructie. Behoud de HTML formatting en structuur.
-Gebruik ALLEEN HTML tags (geen markdown!):
-- <h1>, <h2>, <h3> voor koppen
-- <p> voor paragrafen
-- <ul> en <li> voor opsommingen
-- <ol> en <li> voor genummerde lijsten
-- <strong> voor belangrijke tekst
-- <em> voor cursieve tekst
-
-Geef ALLEEN de aangepaste HTML terug, geen uitleg.
-"""
-        
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
-        
-        modified_content = response.choices[0].message.content.strip()
-        
-        return jsonify({
-            "success": True,
-            "modified_content": modified_content
-        })
-        
-    except Exception as e:
-        print(f"❌ Error in modify-article: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
