@@ -156,7 +156,7 @@ OPENAI_API_KEY = api_keys['openai']
 ANTHROPIC_API_KEY = api_keys['anthropic']
 ORIGINALITY_API_KEY = api_keys['originality']
 PIXABAY_API_KEY = api_keys['pixabay']
-PERPLEXITY_API_KEY = api_keys['perplexity']
+PERPLEXITY_API_KEY = api_keys.get('perplexity')  # Safe get
 
 # Initialize OpenAI client
 client = None
@@ -239,9 +239,9 @@ def call_claude_api(prompt, system_prompt, model="claude-sonnet-4", max_tokens=4
     
     # Map friendly names to actual model IDs
     model_mapping = {
-        "claude-sonnet-4": "claude-sonnet-4-20250514",
-        "claude-opus-4": "claude-opus-4-20250514",
-        "claude-sonnet-3.7": "claude-3-7-sonnet-20250219",
+        "claude-sonnet-4": "claude-3-5-sonnet-20241022",  # Latest available
+        "claude-opus-4": "claude-3-opus-20240229",  # Latest opus
+        "claude-sonnet-3.7": "claude-3-5-sonnet-20241022",
         "claude-sonnet-3.5": "claude-3-5-sonnet-20241022",
         "claude-haiku-3.5": "claude-3-5-haiku-20241022"
     }
@@ -720,27 +720,36 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
         print(f"OpenAI Topic Generation Error: {e}")
         raise
 
-def extract_topic_from_urls(anchor1, url1, anchor2, url2, context=""):
+def extract_topic_from_urls(anchor1, url1, anchor2, url2, context="", placement_domain=""):
     """Extract topic suggestion from URLs and anchors using AI"""
     if not client:
         return None
     
     try:
-        prompt = f"""Analyseer deze linkbuilding informatie en suggereer een KORT en SPECIFIEK onderwerp voor een artikel.
+        # Build comprehensive context
+        full_context = f"""Analyseer deze linkbuilding informatie en suggereer een KORT en SPECIFIEK onderwerp voor een artikel.
 
 ANCHOR 1: {anchor1}
 URL 1: {url1}
 
 ANCHOR 2: {anchor2}
-URL 2: {url2}
+URL 2: {url2}"""
 
-{f"EXTRA CONTEXT: {context}" if context else ""}
+        if placement_domain:
+            full_context += f"\n\nPLAATSINGS DOMEIN: {placement_domain}"
+        
+        if context:
+            full_context += f"\n\nEXTRA CONTEXT: {context}"
+
+        full_context += """
 
 Geef ALLEEN het onderwerp terug, zonder uitleg. Het onderwerp moet:
 - Kort zijn (max 5-7 woorden)
-- Relevant zijn voor beide anchors
+- Relevant zijn voor BEIDE anchors EN urls
 - Natuurlijk klinken als artikel titel
 - In het Nederlands zijn
+- GEEN "voordelen van" of "voordeel van" bevatten
+- Gebruik alternatieven zoals "wat biedt", "waarom kiezen voor", "alles over"
 
 Voorbeeld output: "Kleine lease auto voor zakelijk gebruik"
 """
@@ -748,8 +757,8 @@ Voorbeeld output: "Kleine lease auto voor zakelijk gebruik"
         response = call_openai_with_correct_params(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Je bent een SEO expert die perfecte artikel onderwerpen bedenkt."},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": "Je bent een SEO expert die perfecte artikel onderwerpen bedenkt. VERBODEN: 'voordelen van', 'voordeel van'. Gebruik alternatieven."},
+                {"role": "user", "content": full_context}
             ],
             temperature=0.7,
             max_tokens=50
@@ -824,14 +833,14 @@ Hou het KORT en PRAKTISCH."""
 
 def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens=2000):
     """Call OpenAI API with correct parameters based on model"""
-    # GPT-5 and newer models use max_completion_tokens instead of max_tokens
-    if model in ["gpt-5", "o1-preview", "o1-mini"]:
+    # o1 models use max_completion_tokens and don't support temperature
+    if model in ["o1-preview", "o1-mini"]:
         return client.chat.completions.create(
             model=model,
             messages=messages,
-            temperature=temperature,
             max_completion_tokens=max_tokens
         )
+    # Regular models use max_tokens
     else:
         return client.chat.completions.create(
             model=model,
@@ -1563,11 +1572,12 @@ def api_suggest_topic():
         anchor2 = data.get('anchor2', '').strip()
         url2 = data.get('url2', '').strip()
         context = data.get('context', '').strip()
+        placement_domain = data.get('placement_domain', '').strip()
         
         if not all([anchor1, url1, anchor2, url2]):
             return jsonify({"error": "All anchors and URLs are required"}), 400
         
-        topic = extract_topic_from_urls(anchor1, url1, anchor2, url2, context)
+        topic = extract_topic_from_urls(anchor1, url1, anchor2, url2, context, placement_domain)
         
         if topic:
             return jsonify({"success": True, "topic": topic})

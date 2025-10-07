@@ -1074,6 +1074,7 @@
             const anchor2 = document.getElementById('anchor2').value;
             const url2 = document.getElementById('url2').value;
             const context = document.getElementById('extra').value;
+            const placement_domain = document.getElementById('placement-domain').value;
             
             if (!anchor1 || !url1 || !anchor2 || !url2) {
                 alert('Vul eerst de anchor teksten en URLs in!');
@@ -1088,16 +1089,17 @@
                 const response = await fetch(`${API_URL}/suggest-topic`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ anchor1, url1, anchor2, url2, context })
+                    body: JSON.stringify({ anchor1, url1, anchor2, url2, context, placement_domain })
                 });
                 
+                // Read response as text first, then parse as JSON
+                const text = await response.text();
                 let data;
                 try {
-                    data = await response.json();
+                    data = JSON.parse(text);
                 } catch (jsonError) {
-                    const text = await response.text();
                     console.error('JSON parse error:', jsonError, 'Response:', text);
-                    throw new Error('Server returned invalid response');
+                    throw new Error('Server returned invalid response: ' + text.substring(0, 100));
                 }
                 
                 if (data.success) {
@@ -1140,13 +1142,14 @@
                     body: JSON.stringify({ onderwerp, anchor1, url1, anchor2, url2, extra, model, placement_domain })
                 });
                 
+                // Read response as text first, then parse as JSON
+                const text = await response.text();
                 let data;
                 try {
-                    data = await response.json();
+                    data = JSON.parse(text);
                 } catch (jsonError) {
-                    const text = await response.text();
                     console.error('JSON parse error:', jsonError, 'Response:', text);
-                    throw new Error('Server returned invalid response. Check console for details.');
+                    throw new Error('Server returned invalid response: ' + text.substring(0, 100));
                 }
                 
                 if (data.success) {
@@ -1243,13 +1246,14 @@
                     body: JSON.stringify(payload)
                 });
                 
+                // Read response as text first, then parse as JSON
+                const text = await response.text();
                 let data;
                 try {
-                    data = await response.json();
+                    data = JSON.parse(text);
                 } catch (jsonError) {
-                    const text = await response.text();
                     console.error('JSON parse error:', jsonError, 'Response:', text);
-                    throw new Error('Server returned invalid response. Check console for details.');
+                    throw new Error('Server returned invalid response: ' + text.substring(0, 100));
                 }
                 
                 if (data.success) {
