@@ -761,13 +761,13 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
                             elements=None, max_retries=3):
     """
     Generate general article with optional extra elements
-    Supports GPT models, Claude models, and "Best of All" combination
+    Only supports GPT-4o model
     
     Args:
         onderwerp: Article topic
         word_count: Target word count
         extra: Extra context
-        model: Model to use (gpt-4o, gpt-4.1, gpt-5, claude-sonnet-4, claude-opus-4, etc., or "best-of-all")
+        model: Model to use (only gpt-4o supported)
         elements: Dict with optional elements:
             - include_table: bool
             - include_faq: bool
@@ -860,42 +860,25 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
     
     system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."
     
-    # Check if "Best of All" mode - use GPT-4.1 (best available model)
-    if model == "best-of-all":
-        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
-        model = "gpt-4.1"
-    
-    # Check if Claude model
-    is_claude = model.startswith('claude-')
+    # Only use GPT-4o
+    model = "gpt-4o"
     
     for attempt in range(max_retries):
         try:
-            if is_claude:
-                # Use Claude API
-                if not anthropic_client:
-                    raise Exception("Anthropic API key not configured")
-                
-                article = call_claude_api(
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    model=model,
-                    max_tokens=4000
-                )
-            else:
-                # Use OpenAI API
-                if not client:
-                    raise Exception("OpenAI API key not configured")
-                
-                response = call_openai_with_correct_params(
-                    model=model,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.9,
-                    max_tokens=4000
-                )
-                article = response.choices[0].message.content.strip()
+            # Use OpenAI API with gpt-4o only
+            if not client:
+                raise Exception("OpenAI API key not configured")
+            
+            response = call_openai_with_correct_params(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.9,
+                max_tokens=4000
+            )
+            article = response.choices[0].message.content.strip()
             
             # Check for forbidden words BEFORE formatting
             has_forbidden, found_phrases = check_forbidden_words(article)
@@ -1913,6 +1896,87 @@ def delete_affiliate_link(link_id):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/ai-suggestions', methods=['POST'])
+def api_ai_suggestions():
+    """Generate AI suggestions for improving text"""
+    try:
+        data = request.get_json()
+        text = data.get('text', '').strip()
+        
+        if not text:
+            return jsonify({'success': False, 'error': 'Geen tekst opgegeven'})
+        
+        if not client:
+            return jsonify({'success': False, 'error': 'OpenAI API key niet geconfigureerd'})
+        
+        prompt = f"""Je bent een professionele Nederlandse tekstverbeteraar. Analyseer de volgende tekst en geef concrete suggesties voor verbetering.
+
+TEKST:
+{text}
+
+Geef 3-5 concrete suggesties om de tekst te verbeteren op het gebied van:
+- Leesbaarheid
+- Woordkeuze
+- Zinsbouw
+- Stijl
+- Inhoud
+
+Geef elke suggestie in deze format:
+SUGGESTIE X: [korte beschrijving]
+ORIGINEEL: [relevante originele tekst]
+VERBETERD: [verbeterde versie]
+
+Houd het praktisch en direct toepasbaar."""
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Je bent een expert tekstverbeteraar die concrete, bruikbare suggesties geeft."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        suggestions = response.choices[0].message.content.strip()
+        
+        return jsonify({
+            'success': True,
+            'suggestions': suggestions
+        })
+        
+    except Exception as e:
+        print(f"AI Suggestions Error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/count-words', methods=['POST'])
+def api_count_words():
+    """Count words in text"""
+    try:
+        data = request.get_json()
+        text = data.get('text', '').strip()
+        
+        if not text:
+            return jsonify({'success': True, 'word_count': 0, 'char_count': 0})
+        
+        # Remove HTML tags for accurate word count
+        import re
+        clean_text = re.sub(r'<[^>]+>', '', text)
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+        
+        word_count = len(clean_text.split()) if clean_text else 0
+        char_count = len(clean_text)
+        
+        return jsonify({
+            'success': True,
+            'word_count': word_count,
+            'char_count': char_count
+        })
+        
+    except Exception as e:
+        print(f"Word Count Error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))

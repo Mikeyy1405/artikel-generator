@@ -240,6 +240,147 @@
             margin-top: 20px;
         }
         
+        /* Google Docs-like Text Editor */
+        .docs-editor-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .docs-toolbar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .docs-toolbar button {
+            background: none;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #24292f;
+            white-space: nowrap;
+        }
+        
+        .docs-toolbar button:hover {
+            background: #f3f4f6;
+            border-color: #8c959f;
+        }
+        
+        .docs-editor {
+            min-height: 600px;
+            padding: 40px 60px;
+            background: white;
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #1a1a1a;
+            outline: none;
+            border: none;
+        }
+        
+        .docs-editor:focus {
+            outline: none;
+        }
+        
+        .docs-editor h1 {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 0 0 16pt 0;
+            color: #1a1a1a;
+        }
+        
+        .docs-editor h2 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 16pt 0 8pt 0;
+            color: #1a1a1a;
+        }
+        
+        .docs-editor h3 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 12pt 0 6pt 0;
+            color: #1a1a1a;
+        }
+        
+        .docs-editor p {
+            margin: 0 0 8pt 0;
+        }
+        
+        .docs-editor a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        
+        .docs-editor a:hover {
+            text-decoration: underline;
+        }
+        
+        .word-counter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 14px;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        
+        .suggestions-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 1px solid #dadce0;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .suggestions-header {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .suggestions-content {
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .suggestion-item {
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .suggestion-item strong {
+            color: #1a73e8;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
         .article-output h1 {
             color: var(--dark-blue);
             margin-bottom: 15px;
@@ -707,20 +848,7 @@
                     <div class="form-group">
                         <label>🤖 AI Model</label>
                         <select id="gpt-model">
-                            <optgroup label="🌟 Best of All">
-                                <option value="best-of-all">🏆 Best of All (GPT-4.1 + Claude Sonnet 4 + Claude Opus 4)</option>
-                            </optgroup>
-                            <optgroup label="🔵 OpenAI GPT">
-                                <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
-                                <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
-                                <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
-                            </optgroup>
-                            <optgroup label="🟣 Anthropic Claude (Beste voor Writing)">
-                                <option value="claude-sonnet-4">Claude Sonnet 4 ⭐ (Beste voor natuurlijk schrijven)</option>
-                                <option value="claude-opus-4">Claude Opus 4 (Meest creatief & diepgaand)</option>
-                                <option value="claude-sonnet-3.7">Claude Sonnet 3.7</option>
-                                <option value="claude-sonnet-3.5">Claude Sonnet 3.5</option>
-                            </optgroup>
+                            <option value="gpt-4o" selected>GPT-4o (Stable & Reliable)</option>
                         </select>
                     </div>
                     
@@ -753,20 +881,7 @@
                     <div class="form-group">
                         <label>🤖 AI Model</label>
                         <select id="general-gpt-model">
-                            <optgroup label="🌟 Best of All">
-                                <option value="best-of-all">🏆 Best of All (GPT-4.1 + Claude Sonnet 4 + Claude Opus 4)</option>
-                            </optgroup>
-                            <optgroup label="🔵 OpenAI GPT">
-                                <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
-                                <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
-                                <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
-                            </optgroup>
-                            <optgroup label="🟣 Anthropic Claude (Beste voor Writing)">
-                                <option value="claude-sonnet-4">Claude Sonnet 4 ⭐ (Beste voor natuurlijk schrijven)</option>
-                                <option value="claude-opus-4">Claude Opus 4 (Meest creatief & diepgaand)</option>
-                                <option value="claude-sonnet-3.7">Claude Sonnet 3.7</option>
-                                <option value="claude-sonnet-3.5">Claude Sonnet 3.5</option>
-                            </optgroup>
+                            <option value="gpt-4o" selected>GPT-4o (Stable & Reliable)</option>
                         </select>
                     </div>
                     
@@ -1004,6 +1119,24 @@
         </div>
     </div>
     
+    <!-- Word Counter -->
+    <div class="word-counter" id="word-counter" style="display: none;">
+        <span id="word-count">0</span> woorden
+    </div>
+    
+    <!-- AI Suggestions Panel -->
+    <div class="suggestions-panel" id="suggestions-panel">
+        <div class="suggestions-header">
+            <strong>🤖 AI Suggesties</strong>
+            <button onclick="closeSuggestions()" style="background: none; border: none; cursor: pointer;">✖</button>
+        </div>
+        <div class="suggestions-content" id="suggestions-content">
+            <div style="text-align: center; padding: 20px; color: #666;">
+                Selecteer tekst en klik op "AI Suggesties" voor verbetervoorstellen
+            </div>
+        </div>
+    </div>
+    
     <script>
         const API_URL = '/api';
         
@@ -1124,27 +1257,32 @@
                     output.innerHTML = `
                         <div class="card">
                             <h2>✅ Artikel Gegenereerd!</h2>
-                            <div class="stats">
-                                <div class="stat-box">
-                                    <h4>Woorden</h4>
-                                    <p>${data.word_count}</p>
-                                </div>
-                                <div class="stat-box">
-                                    <h4>Human Score</h4>
-                                    <p>${data.human_score !== null && data.human_score !== undefined ? data.human_score + '%' : 'N/A'}</p>
-                                </div>
-                                <div class="stat-box">
-                                    <h4>AI Score</h4>
-                                    <p>${data.ai_score !== null && data.ai_score !== undefined ? data.ai_score + '%' : 'N/A'}</p>
-                                </div>
+                            <div style="margin-bottom: 20px;">
+                                <button onclick="saveArticle('${onderwerp}', getCurrentEditorContent(), '${anchor1}', '${url1}', '${anchor2}', '${url2}', ${data.word_count}, ${data.human_score}, ${data.ai_score})">💾 Opslaan</button>
+                                <button onclick="copyToClipboard(getCurrentEditorContent())" class="btn-secondary">📋 Kopieer HTML</button>
                             </div>
-                            <div class="article-output">${data.article}</div>
-                            <div style="margin-top:20px;">
-                                <button onclick="saveArticle('${onderwerp}', \`${data.article.replace(/`/g, '\\`')}\`, '${anchor1}', '${url1}', '${anchor2}', '${url2}', ${data.word_count}, ${data.human_score}, ${data.ai_score})">💾 Opslaan</button>
-                                <button onclick="copyToClipboard(\`${data.article.replace(/`/g, '\\`')}\`)" class="btn-secondary">📋 Kopieer HTML</button>
+                        </div>
+                        <div class="docs-editor-container">
+                            <div class="docs-toolbar">
+                                <button onclick="formatText('bold')"><strong>B</strong></button>
+                                <button onclick="formatText('italic')"><em>I</em></button>
+                                <button onclick="formatText('underline')"><u>U</u></button>
+                                <div style="width: 1px; height: 20px; background: #dadce0; margin: 0 4px;"></div>
+                                <button onclick="insertHeading(1)">H1</button>
+                                <button onclick="insertHeading(2)">H2</button>
+                                <button onclick="insertHeading(3)">H3</button>
+                                <div style="width: 1px; height: 20px; background: #dadce0; margin: 0 4px;"></div>
+                                <button onclick="getAISuggestions()">🤖 AI Suggesties</button>
+                            </div>
+                            <div class="docs-editor" id="text-editor" contenteditable="true" oninput="updateWordCounter()">
+                                ${data.article}
                             </div>
                         </div>
                     `;
+                    
+                    // Initialize word counter
+                    updateWordCounter();
+                    
                 } else {
                     output.innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
                 }
@@ -1223,14 +1361,33 @@
                     }
                     
                     html += `
-                            <div class="article-output">${data.article}</div>
-                            <div style="margin-top:20px;">
-                                <button onclick="copyToClipboard(\`${data.article.replace(/`/g, '\\`')}\`)" class="btn-secondary">📋 Kopieer HTML</button>
+                            <div style="margin-bottom: 20px;">
+                                <button onclick="copyToClipboard(getCurrentEditorContent())" class="btn-secondary">📋 Kopieer HTML</button>
+                            </div>
+                        </div>
+                        <div class="docs-editor-container">
+                            <div class="docs-toolbar">
+                                <button onclick="formatText('bold')"><strong>B</strong></button>
+                                <button onclick="formatText('italic')"><em>I</em></button>
+                                <button onclick="formatText('underline')"><u>U</u></button>
+                                <div style="width: 1px; height: 20px; background: #dadce0; margin: 0 4px;"></div>
+                                <button onclick="insertHeading(1)">H1</button>
+                                <button onclick="insertHeading(2)">H2</button>
+                                <button onclick="insertHeading(3)">H3</button>
+                                <div style="width: 1px; height: 20px; background: #dadce0; margin: 0 4px;"></div>
+                                <button onclick="getAISuggestions()">🤖 AI Suggesties</button>
+                            </div>
+                            <div class="docs-editor" id="text-editor" contenteditable="true" oninput="updateWordCounter()">
+                                ${data.article}
                             </div>
                         </div>
                     `;
                     
                     output.innerHTML = html;
+                    
+                    // Initialize word counter
+                    updateWordCounter();
+                    
                 } else {
                     output.innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
                 }
@@ -1784,13 +1941,6 @@
         }
         
         // Utility Functions
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('✅ Gekopieerd naar klembord!');
-            }).catch(err => {
-                alert('Fout bij kopiëren: ' + err);
-            });
-        }
         
         // Mobile Menu Functions
         function toggleMobileMenu() {
@@ -1824,6 +1974,170 @@
         window.addEventListener('load', () => {
             loadWordPressSites();
         });
+        
+        // === TEXT EDITOR FUNCTIONALITY ===
+        
+        function getCurrentEditorContent() {
+            const editor = document.getElementById('text-editor');
+            return editor ? editor.innerHTML : '';
+        }
+        
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            updateWordCounter();
+        }
+        
+        function insertHeading(level) {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                document.execCommand('formatBlock', false, `h${level}`);
+                updateWordCounter();
+            }
+        }
+        
+        function updateWordCounter() {
+            const editor = document.getElementById('text-editor');
+            const counter = document.getElementById('word-counter');
+            const wordCount = document.getElementById('word-count');
+            
+            if (!editor || !counter || !wordCount) return;
+            
+            const text = editor.innerText || editor.textContent || '';
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            
+            wordCount.textContent = words;
+            counter.style.display = words > 0 ? 'block' : 'none';
+            
+            // Also update via API for accurate count
+            fetch(`${API_URL}/count-words`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: editor.innerHTML })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    wordCount.textContent = data.word_count;
+                }
+            })
+            .catch(error => console.error('Word count error:', error));
+        }
+        
+        async function getAISuggestions() {
+            const editor = document.getElementById('text-editor');
+            const panel = document.getElementById('suggestions-panel');
+            const content = document.getElementById('suggestions-content');
+            
+            if (!editor || !panel || !content) return;
+            
+            const selectedText = window.getSelection().toString();
+            const textToAnalyze = selectedText || editor.innerText || '';
+            
+            if (!textToAnalyze.trim()) {
+                alert('Geen tekst geselecteerd of beschikbaar voor analyse');
+                return;
+            }
+            
+            panel.style.display = 'block';
+            content.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div><p>AI analyseert tekst...</p></div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/ai-suggestions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: textToAnalyze })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const suggestions = data.suggestions.split(/SUGGESTIE \d+:/).filter(s => s.trim());
+                    
+                    let html = '';
+                    suggestions.forEach((suggestion, index) => {
+                        if (suggestion.trim()) {
+                            const parts = suggestion.split('ORIGINEEL:');
+                            const description = parts[0]?.trim() || '';
+                            
+                            let original = '';
+                            let improved = '';
+                            
+                            if (parts[1]) {
+                                const improvedParts = parts[1].split('VERBETERD:');
+                                original = improvedParts[0]?.trim() || '';
+                                improved = improvedParts[1]?.trim() || '';
+                            }
+                            
+                            html += `
+                                <div class="suggestion-item">
+                                    <strong>Suggestie ${index + 1}: ${description}</strong>
+                                    ${original ? `<p><em>Origineel:</em> ${original}</p>` : ''}
+                                    ${improved ? `<p><em>Verbeterd:</em> ${improved}</p>` : ''}
+                                    ${improved ? `<button onclick="applySuggestion('${original.replace(/'/g, "\\'")}', '${improved.replace(/'/g, "\\'")}')">✓ Toepassen</button>` : ''}
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    content.innerHTML = html || '<p>Geen specifieke suggesties gevonden.</p>';
+                } else {
+                    content.innerHTML = `<div style="color: red; padding: 20px;">Fout: ${data.error}</div>`;
+                }
+            } catch (error) {
+                content.innerHTML = `<div style="color: red; padding: 20px;">Fout bij ophalen suggesties: ${error.message}</div>`;
+            }
+        }
+        
+        function applySuggestion(original, improved) {
+            const editor = document.getElementById('text-editor');
+            if (!editor || !original || !improved) return;
+            
+            const content = editor.innerHTML;
+            const updatedContent = content.replace(original, improved);
+            editor.innerHTML = updatedContent;
+            
+            updateWordCounter();
+            
+            // Show confirmation
+            alert('Suggestie toegepast!');
+        }
+        
+        function closeSuggestions() {
+            const panel = document.getElementById('suggestions-panel');
+            if (panel) {
+                panel.style.display = 'none';
+            }
+        }
+        
+        // Enhanced copy to clipboard function
+        async function copyToClipboard(text) {
+            try {
+                if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+                
+                // Show confirmation
+                const originalText = event.target.textContent;
+                event.target.textContent = '✅ Gekopieerd!';
+                event.target.style.background = '#2ecc71';
+                
+                setTimeout(() => {
+                    event.target.textContent = originalText;
+                    event.target.style.background = '';
+                }, 2000);
+                
+            } catch (error) {
+                alert('Kon tekst niet kopiëren: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>
