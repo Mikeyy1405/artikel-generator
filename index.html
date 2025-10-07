@@ -514,19 +514,9 @@
                     <div class="form-group">
                         <label>🤖 GPT Model</label>
                         <select id="gpt-model">
-                            <option value="gpt-5" selected>GPT-5 (Nieuwste, Beste voor Programmeren & Agenten)</option>
-                            <option value="gpt-5-mini">GPT-5 Mini (Snel & Kosteneffectief)</option>
-                            <option value="gpt-5-nano">GPT-5 Nano (Zeer Snel & Goedkoop)</option>
-                            <option value="gpt-5-chat-latest">GPT-5 Chat Latest</option>
-                            <option value="gpt-5-codex">GPT-5 Codex</option>
-                            <option value="gpt-5-pro">GPT-5 Pro (Hoogste Kwaliteit)</option>
-                            <option value="gpt-4.1">GPT-4.1 (Nieuw, Verbeterd)</option>
-                            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
-                            <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
-                            <option value="gpt-4o">GPT-4o (Vorige Generatie)</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Goedkoper, Sneller)</option>
+                            <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
+                            <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
+                            <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
                         </select>
                     </div>
                     
@@ -559,20 +549,54 @@
                     <div class="form-group">
                         <label>🤖 GPT Model</label>
                         <select id="general-gpt-model">
-                            <option value="gpt-5" selected>GPT-5 (Nieuwste, Beste voor Programmeren & Agenten)</option>
-                            <option value="gpt-5-mini">GPT-5 Mini (Snel & Kosteneffectief)</option>
-                            <option value="gpt-5-nano">GPT-5 Nano (Zeer Snel & Goedkoop)</option>
-                            <option value="gpt-5-chat-latest">GPT-5 Chat Latest</option>
-                            <option value="gpt-5-codex">GPT-5 Codex</option>
-                            <option value="gpt-5-pro">GPT-5 Pro (Hoogste Kwaliteit)</option>
-                            <option value="gpt-4.1">GPT-4.1 (Nieuw, Verbeterd)</option>
-                            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
-                            <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
-                            <option value="gpt-4o">GPT-4o (Vorige Generatie)</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Goedkoper, Sneller)</option>
+                            <option value="gpt-5" selected>GPT-5 (Nieuwste & Beste)</option>
+                            <option value="gpt-4.1">GPT-4.1 (Verbeterd)</option>
+                            <option value="gpt-4o">GPT-4.0 (Stabiel)</option>
                         </select>
+                    </div>
+                    
+                    <!-- Extra Elements Section -->
+                    <div class="form-group">
+                        <label style="font-weight: bold; color: #2563eb;">📋 Extra Elementen (Optioneel)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="include-table">
+                                <span>📊 Tabel</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="include-faq">
+                                <span>❓ FAQ Sectie</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="include-bold">
+                                <span>💪 Bold Tekst</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="youtube-video">
+                                <span>📺 YouTube Video</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Pixabay Images -->
+                    <div class="form-group">
+                        <label>📸 Pixabay Afbeeldingen (Automatisch)</label>
+                        <input type="number" id="pixabay-images" value="0" min="0" max="5" placeholder="Aantal afbeeldingen (0-5)">
+                        <small style="color: #666; display: block; margin-top: 5px;">Afbeeldingen worden automatisch gezocht in het Engels</small>
+                    </div>
+                    
+                    <!-- DALL-E Images -->
+                    <div class="form-group">
+                        <label>🎨 AI Gegenereerde Afbeeldingen (DALL-E)</label>
+                        <input type="number" id="dalle-images" value="0" min="0" max="3" placeholder="Aantal AI afbeeldingen (0-3)">
+                        <select id="dalle-style" style="margin-top: 10px;">
+                            <option value="realistic photo">Realistische Foto</option>
+                            <option value="digital art">Digitale Kunst</option>
+                            <option value="illustration">Illustratie</option>
+                            <option value="3d render">3D Render</option>
+                            <option value="minimalist">Minimalistisch</option>
+                        </select>
+                        <small style="color: #666; display: block; margin-top: 5px;">Let op: DALL-E kost $0.040 per afbeelding</small>
                     </div>
                     
                     <div class="form-group">
@@ -883,6 +907,15 @@
             const site_id = document.getElementById('general-site').value;
             const status = document.getElementById('general-status').value;
             
+            // Get extra elements
+            const include_table = document.getElementById('include-table').checked;
+            const include_faq = document.getElementById('include-faq').checked;
+            const include_bold = document.getElementById('include-bold').checked;
+            const youtube_video = document.getElementById('youtube-video').checked;
+            const pixabay_images = parseInt(document.getElementById('pixabay-images').value) || 0;
+            const dalle_images = parseInt(document.getElementById('dalle-images').value) || 0;
+            const dalle_style = document.getElementById('dalle-style').value;
+            
             if (!onderwerp) {
                 alert('Vul het onderwerp in!');
                 return;
@@ -892,7 +925,20 @@
             output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Artikel wordt gegenereerd...</p></div>';
             
             try {
-                const payload = { onderwerp, word_count: parseInt(word_count), extra, model };
+                const payload = { 
+                    onderwerp, 
+                    word_count: parseInt(word_count), 
+                    extra, 
+                    model,
+                    include_table,
+                    include_faq,
+                    include_bold,
+                    youtube_video,
+                    pixabay_images,
+                    dalle_images,
+                    dalle_style
+                };
+                
                 if (site_id) {
                     payload.site_id = parseInt(site_id);
                     payload.status = status;

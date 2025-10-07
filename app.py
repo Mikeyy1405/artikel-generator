@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Writgo Academy Content Generator v11
+Writgo Academy Content Generator v13
 Multi-feature content creation platform with WordPress integration
+Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -108,6 +109,11 @@ if ORIGINALITY_API_KEY:
     print("✅ Originality.AI API key loaded")
 else:
     print("⚠️  Originality.AI API key not found")
+
+if PIXABAY_API_KEY:
+    print("✅ Pixabay API key loaded")
+else:
+    print("⚠️  Pixabay API key not found")
 
 # FORBIDDEN PHRASES - Comprehensive list with variations
 FORBIDDEN_PHRASES = [
@@ -268,13 +274,15 @@ TECHNISCHE EISEN:
 Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}".
 ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
 
-# General AI writer prompt
+# General AI writer prompt - ENHANCED with extra elements
 GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
 
 OPDRACHT:
 Schrijf een artikel over: {onderwerp}
 
 {word_count_instruction}
+
+{extra_elements}
 
 SCHRIJFSTIJL:
 ✅ Gebruik ALTIJD "je" en "jij" (NOOIT "u")
@@ -410,12 +418,97 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
             if attempt == max_retries - 1:
                 raise
 
-def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", max_retries=3):
-    """Generate general article without anchor texts with forbidden words check"""
+def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", 
+                            elements=None, max_retries=3):
+    """
+    Generate general article with optional extra elements
+    
+    Args:
+        onderwerp: Article topic
+        word_count: Target word count
+        extra: Extra context
+        model: GPT model to use
+        elements: Dict with optional elements:
+            - include_table: bool
+            - include_faq: bool
+            - include_bold: bool
+            - pixabay_images: int (number of images)
+            - dalle_images: int (number of AI images)
+            - dalle_style: str (style for DALL-E images)
+            - youtube_video: bool
+        max_retries: Max retry attempts
+    """
     if not client:
         raise Exception("OpenAI API key not configured")
     
+    # Default elements
+    if elements is None:
+        elements = {}
+    
     word_count_instruction = f"Schrijf een artikel van ongeveer {word_count} woorden."
+    
+    # Build extra elements instruction
+    extra_elements_parts = []
+    
+    if elements.get('include_table'):
+        extra_elements_parts.append("""
+TABEL VEREIST:
+✅ Voeg 1 relevante tabel toe in het artikel
+✅ Gebruik HTML table format: <table>, <tr>, <th>, <td>
+✅ Minimaal 3 rijen en 2 kolommen
+✅ Geef de tabel een duidelijke context in de tekst
+✅ Plaats de tabel op een logische plek in het artikel""")
+    
+    if elements.get('include_faq'):
+        extra_elements_parts.append("""
+FAQ SECTIE VEREIST:
+✅ Voeg een FAQ sectie toe met minimaal 5 vragen
+✅ Gebruik H2: Veelgestelde Vragen
+✅ Elke vraag als H3: [vraag]
+✅ Geef kort en bondig antwoord onder elke vraag
+✅ Vragen moeten relevant zijn voor het onderwerp""")
+    
+    if elements.get('include_bold'):
+        extra_elements_parts.append("""
+BOLD TEXT VEREIST:
+✅ Gebruik <strong> tags voor belangrijke woorden/zinnen
+✅ Minimaal 5-10 belangrijke termen bold maken
+✅ Gebruik dit voor nadruk op kernpunten
+✅ Niet overdrijven - alleen echt belangrijke zaken""")
+    
+    if elements.get('pixabay_images', 0) > 0:
+        num_images = elements.get('pixabay_images')
+        extra_elements_parts.append(f"""
+AFBEELDING PLACEHOLDERS VEREIST:
+✅ Voeg {num_images} afbeelding placeholder(s) toe in het artikel
+✅ Gebruik format: [IMAGE: beschrijving in het Engels]
+✅ Bijvoorbeeld: [IMAGE: yoga mat exercises morning routine]
+✅ Plaats op logische plekken in het artikel
+✅ Beschrijvingen moeten SPECIFIEK en in ENGELS zijn
+✅ Denk aan: wat zou een goede stockfoto zijn voor deze sectie?""")
+    
+    if elements.get('dalle_images', 0) > 0:
+        num_images = elements.get('dalle_images')
+        style = elements.get('dalle_style', 'realistic photo')
+        extra_elements_parts.append(f"""
+AI AFBEELDING PLACEHOLDERS VEREIST:
+✅ Voeg {num_images} AI afbeelding placeholder(s) toe
+✅ Gebruik format: [AI-IMAGE: gedetailleerde beschrijving in het Engels]
+✅ Stijl: {style}
+✅ Bijvoorbeeld: [AI-IMAGE: modern minimalist yoga studio with natural lighting, {style}]
+✅ Beschrijvingen moeten ZEER GEDETAILLEERD zijn voor AI generatie
+✅ Plaats op logische plekken in het artikel""")
+    
+    if elements.get('youtube_video'):
+        extra_elements_parts.append("""
+YOUTUBE VIDEO PLACEHOLDER VEREIST:
+✅ Voeg 1 YouTube video placeholder toe
+✅ Gebruik format: [YOUTUBE: zoekterm in het Engels]
+✅ Bijvoorbeeld: [YOUTUBE: best yoga exercises for beginners]
+✅ Plaats op een logische plek (vaak na intro of voor conclusie)
+✅ Zoekterm moet specifiek en relevant zijn""")
+    
+    extra_elements_instruction = "\n".join(extra_elements_parts) if extra_elements_parts else ""
     
     extra_context = ""
     if extra:
@@ -424,6 +517,7 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
     prompt = GENERAL_ARTICLE_PROMPT.format(
         onderwerp=onderwerp,
         word_count_instruction=word_count_instruction,
+        extra_elements=extra_elements_instruction,
         extra_context=extra_context
     )
     
@@ -436,7 +530,7 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.9,
-                max_tokens=3000
+                max_tokens=4000
             )
             
             article = response.choices[0].message.content.strip()
@@ -459,6 +553,9 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
                     article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
             
             article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
+            
+            # Process placeholders BEFORE formatting HTML
+            article = process_article_placeholders(article, onderwerp, elements)
             article = format_article_html(article)
             
             print(f"✅ Article generated successfully (attempt {attempt + 1})")
@@ -577,6 +674,129 @@ Pas het artikel aan volgens de vraag van de gebruiker."""
     except Exception as e:
         print(f"OpenAI Refinement Error: {e}")
         raise
+
+def process_article_placeholders(article, onderwerp, elements):
+    """
+    Process placeholders in article and replace with actual content
+    
+    Placeholders:
+    - [IMAGE: description] -> Fetch from Pixabay
+    - [AI-IMAGE: description] -> Generate with DALL-E
+    - [YOUTUBE: search term] -> Embed YouTube video
+    """
+    if not elements:
+        return article
+    
+    # Process Pixabay image placeholders
+    if elements.get('pixabay_images', 0) > 0:
+        image_pattern = r'\[IMAGE:\s*([^\]]+)\]'
+        matches = re.findall(image_pattern, article)
+        
+        for match in matches:
+            search_query = match.strip()
+            try:
+                images = search_pixabay_images(search_query, per_page=1)
+                if images:
+                    img_url = images[0]['medium_url']
+                    img_tag = f'<img src="{img_url}" alt="{search_query}" style="max-width: 100%; height: auto; margin: 20px 0;">'
+                    article = article.replace(f'[IMAGE: {match}]', img_tag, 1)
+                else:
+                    # Remove placeholder if no image found
+                    article = article.replace(f'[IMAGE: {match}]', '', 1)
+            except Exception as e:
+                print(f"Error fetching Pixabay image for '{search_query}': {e}")
+                article = article.replace(f'[IMAGE: {match}]', '', 1)
+    
+    # Process DALL-E image placeholders
+    if elements.get('dalle_images', 0) > 0:
+        ai_image_pattern = r'\[AI-IMAGE:\s*([^\]]+)\]'
+        matches = re.findall(ai_image_pattern, article)
+        
+        for match in matches:
+            prompt = match.strip()
+            try:
+                result = generate_dalle_image(prompt)
+                if result.get('success'):
+                    img_url = result['image_url']
+                    img_tag = f'<img src="{img_url}" alt="AI Generated: {prompt[:50]}" style="max-width: 100%; height: auto; margin: 20px 0;">'
+                    article = article.replace(f'[AI-IMAGE: {match}]', img_tag, 1)
+                else:
+                    article = article.replace(f'[AI-IMAGE: {match}]', '', 1)
+            except Exception as e:
+                print(f"Error generating DALL-E image for '{prompt}': {e}")
+                article = article.replace(f'[AI-IMAGE: {match}]', '', 1)
+    
+    # Process YouTube video placeholders
+    if elements.get('youtube_video'):
+        youtube_pattern = r'\[YOUTUBE:\s*([^\]]+)\]'
+        matches = re.findall(youtube_pattern, article)
+        
+        for match in matches:
+            search_term = match.strip()
+            # Create YouTube search embed (opens search results)
+            search_url = f"https://www.youtube.com/results?search_query={search_term.replace(' ', '+')}"
+            youtube_embed = f'<div style="margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 8px;"><p><strong>📺 Aanbevolen video:</strong> <a href="{search_url}" target="_blank">Bekijk videos over "{search_term}"</a></p></div>'
+            article = article.replace(f'[YOUTUBE: {match}]', youtube_embed, 1)
+    
+    return article
+
+def search_pixabay_images(query, per_page=10, image_type='photo', orientation='horizontal'):
+    """
+    Search for images on Pixabay
+    
+    Args:
+        query: Search term
+        per_page: Number of results (default 10, max 200)
+        image_type: 'all', 'photo', 'illustration', 'vector'
+        orientation: 'all', 'horizontal', 'vertical'
+    
+    Returns:
+        List of image objects with URLs and metadata
+    """
+    if not PIXABAY_API_KEY:
+        raise Exception("Pixabay API key not configured")
+    
+    try:
+        url = "https://pixabay.com/api/"
+        params = {
+            'key': PIXABAY_API_KEY,
+            'q': query,
+            'per_page': min(per_page, 200),  # Max 200
+            'image_type': image_type,
+            'orientation': orientation,
+            'safesearch': 'true',
+            'lang': 'nl'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if data.get('totalHits', 0) == 0:
+            return []
+        
+        # Format results
+        images = []
+        for hit in data.get('hits', []):
+            images.append({
+                'id': hit.get('id'),
+                'preview_url': hit.get('previewURL'),
+                'small_url': hit.get('webformatURL'),  # 640px
+                'medium_url': hit.get('largeImageURL'),  # 1280px
+                'full_url': hit.get('fullHDURL') or hit.get('imageURL'),  # Full size
+                'width': hit.get('imageWidth'),
+                'height': hit.get('imageHeight'),
+                'tags': hit.get('tags'),
+                'user': hit.get('user'),
+                'page_url': hit.get('pageURL')
+            })
+        
+        return images
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Pixabay API Error: {e}")
+        raise Exception(f"Failed to fetch images from Pixabay: {str(e)}")
 
 def fetch_wordpress_posts(site_url, username, app_password):
     """Fetch all posts from WordPress site for internal links"""
@@ -781,7 +1001,7 @@ def api_generate_article():
 
 @app.route('/api/generate-general-article', methods=['POST'])
 def api_generate_general_article():
-    """Generate general article"""
+    """Generate general article with optional extra elements"""
     try:
         data = request.json
         onderwerp = data.get('onderwerp', '').strip()
@@ -789,10 +1009,21 @@ def api_generate_general_article():
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
         
+        # Extract extra elements
+        elements = {
+            'include_table': data.get('include_table', False),
+            'include_faq': data.get('include_faq', False),
+            'include_bold': data.get('include_bold', False),
+            'pixabay_images': int(data.get('pixabay_images', 0)),
+            'dalle_images': int(data.get('dalle_images', 0)),
+            'dalle_style': data.get('dalle_style', 'realistic photo'),
+            'youtube_video': data.get('youtube_video', False)
+        }
+        
         if not onderwerp:
             return jsonify({"error": "Topic is required"}), 400
         
-        article = generate_general_article(onderwerp, word_count, extra, model)
+        article = generate_general_article(onderwerp, word_count, extra, model, elements)
         
         # Count words
         text_content = re.sub(r'<[^>]+>', '', article)
@@ -858,12 +1089,25 @@ def api_search_images():
     try:
         data = request.json
         query = data.get('query', '').strip()
+        per_page = data.get('per_page', 10)
+        image_type = data.get('image_type', 'photo')
+        orientation = data.get('orientation', 'horizontal')
         
         if not query:
             return jsonify({"error": "Search query is required"}), 400
         
-        result = search_pixabay_images(query)
-        return jsonify(result)
+        images = search_pixabay_images(
+            query=query,
+            per_page=per_page,
+            image_type=image_type,
+            orientation=orientation
+        )
+        
+        return jsonify({
+            "success": True,
+            "total": len(images),
+            "images": images
+        })
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
