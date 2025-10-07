@@ -97,11 +97,49 @@ def init_db():
 # Initialize database on startup
 init_db()
 
-# Load API keys
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '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')
-ORIGINALITY_API_KEY = os.environ.get('ORIGINALITY_API_KEY')
-PIXABAY_API_KEY = os.environ.get('PIXABAY_API_KEY')
+# Load API keys from secrets file
+def load_api_keys():
+    """Load API keys from abacusai_auth_secrets.json"""
+    secrets_path = '/home/ubuntu/.config/abacusai_auth_secrets.json'
+    keys = {
+        'openai': None,
+        'anthropic': None,
+        'originality': None,
+        'pixabay': None
+    }
+    
+    if os.path.exists(secrets_path):
+        try:
+            with open(secrets_path, 'r') as f:
+                secrets = json.load(f)
+            
+            # OpenAI
+            if 'openai' in secrets and 'secrets' in secrets['openai']:
+                if 'api_key' in secrets['openai']['secrets']:
+                    keys['openai'] = secrets['openai']['secrets']['api_key']['value']
+            
+            # Anthropic (hardcoded fallback)
+            keys['anthropic'] = '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'
+            
+            # Originality.AI
+            if 'originality.ai' in secrets and 'secrets' in secrets['originality.ai']:
+                if 'api_key' in secrets['originality.ai']['secrets']:
+                    keys['originality'] = secrets['originality.ai']['secrets']['api_key']['value']
+            
+            # Pixabay
+            if 'pixabay' in secrets and 'secrets' in secrets['pixabay']:
+                if 'api_key' in secrets['pixabay']['secrets']:
+                    keys['pixabay'] = secrets['pixabay']['secrets']['api_key']['value']
+        except Exception as e:
+            print(f"⚠️  Error loading API keys: {e}")
+    
+    return keys
+
+api_keys = load_api_keys()
+OPENAI_API_KEY = api_keys['openai']
+ANTHROPIC_API_KEY = api_keys['anthropic']
+ORIGINALITY_API_KEY = api_keys['originality']
+PIXABAY_API_KEY = api_keys['pixabay']
 
 # Initialize OpenAI client
 client = None
