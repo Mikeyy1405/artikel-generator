@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Writgo Academy Content Generator v14
+WritgoAI Content Generator v14
 Multi-feature content creation platform with WordPress integration
 Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
 NEW: Claude AI models support + "Best of All" combination mode
@@ -97,10 +97,9 @@ def init_db():
 # Initialize database on startup
 init_db()
 
-# Load API keys from secrets file
+# Load API keys from environment variables or secrets file
 def load_api_keys():
-    """Load API keys from abacusai_auth_secrets.json"""
-    secrets_path = '/home/ubuntu/.config/abacusai_auth_secrets.json'
+    """Load API keys from environment variables (Render) or abacusai_auth_secrets.json (local)"""
     keys = {
         'openai': None,
         'anthropic': None,
@@ -108,30 +107,40 @@ def load_api_keys():
         'pixabay': None
     }
     
+    # First, try to load from environment variables (for Render deployment)
+    keys['openai'] = os.getenv('OPENAI_API_KEY')
+    keys['anthropic'] = os.getenv('ANTHROPIC_API_KEY')
+    keys['originality'] = os.getenv('ORIGINALITY_API_KEY')
+    keys['pixabay'] = os.getenv('PIXABAY_API_KEY')
+    
+    # If not found in env vars, try loading from secrets file (for local development)
+    secrets_path = '/home/ubuntu/.config/abacusai_auth_secrets.json'
     if os.path.exists(secrets_path):
         try:
             with open(secrets_path, 'r') as f:
                 secrets = json.load(f)
             
             # OpenAI
-            if 'openai' in secrets and 'secrets' in secrets['openai']:
+            if not keys['openai'] and 'openai' in secrets and 'secrets' in secrets['openai']:
                 if 'api_key' in secrets['openai']['secrets']:
                     keys['openai'] = secrets['openai']['secrets']['api_key']['value']
             
-            # Anthropic (hardcoded fallback)
-            keys['anthropic'] = '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'
+            # Anthropic
+            if not keys['anthropic'] and 'anthropic' in secrets and 'secrets' in secrets['anthropic']:
+                if 'api_key' in secrets['anthropic']['secrets']:
+                    keys['anthropic'] = secrets['anthropic']['secrets']['api_key']['value']
             
             # Originality.AI
-            if 'originality.ai' in secrets and 'secrets' in secrets['originality.ai']:
+            if not keys['originality'] and 'originality.ai' in secrets and 'secrets' in secrets['originality.ai']:
                 if 'api_key' in secrets['originality.ai']['secrets']:
                     keys['originality'] = secrets['originality.ai']['secrets']['api_key']['value']
             
             # Pixabay
-            if 'pixabay' in secrets and 'secrets' in secrets['pixabay']:
+            if not keys['pixabay'] and 'pixabay' in secrets and 'secrets' in secrets['pixabay']:
                 if 'api_key' in secrets['pixabay']['secrets']:
                     keys['pixabay'] = secrets['pixabay']['secrets']['api_key']['value']
         except Exception as e:
-            print(f"⚠️  Error loading API keys: {e}")
+            print(f"⚠️  Error loading API keys from secrets file: {e}")
     
     return keys
 
