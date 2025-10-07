@@ -457,6 +457,7 @@ def index():
     """Serve the HTML frontend"""
     return send_file('article_generator_app.html')
 
+@app.route('/generate_linkbuilding', methods=['POST'])
 @app.route('/generate-article', methods=['POST'])
 def generate_article_endpoint():
     """Generate article with auto topic and check originality"""
@@ -464,12 +465,30 @@ def generate_article_endpoint():
     try:
         data = request.json
         
-        anchor1 = data.get('anchor1')
-        url1 = data.get('url1')
-        anchor2 = data.get('anchor2')
-        url2 = data.get('url2')
-        extra = data.get('extra', '')
-        auto_topic = data.get('auto_topic', False)
+        # Support both old and new format
+        if 'anchor_texts' in data:
+            # New format from frontend
+            anchor_texts = data.get('anchor_texts', [])
+            urls = data.get('urls', [])
+            extra = data.get('context', '')
+            
+            if len(anchor_texts) < 2 or len(urls) < 2:
+                return jsonify({
+                    'success': False,
+                    'error': 'Minimaal 2 anchor teksten en URLs vereist'
+                }), 400
+            
+            anchor1 = anchor_texts[0]
+            anchor2 = anchor_texts[1]
+            url1 = urls[0]
+            url2 = urls[1]
+        else:
+            # Old format
+            anchor1 = data.get('anchor1')
+            url1 = data.get('url1')
+            anchor2 = data.get('anchor2')
+            url2 = data.get('url2')
+            extra = data.get('extra', '')
         
         if not all([anchor1, url1, anchor2, url2]):
             return jsonify({
@@ -477,20 +496,18 @@ def generate_article_endpoint():
                 'error': 'Alle verplichte velden moeten ingevuld zijn'
             }), 400
         
-        if auto_topic:
-            print(f"Generating topic for anchors: {anchor1}, {anchor2}")
-            onderwerp = generate_topic(anchor1, anchor2, extra)
-            print(f"Generated topic: {onderwerp}")
-        else:
-            onderwerp = data.get('onderwerp', '')
-            if not onderwerp:
-                return jsonify({
-                    'success': False,
-                    'error': 'Onderwerp is verplicht'
-                }), 400
+        # Always auto-generate topic for linkbuilding
+        print(f"Generating topic for anchors: {anchor1}, {anchor2}")
+        onderwerp = generate_topic(anchor1, anchor2, extra)
+        print(f"Generated topic: {onderwerp}")
         
         print(f"Generating article for: {onderwerp}")
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra)
+        
+        # Strip HTML for plain text version
+        article_text = re.sub(r'<[^>]+>', '', article)
+        article_text = article_text.replace('</h1>', '\n').replace('</h2>', '\n').replace('</h3>', '\n').replace('</p>', '\n\n')
+        article_text = re.sub(r'\n\n+', '\n\n', article_text).strip()
         
         word_count = count_words(article)
         print(f"Article generated: {word_count} words")
@@ -500,6 +517,16 @@ def generate_article_endpoint():
         
         return jsonify({
             'success': True,
+            'article_html': article,
+            'article_text': article_text,
+            'topic': onderwerp,
+            'originality_data': {
+                'human_score': originality['human_score'],
+                'ai_score': originality['ai_score'],
+                'report_url': originality.get('scan_url')
+            },
+            'word_count': word_count,
+            # Legacy fields for backward compatibility
             'article': article,
             'wordCount': word_count,
             'humanScore': originality['human_score'],
@@ -521,6 +548,7 @@ def generate_article_endpoint():
             'error': str(e)
         }), 500
 
+@app.route('/refine_article', methods=['POST'])
 @app.route('/refine-article', methods=['POST'])
 def refine_article_endpoint():
     """Refine article based on user request"""
@@ -529,19 +557,30 @@ def refine_article_endpoint():
         data = request.json
         
         article = data.get('article')
-        topic = data.get('topic')
-        anchors = data.get('anchors')
-        user_request = data.get('request')
-        history = data.get('history', [])
+        instruction = data.get('instruction')
         
-        if not all([article, topic, anchors, user_request]):
+        if not all([article, instruction]):
             return jsonify({
                 'success': False,
                 'error': 'Ontbrekende gegevens'
             }), 400
         
-        print(f"Refining article: {user_request}")
-        refined_article = refine_article(article, topic, anchors, user_request, history)
+        # Extract topic and anchors from the article if not provided
+        topic = data.get('topic', 'Artikel')
+        anchors = data.get('anchors', {
+            'anchor1': '',
+            'url1': '',
+            'anchor2': '',
+            'url2': ''
+        })
+        
+        print(f"Refining article: {instruction}")
+        refined_article = refine_article(article, topic, anchors, instruction, [])
+        
+        # Strip HTML for plain text version
+        article_text = re.sub(r'<[^>]+>', '', refined_article)
+        article_text = article_text.replace('</h1>', '\n').replace('</h2>', '\n').replace('</h3>', '\n').replace('</p>', '\n\n')
+        article_text = re.sub(r'\n\n+', '\n\n', article_text).strip()
         
         word_count = count_words(refined_article)
         print(f"Article refined: {word_count} words")
@@ -551,6 +590,15 @@ def refine_article_endpoint():
         
         return jsonify({
             'success': True,
+            'article_html': refined_article,
+            'article_text': article_text,
+            'originality_data': {
+                'human_score': originality['human_score'],
+                'ai_score': originality['ai_score'],
+                'report_url': originality.get('scan_url')
+            },
+            'word_count': word_count,
+            # Legacy fields
             'article': refined_article,
             'wordCount': word_count,
             'humanScore': originality['human_score'],
