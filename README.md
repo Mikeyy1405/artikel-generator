@@ -1,307 +1,246 @@
-# 🚀 Writgo Academy Content Generator v14
+# WritgoAI v18 - Modern Editor
 
-**De meest geavanceerde AI content generator met GPT-5, Claude en "Best of All" ondersteuning**
+## 🎯 Nieuwe Functies
 
-## ✨ Nieuwe Features in v14
+### ✨ Moderne Rich Text Editor
+- **Quill Editor** - Professionele WYSIWYG editor
+- **Real-time bewerking** - Direct zien wat je typt
+- **HTML output** - Geen markdown meer, alleen HTML
+- **Clean interface** - Overzichtelijke, moderne layout
 
-### 🌟 BEST OF ALL - Ultieme Kwaliteit!
-**Nieuw: Combineer de beste AI modellen in één artikel!**
+### 🎥 YouTube Embed
+- **Echte video embed** - YouTube video wordt direct in de post geplaatst
+- **Automatische conversie** - Plak gewoon de YouTube URL
+- **Responsive** - Werkt op alle schermformaten
 
-De "Best of All" modus gebruikt:
-1. **GPT-4.1** - Voor perfecte structuur & SEO optimalisatie
-2. **Claude Sonnet 4** - Voor natuurlijk, menselijk schrijven
-3. **Claude Opus 4** - Voor creativiteit & diepgaande inzichten
+### 💬 AI Chat Assistent
+- **Directe aanpassingen** - Vraag de AI om specifieke wijzigingen
+- **Conversational** - Natuurlijke gesprekken met de AI
+- **Context-aware** - AI begrijpt je artikel en past het aan
 
-Het systeem genereert 3 versies en combineert automatisch de beste elementen tot één perfect artikel!
+### 📝 Vier Content Types
 
-### 🤖 Multi-Model Ondersteuning
+1. **SEO Schrijver**
+   - Keyword optimalisatie
+   - SEO titel (max 55 tekens)
+   - Meta beschrijving (max 130 tekens)
+   - Woordenaantal controle
 
-**🏆 Best of All**
-- ✅ Best of All - Combineert GPT-4.1 + Claude Sonnet 4 + Claude Opus 4
-- ✅ Beste kwaliteit voor professionele content
-- ✅ Natuurlijkste schrijfstijl
-- ✅ Meest creatieve output
+2. **Perplexity Artikel**
+   - Diepgaande research artikelen
+   - Feitelijke, goed onderbouwde content
 
-**🔵 OpenAI GPT Modellen**
-- ✅ GPT-5 - Nieuwste generatie
-- ✅ GPT-4.1 - Verbeterd model
-- ✅ GPT-4.0 - Stabiele versie
+3. **YouTube Post**
+   - Embedded YouTube video
+   - Boeiende post content
+   - Perfect voor video blogs
 
-**🟣 Anthropic Claude Modellen** (Beste voor Writing!)
-- ✅ Claude Sonnet 4 ⭐ - Beste voor natuurlijk schrijven
-- ✅ Claude Opus 4 - Meest creatief & diepgaand
-- ✅ Claude Sonnet 3.7 - Uitstekende balans
-- ✅ Claude Sonnet 3.5 - Snelle variant
+4. **Lijst Artikel**
+   - Genummerde lijsten
+   - Configureerbaar aantal items
+   - Woorden per item instelbaar
 
-**Waarom Claude voor Writing?**
-- 🎯 Natuurlijkere schrijfstijl dan GPT
-- 🎯 Minder "AI-achtig" taalgebruik
-- 🎯 Betere context begrip
-- 🎯 Creatievere output
+## 🚀 Installatie
 
----
-
-## 📋 Alle Features
-
-### 🎯 Content Generatie
-1. **Linkbuilding Writer**
-   - Genereer SEO-geoptimaliseerde artikelen
-   - 2 anchor texts met URLs
-   - Automatische keyword integratie
-   - Forbidden words filter
-
-2. **General AI Writer**
-   - Vrije content generatie
-   - Instelbaar aantal woorden (100-3000)
-   - Flexibele onderwerpen
-   - Direct WordPress publicatie
-
-### 🌐 WordPress Integratie
-- Multi-site management
-- Application password authenticatie
-- Direct publiceren vanuit de app
-- Post preview & editing
-- Internal & affiliate links per site
-
-### 🖼️ Image Generatie
-- **Pixabay API**: Gratis stock foto's
-- **DALL-E 3**: AI-gegenereerde afbeeldingen
-- Automatische image insertion in artikelen
-
-### 📊 Content Management
-- Artikel opslag in SQLite database
-- Bewerk en update opgeslagen artikelen
-- Export naar HTML/TXT
-- Originality.ai score checking
-
-### 🎨 Writgo Academy Branding
-- Custom color scheme
-- Professional sidebar navigatie
-- Responsive design
-- Modern UI/UX
-
----
-
-## 🚀 Snelstart Gids
-
-### 1. Installatie
-
+1. **Clone of download het project**
 ```bash
-# Clone of download de bestanden
-cd writgo_app_v12
+cd writgoai_v18_modern
+```
 
-# Installeer dependencies
+2. **Installeer dependencies**
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configuratie
-
-Maak een `.env` bestand aan:
-
-```env
-# OpenAI API (voor GPT modellen)
-OPENAI_API_KEY=sk-proj-jouw-api-key-hier
-
-# Anthropic API (voor Claude modellen) - NIEUW!
-ANTHROPIC_API_KEY=sk-ant-api03-jouw-api-key-hier
-
-# Optionele services
-ORIGINALITY_API_KEY=jouw-originality-key
-PIXABAY_API_KEY=jouw-pixabay-key
+3. **Configureer OpenAI API Key**
+```bash
+cp .env.example .env
+# Bewerk .env en voeg je OpenAI API key toe
 ```
 
-**Belangrijk:**
-- Voor GPT modellen: OpenAI API key vereist
-- Voor Claude modellen: Anthropic API key vereist
-- Voor "Best of All": Beide API keys vereist
-- Haal je Anthropic API key op: https://console.anthropic.com/
-
-### 3. Start de App
-
+4. **Start de applicatie**
 ```bash
 python app.py
 ```
 
-Open je browser: `http://localhost:5000`
-
----
-
-## 💰 Model Kosten Overzicht
-
-### GPT-5 Prijzen (per 1M tokens)
-| Model | Input | Cached | Output | Beste voor |
-|-------|-------|--------|--------|------------|
-| gpt-5 | $1.25 | $0.125 | $10.00 | Algemeen gebruik |
-| gpt-5-mini | $0.25 | $0.025 | $2.00 | Bulk content |
-| gpt-5-nano | $0.05 | $0.005 | $0.40 | Snelle drafts |
-| gpt-5-pro | $15.00 | - | $120.00 | Premium content |
-
-### GPT-4.1 Prijzen (per 1M tokens)
-| Model | Input | Cached | Output | Beste voor |
-|-------|-------|--------|--------|------------|
-| gpt-4.1 | $2.00 | $0.50 | $8.00 | Kwaliteit content |
-| gpt-4.1-mini | $0.40 | $0.10 | $1.60 | Snelle content |
-| gpt-4.1-nano | $0.10 | $0.025 | $0.40 | Budget content |
-
----
-
-## 🎯 Model Selectie Gids
-
-### Voor Linkbuilding Artikelen
-- **Hoogste kwaliteit**: GPT-5 of GPT-5 Pro
-- **Beste prijs/kwaliteit**: GPT-5 Mini of GPT-4.1
-- **Budget optie**: GPT-5 Nano of GPT-4.1 Nano
-
-### Voor General Content
-- **Creatieve content**: GPT-5 of GPT-5 Chat Latest
-- **Technische content**: GPT-5 Codex
-- **Bulk productie**: GPT-5 Mini
-- **Snelle drafts**: GPT-5 Nano
-
-### Voor WordPress Publicatie
-- **Direct publiceren**: GPT-5 Mini (snelheid + kwaliteit)
-- **Premium posts**: GPT-5 Pro
-- **Dagelijkse updates**: GPT-5 Nano (kosteneffectief)
-
----
-
-## 📦 Deployment op Render.com
-
-### Stap 1: Repository Setup
-1. Upload alle bestanden naar GitHub
-2. Zorg dat `requirements.txt` en `runtime.txt` aanwezig zijn
-
-### Stap 2: Render Configuratie
-1. Maak een nieuwe Web Service aan
-2. Koppel je GitHub repository
-3. Configuratie:
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python app.py`
-   - **Environment**: Python 3
-
-### Stap 3: Environment Variables
-Voeg toe in Render dashboard:
+5. **Open in browser**
 ```
-OPENAI_API_KEY=sk-proj-...
-ORIGINALITY_API_KEY=...
-PIXABAY_API_KEY=...
+http://localhost:5000
 ```
 
-### Stap 4: Deploy
-- Klik op "Create Web Service"
-- Wacht tot deployment compleet is
-- Open je app URL
+## 📋 Gebruik
 
----
+### SEO Artikel Genereren
+1. Selecteer "SEO Schrijver" in het menu
+2. Vul alle velden in:
+   - Onderwerp
+   - Aantal woorden
+   - Hoofd keyword
+   - SEO titel (max 55 tekens)
+   - Meta beschrijving (max 130 tekens)
+3. Klik op "Genereer Artikel"
+4. Artikel verschijnt in de editor
+
+### Artikel Aanpassen met AI
+1. Typ je vraag in de AI Chat:
+   - "Maak de inleiding korter"
+   - "Voeg een paragraaf toe over..."
+   - "Herschrijf de conclusie"
+   - "Maak het informeler"
+2. Klik op "Verstuur"
+3. AI past het artikel aan
+
+### YouTube Post Maken
+1. Selecteer "YouTube Post"
+2. Plak de YouTube URL
+3. Vul onderwerp en woordenaantal in
+4. Klik op "Genereer Post"
+5. Video wordt automatisch embedded in de post
+
+### Lijst Artikel Maken
+1. Selecteer "Lijst Artikel"
+2. Vul onderwerp in (bijv: "10 tips voor...")
+3. Kies aantal items
+4. Kies woorden per item
+5. Klik op "Genereer Lijst"
+
+## 🛠️ Editor Functies
+
+- **📋 Kopieer** - Kopieer HTML naar klembord
+- **💾 Download HTML** - Download als HTML bestand
+- **🗑️ Wissen** - Maak editor leeg
+
+## 🎨 Features
+
+### HTML Formatting
+- Alle content wordt gegenereerd in **proper HTML**
+- Geen markdown meer
+- Echte HTML lijsten: `<ul>`, `<ol>`, `<li>`
+- Proper headings: `<h1>`, `<h2>`, `<h3>`
+- Paragrafen: `<p>`
+
+### YouTube Embed
+```html
+<div class="youtube-embed">
+    <iframe src="https://www.youtube.com/embed/VIDEO_ID" 
+            frameborder="0" 
+            allowfullscreen>
+    </iframe>
+</div>
+```
+
+### Responsive Design
+- Werkt op desktop, tablet en mobiel
+- Sidebar klapt in op kleine schermen
+- Editor past zich aan aan schermgrootte
 
 ## 🔧 Technische Details
 
-### Tech Stack
-- **Backend**: Flask (Python)
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Database**: SQLite
-- **AI**: OpenAI GPT-5/4.1 API
-- **Images**: Pixabay API, DALL-E 3
-- **Quality Check**: Originality.ai API
+### Frontend
+- **Quill.js** - Rich text editor
+- **Vanilla JavaScript** - Geen frameworks
+- **Modern CSS** - Flexbox layout
+- **Responsive** - Mobile-first design
 
-### Bestandsstructuur
+### Backend
+- **Flask** - Python web framework
+- **OpenAI GPT-4** - AI content generatie
+- **RESTful API** - Clean API endpoints
+
+### API Endpoints
+
 ```
-writgo_app_v12/
-├── app.py                 # Main Flask application
-├── index.html            # Frontend UI
-├── requirements.txt      # Python dependencies
-├── runtime.txt          # Python version
-├── README.md            # Deze file
-├── CHANGELOG.md         # Versie geschiedenis
-└── writgo_content.db    # SQLite database (auto-created)
-```
-
-### Database Schema
-```sql
--- Articles table
-CREATE TABLE articles (
-    id INTEGER PRIMARY KEY,
-    title TEXT,
-    content_html TEXT,
-    content_text TEXT,
-    article_type TEXT,
-    anchor1 TEXT,
-    url1 TEXT,
-    anchor2 TEXT,
-    url2 TEXT,
-    word_count INTEGER,
-    human_score REAL,
-    ai_score REAL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-
--- WordPress sites table
-CREATE TABLE wordpress_sites (
-    id INTEGER PRIMARY KEY,
-    name TEXT UNIQUE,
-    url TEXT,
-    username TEXT,
-    app_password TEXT,
-    created_at TIMESTAMP
-);
-
--- Links tables (internal & affiliate)
-CREATE TABLE internal_links (
-    id INTEGER PRIMARY KEY,
-    site_id INTEGER,
-    anchor_text TEXT,
-    url TEXT,
-    FOREIGN KEY (site_id) REFERENCES wordpress_sites(id)
-);
+POST /api/generate-seo-article
+POST /api/generate-perplexity-article
+POST /api/generate-youtube-post
+POST /api/generate-list-article
+POST /api/modify-article
 ```
 
----
+## 📦 Deployment
 
-## 🛠️ Troubleshooting
+### Render.com
+1. Push naar GitHub
+2. Maak nieuwe Web Service op Render
+3. Voeg environment variable toe: `OPENAI_API_KEY`
+4. Deploy!
 
-### API Errors
-- **401 Unauthorized**: Check je OpenAI API key
-- **429 Rate Limit**: Wacht even of upgrade je OpenAI plan
-- **Model not found**: Zorg dat je toegang hebt tot GPT-5 modellen
+### Heroku
+```bash
+heroku create writgoai
+heroku config:set OPENAI_API_KEY=your-key
+git push heroku main
+```
 
-### WordPress Publicatie Problemen
-- Controleer of Application Password correct is
-- Zorg dat WordPress REST API enabled is
-- Check firewall/security plugins
+## 🎯 Verbeteringen t.o.v. v17
 
-### Image Generatie Issues
-- Pixabay: Controleer API key en rate limits
-- DALL-E: Zorg voor voldoende OpenAI credits
+### ❌ Verwijderd
+- AI suggesties systeem (te complex)
+- Markdown formatting
+- Blauwe headers en underlines
+- Complexe UI elementen
 
----
+### ✅ Toegevoegd
+- Modern rich text editor (Quill)
+- AI chat voor aanpassingen
+- YouTube embed functionaliteit
+- Proper HTML lijsten
+- Clean, overzichtelijke layout
+- Character counters voor SEO velden
+- Real-time editing
 
-## 📞 Support & Updates
+## 💡 Tips
 
-### Changelog
-Zie `CHANGELOG.md` voor volledige versie geschiedenis
+1. **SEO Optimalisatie**
+   - Gebruik het keyword 2-3 keer per 100 woorden
+   - Houd SEO titel onder 55 tekens
+   - Houd meta beschrijving onder 130 tekens
 
-### Toekomstige Features
-- [ ] Bulk artikel generatie
-- [ ] Scheduled publishing
-- [ ] SEO score analysis
-- [ ] Multi-language support
-- [ ] Template systeem
-- [ ] Analytics dashboard
+2. **AI Chat Gebruik**
+   - Wees specifiek in je vragen
+   - Vraag om één aanpassing tegelijk
+   - Test verschillende formuleringen
 
----
+3. **YouTube Posts**
+   - Gebruik korte, pakkende titels
+   - Schrijf een nieuwsgierig makende inleiding
+   - Plaats video vroeg in de post
+
+4. **Lijst Artikelen**
+   - Gebruik duidelijke, beschrijvende titels
+   - Houd items ongeveer even lang
+   - Voeg een conclusie toe
+
+## 🐛 Troubleshooting
+
+### Editor laadt niet
+- Check of Quill CDN bereikbaar is
+- Ververs de pagina
+- Check browser console voor errors
+
+### API errors
+- Controleer OpenAI API key
+- Check API rate limits
+- Bekijk Flask logs
+
+### YouTube embed werkt niet
+- Controleer URL format
+- Test met verschillende YouTube URLs
+- Check browser console
 
 ## 📄 Licentie
 
-Proprietary - Writgo Academy © 2025
+Proprietary - WritgoAI
+
+## 👨‍💻 Versie
+
+**v18 - Modern Editor**
+- Release datum: Oktober 2025
+- Status: Stable
+- Python: 3.8+
+- Flask: 2.3.0
+- OpenAI: 0.27.8
 
 ---
 
-## 🎉 Credits
-
-Ontwikkeld met ❤️ voor Writgo Academy
-Powered by OpenAI GPT-5 & GPT-4.1
-
-**Versie**: 12.0
-**Laatste Update**: 7 oktober 2025
-**Status**: Production Ready ✅
+**Gemaakt met ❤️ voor moderne content creators**

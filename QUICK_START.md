@@ -1,140 +1,155 @@
-# ⚡ Writgo Academy v12 - Quick Start
+# 🚀 Quick Start Guide - WritgoAI v18
 
-## 🎯 In 5 Minuten aan de Slag
+## ⚡ Snel aan de slag in 5 minuten
 
-### Stap 1: Installatie (1 minuut)
+### 1️⃣ Installatie (2 minuten)
+
 ```bash
-cd writgo_app_v12
+# Unzip het bestand
+unzip writgoai_v18_modern.zip
+cd writgoai_v18_modern
+
+# Installeer dependencies
 pip install -r requirements.txt
+
+# Configureer API key
+cp .env.example .env
+nano .env  # Voeg je OpenAI API key toe
 ```
 
-### Stap 2: API Keys (2 minuten)
-Maak `.env` bestand:
-```env
-OPENAI_API_KEY=sk-proj-jouw-key
-ORIGINALITY_API_KEY=jouw-key
-PIXABAY_API_KEY=jouw-key
-```
+### 2️⃣ Start de app (30 seconden)
 
-### Stap 3: Start (1 minuut)
 ```bash
 python app.py
 ```
-Open: http://localhost:5000
 
-### Stap 4: Test (1 minuut)
-1. Klik op "Linkbuilding Writer"
-2. Selecteer **GPT-5 Mini** (aanbevolen)
-3. Vul onderwerp in
-4. Klik "Genereer Artikel"
-5. Klaar! 🎉
+Open browser: **http://localhost:5000**
+
+### 3️⃣ Eerste artikel (2 minuten)
+
+#### SEO Artikel Maken:
+1. Klik op **"SEO Schrijver"** in het menu
+2. Vul in:
+   - **Onderwerp:** "Yoga voor beginners"
+   - **Woorden:** 800
+   - **Keyword:** "yoga beginners"
+   - **SEO Titel:** "Yoga voor Beginners: Complete Gids 2025"
+   - **Meta:** "Leer yoga met deze complete gids voor beginners. Tips, oefeningen en advies."
+3. Klik **"Genereer Artikel"**
+4. Wacht 10-20 seconden
+5. ✅ Klaar! Artikel staat in de editor
+
+### 4️⃣ Artikel Aanpassen (30 seconden)
+
+In de **AI Chat** rechts:
+- Type: "Maak de inleiding korter"
+- Klik **"Verstuur"**
+- Artikel wordt automatisch aangepast!
+
+### 5️⃣ Exporteren (10 seconden)
+
+Klik op:
+- **📋 Kopieer** - Kopieer naar klembord
+- **💾 Download HTML** - Download als bestand
 
 ---
 
-## 🚀 Nieuwe Features in v12
+## 🎥 YouTube Post Maken
 
-### 9 Nieuwe AI Modellen
+1. Selecteer **"YouTube Post"**
+2. Plak YouTube URL: `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+3. Onderwerp: "Geweldige yoga video"
+4. Woorden: 500
+5. Klik **"Genereer Post"**
+6. ✅ Video wordt automatisch embedded!
+
+---
+
+## 📋 Lijst Artikel Maken
+
+1. Selecteer **"Lijst Artikel"**
+2. Onderwerp: "10 Yoga Tips voor Beginners"
+3. Aantal items: 10
+4. Woorden per item: 100
+5. Klik **"Genereer Lijst"**
+6. ✅ Mooie genummerde lijst!
+
+---
+
+## 💡 Pro Tips
+
+### AI Chat Voorbeelden:
 ```
-GPT-5 Serie:
-├── GPT-5 ⭐ (Beste kwaliteit)
-├── GPT-5 Mini ⚡ (Aanbevolen - Snelste + Goedkoopste)
-├── GPT-5 Nano 💰 (Budget optie)
-├── GPT-5 Chat Latest 💬
-├── GPT-5 Codex 🔧 (Voor tech content)
-└── GPT-5 Pro 💎 (Premium)
-
-GPT-4.1 Serie:
-├── GPT-4.1
-├── GPT-4.1 Mini
-└── GPT-4.1 Nano
+✅ "Maak de inleiding korter"
+✅ "Voeg een paragraaf toe over ademhalingsoefeningen"
+✅ "Herschrijf de conclusie in een positievere toon"
+✅ "Maak het artikel informeler"
+✅ "Voeg meer voorbeelden toe"
 ```
 
----
+### SEO Tips:
+- **Titel:** Max 55 tekens (groen = goed)
+- **Meta:** Max 130 tekens (groen = goed)
+- **Keyword:** Gebruik 2-3 keer per 100 woorden
 
-## 💡 Welk Model Kiezen?
-
-### Voor Dagelijks Gebruik
-**→ GPT-5 Mini** ⚡
-- Uitstekende kwaliteit
-- Zeer snel
-- Goedkoop (~$0.003/artikel)
-
-### Voor Premium Content
-**→ GPT-5** ⭐
-- Hoogste kwaliteit
-- Professioneel
-- Redelijke prijs (~$0.015/artikel)
-
-### Voor Bulk Productie
-**→ GPT-5 Nano** 💰
-- Zeer goedkoop (~$0.0006/artikel)
-- Acceptabele kwaliteit
-- Perfect voor linkbuilding
-
-### Voor Tech Content
-**→ GPT-5 Codex** 🔧
-- Gespecialiseerd in techniek
-- Accurate code
-- Ideaal voor tutorials
+### Editor Shortcuts:
+- **Ctrl+C** - Kopieer geselecteerde tekst
+- **Ctrl+B** - Maak tekst bold
+- **Ctrl+I** - Maak tekst italic
 
 ---
 
-## 📊 Kosten Vergelijking
+## 🐛 Problemen?
 
-**1000-woord artikel:**
-- GPT-5 Pro: $0.18 💎
-- GPT-5: $0.015 ⭐
-- **GPT-5 Mini: $0.003** ⚡ ← Aanbevolen!
-- GPT-5 Nano: $0.0006 💰
+### App start niet
+```bash
+# Check Python versie (moet 3.8+ zijn)
+python --version
 
-**30 artikelen/maand:**
-- GPT-5 Pro: $5.40/maand
-- GPT-5: $0.45/maand
-- **GPT-5 Mini: $0.09/maand** ← Beste deal!
-- GPT-5 Nano: $0.018/maand
+# Herinstalleer dependencies
+pip install -r requirements.txt --force-reinstall
+```
 
----
+### API Error
+- Check of OpenAI API key correct is in `.env`
+- Check of je API credits hebt
+- Test API key op: https://platform.openai.com/api-keys
 
-## ✅ Checklist
-
-- [ ] Installeer dependencies
-- [ ] Configureer API keys
-- [ ] Start app
-- [ ] Test GPT-5 Mini
-- [ ] Genereer eerste artikel
-- [ ] Check kwaliteit
-- [ ] Publiceer naar WordPress (optioneel)
+### Editor laadt niet
+- Ververs de pagina (F5)
+- Check internet verbinding (Quill laadt van CDN)
+- Open browser console (F12) voor errors
 
 ---
 
-## 🎯 Pro Tips
+## 📱 Mobiel Gebruik
 
-1. **Start met GPT-5 Mini** - Beste balans
-2. **Test verschillende modellen** - Zie wat werkt
-3. **Monitor kosten** - Check OpenAI dashboard
-4. **Gebruik extra context** - Betere resultaten
-5. **Check Originality.ai** - Verify human score
+De app werkt op mobiel, maar voor beste ervaring:
+- Gebruik **landscape mode** (horizontaal)
+- Chat panel is verborgen op kleine schermen
+- Gebruik desktop voor uitgebreide editing
 
 ---
 
-## 📖 Meer Info?
+## 🎯 Volgende Stappen
+
+1. **Experimenteer** met verschillende content types
+2. **Test** de AI chat functionaliteit
+3. **Maak** je eerste 5 artikelen
+4. **Deploy** naar Render.com of Heroku
+5. **Deel** met je team!
+
+---
+
+## 📞 Hulp Nodig?
 
 - **README.md** - Volledige documentatie
-- **MODEL_SELECTION_GUIDE.md** - Uitgebreide model gids
-- **UPDATE_SUMMARY.md** - Wat is er nieuw
-- **CHANGELOG.md** - Versie geschiedenis
+- **CHANGELOG.md** - Alle features en changes
+- **GitHub Issues** - Rapporteer bugs
+- **Email** - support@writgoai.com
 
 ---
 
-## 🚀 Ready to Go!
+## ✨ Geniet van WritgoAI v18!
 
-Je bent klaar om te starten met de nieuwste AI technologie!
-
-**Aanbevolen eerste test:**
-1. Selecteer GPT-5 Mini
-2. Onderwerp: "Voordelen van AI in content marketing"
-3. Genereer artikel
-4. Bekijk resultaat
-5. Vergelijk met andere modellen
-
-**Happy Writing! ✍️**
+**Happy Writing! 🎉**
