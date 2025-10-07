@@ -272,6 +272,60 @@
             text-decoration: underline;
         }
         
+        .article-output table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .article-output table th {
+            background: var(--dark-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .article-output table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .article-output table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .article-output ul, .article-output ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        .article-output li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .article-output strong {
+            color: var(--dark-blue);
+            font-weight: 600;
+        }
+        
+        .article-output img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .article-output hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 30px 0;
+        }
+        
         .stats {
             display: flex;
             gap: 20px;
@@ -611,7 +665,7 @@
                     <h2>📝 Linkbuilding Artikel Generator</h2>
                     
                     <div class="form-group">
-                        <label>Onderwerp</label>
+                        <label>Onderwerp <button onclick="suggestTopic()" class="btn-secondary" style="margin-left:10px; padding:5px 10px; font-size:12px;">🤖 Auto-genereer uit URLs</button></label>
                         <input type="text" id="onderwerp" placeholder="Bijv: Hoe kies je de juiste boekhoudsoftware">
                     </div>
                     
@@ -637,6 +691,12 @@
                             <label>URL 2</label>
                             <input type="url" id="url2" placeholder="https://example.com">
                         </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Domein van Plaatsing (optioneel) 🆕</label>
+                        <input type="text" id="placement-domain" placeholder="Bijv: www.example.nl (voor stijl-analyse)">
+                        <small style="color:#666; font-size:12px;">De AI analyseert dit domein om de schrijfstijl aan te passen</small>
                     </div>
                     
                     <div class="form-group">
@@ -708,6 +768,20 @@
                                 <option value="claude-sonnet-3.5">Claude Sonnet 3.5</option>
                             </optgroup>
                         </select>
+                    </div>
+                    
+                    <!-- NEW: Perplexity Research Toggle -->
+                    <div class="form-group" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <label style="display: flex; align-items: center; gap: 10px; color: white; font-weight: bold; cursor: pointer;">
+                            <input type="checkbox" id="use-research" style="width: 20px; height: 20px; cursor: pointer;">
+                            <span>🔍 Gebruik Perplexity AI Research (AANBEVOLEN)</span>
+                        </label>
+                        <small style="color: rgba(255,255,255,0.9); display: block; margin-top: 8px; line-height: 1.5;">
+                            ✨ Zoekt automatisch de beste online content<br>
+                            📊 Analyseert top Google resultaten<br>
+                            🎯 Schrijft betere content dan concurrenten<br>
+                            🔗 Voegt bronnen toe aan je artikel
+                        </small>
                     </div>
                     
                     <!-- Extra Elements Section -->
@@ -994,6 +1068,45 @@
         });
         
         // Linkbuilding Article Generation
+        async function suggestTopic() {
+            const anchor1 = document.getElementById('anchor1').value;
+            const url1 = document.getElementById('url1').value;
+            const anchor2 = document.getElementById('anchor2').value;
+            const url2 = document.getElementById('url2').value;
+            const context = document.getElementById('extra').value;
+            
+            if (!anchor1 || !url1 || !anchor2 || !url2) {
+                alert('Vul eerst de anchor teksten en URLs in!');
+                return;
+            }
+            
+            const onderwerpField = document.getElementById('onderwerp');
+            onderwerpField.value = '🤖 Onderwerp wordt gegenereerd...';
+            onderwerpField.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_URL}/suggest-topic`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ anchor1, url1, anchor2, url2, context })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    onderwerpField.value = data.topic;
+                } else {
+                    alert('Kon geen onderwerp genereren: ' + data.error);
+                    onderwerpField.value = '';
+                }
+            } catch (error) {
+                alert('Fout bij genereren onderwerp: ' + error.message);
+                onderwerpField.value = '';
+            } finally {
+                onderwerpField.disabled = false;
+            }
+        }
+        
         async function generateLinkbuildingArticle() {
             const onderwerp = document.getElementById('onderwerp').value;
             const anchor1 = document.getElementById('anchor1').value;
@@ -1002,6 +1115,7 @@
             const url2 = document.getElementById('url2').value;
             const extra = document.getElementById('extra').value;
             const model = document.getElementById('gpt-model').value;
+            const placement_domain = document.getElementById('placement-domain').value;
             
             if (!onderwerp || !anchor1 || !url1 || !anchor2 || !url2) {
                 alert('Vul alle verplichte velden in!');
@@ -1015,7 +1129,7 @@
                 const response = await fetch(`${API_URL}/generate-article`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ onderwerp, anchor1, url1, anchor2, url2, extra, model })
+                    body: JSON.stringify({ onderwerp, anchor1, url1, anchor2, url2, extra, model, placement_domain })
                 });
                 
                 const data = await response.json();
@@ -1031,11 +1145,11 @@
                                 </div>
                                 <div class="stat-box">
                                     <h4>Human Score</h4>
-                                    <p>${data.human_score}%</p>
+                                    <p>${data.human_score !== null && data.human_score !== undefined ? data.human_score + '%' : 'N/A'}</p>
                                 </div>
                                 <div class="stat-box">
                                     <h4>AI Score</h4>
-                                    <p>${data.ai_score}%</p>
+                                    <p>${data.ai_score !== null && data.ai_score !== undefined ? data.ai_score + '%' : 'N/A'}</p>
                                 </div>
                             </div>
                             <div class="article-output">${data.article}</div>
@@ -1061,6 +1175,7 @@
             const model = document.getElementById('general-gpt-model').value;
             const site_id = document.getElementById('general-site').value;
             const status = document.getElementById('general-status').value;
+            const use_research = document.getElementById('use-research').checked;  // NEW: Research toggle
             
             // Get extra elements
             const include_table = document.getElementById('include-table').checked;
@@ -1077,7 +1192,13 @@
             }
             
             const output = document.getElementById('general-output');
-            output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Artikel wordt gegenereerd...</p></div>';
+            
+            // Show research status if enabled
+            if (use_research) {
+                output.innerHTML = '<div class="loading"><div class="spinner"></div><p>🔍 Onderzoek wordt uitgevoerd met Perplexity AI...</p><small>Dit kan 10-20 seconden duren</small></div>';
+            } else {
+                output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Artikel wordt gegenereerd...</p></div>';
+            }
             
             try {
                 const payload = { 
@@ -1085,6 +1206,7 @@
                     word_count: parseInt(word_count), 
                     extra, 
                     model,
+                    use_research,  // NEW: Include research toggle
                     include_table,
                     include_faq,
                     include_bold,

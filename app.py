@@ -104,7 +104,8 @@ def load_api_keys():
         'openai': None,
         'anthropic': None,
         'originality': None,
-        'pixabay': None
+        'pixabay': None,
+        'perplexity': None
     }
     
     # First, try to load from environment variables (for Render deployment)
@@ -112,6 +113,7 @@ def load_api_keys():
     keys['anthropic'] = os.getenv('ANTHROPIC_API_KEY')
     keys['originality'] = os.getenv('ORIGINALITY_API_KEY')
     keys['pixabay'] = os.getenv('PIXABAY_API_KEY')
+    keys['perplexity'] = os.getenv('PERPLEXITY_API_KEY')
     
     # If not found in env vars, try loading from secrets file (for local development)
     secrets_path = '/home/ubuntu/.config/abacusai_auth_secrets.json'
@@ -139,6 +141,11 @@ def load_api_keys():
             if not keys['pixabay'] and 'pixabay' in secrets and 'secrets' in secrets['pixabay']:
                 if 'api_key' in secrets['pixabay']['secrets']:
                     keys['pixabay'] = secrets['pixabay']['secrets']['api_key']['value']
+            
+            # Perplexity
+            if not keys['perplexity'] and 'perplexity' in secrets and 'secrets' in secrets['perplexity']:
+                if 'api_key' in secrets['perplexity']['secrets']:
+                    keys['perplexity'] = secrets['perplexity']['secrets']['api_key']['value']
         except Exception as e:
             print(f"⚠️  Error loading API keys from secrets file: {e}")
     
@@ -149,6 +156,7 @@ OPENAI_API_KEY = api_keys['openai']
 ANTHROPIC_API_KEY = api_keys['anthropic']
 ORIGINALITY_API_KEY = api_keys['originality']
 PIXABAY_API_KEY = api_keys['pixabay']
+PERPLEXITY_API_KEY = api_keys['perplexity']
 
 # Initialize OpenAI client
 client = None
@@ -180,6 +188,11 @@ if PIXABAY_API_KEY:
     print("✅ Pixabay API key loaded")
 else:
     print("⚠️  Pixabay API key not found")
+
+if PERPLEXITY_API_KEY:
+    print("✅ Perplexity API key loaded")
+else:
+    print("⚠️  Perplexity API key not found")
 
 # FORBIDDEN PHRASES - Comprehensive list with variations
 FORBIDDEN_PHRASES = [
@@ -250,6 +263,114 @@ def call_claude_api(prompt, system_prompt, model="claude-sonnet-4", max_tokens=4
     except Exception as e:
         raise Exception(f"Claude API error: {str(e)}")
 
+def perplexity_research(topic, num_results=5):
+    """
+    Use Perplexity AI to research a topic and gather information from top Google results
+    
+    Args:
+        topic: The topic to research
+        num_results: Number of sources to consider (default 5)
+    
+    Returns:
+        dict with 'summary', 'sources', and 'key_points'
+    """
+    if not PERPLEXITY_API_KEY:
+        return {
+            'summary': '',
+            'sources': [],
+            'key_points': [],
+            'error': 'Perplexity API key not configured'
+        }
+    
+    try:
+        # Perplexity API endpoint
+        url = "https://api.perplexity.ai/chat/completions"
+        
+        headers = {
+            "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # Research prompt
+        research_prompt = f"""Onderzoek het volgende onderwerp grondig: "{topic}"
+
+Geef me:
+1. Een uitgebreide samenvatting van de belangrijkste informatie
+2. De top {num_results} belangrijkste punten die ik moet behandelen
+3. Actuele trends en ontwikkelingen
+4. Wat de beste artikelen over dit onderwerp bespreken
+5. Unieke invalshoeken die ik kan gebruiken
+
+Wees specifiek en geef concrete informatie die ik kan gebruiken om een beter artikel te schrijven dan wat er al online staat."""
+
+        payload = {
+            "model": "llama-3.1-sonar-large-128k-online",  # Perplexity's online search model
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "Je bent een expert content researcher. Zoek actuele, betrouwbare informatie en geef concrete, bruikbare inzichten."
+                },
+                {
+                    "role": "user",
+                    "content": research_prompt
+                }
+            ],
+            "temperature": 0.2,
+            "top_p": 0.9,
+            "return_citations": True,
+            "search_recency_filter": "month",  # Focus on recent content
+            "stream": False
+        }
+        
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Extract research results
+        content = data['choices'][0]['message']['content']
+        citations = data.get('citations', [])
+        
+        # Parse key points from the response
+        key_points = []
+        lines = content.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+                # Remove numbering/bullets
+                clean_line = re.sub(r'^[\d\.\-•\*\s]+', '', line).strip()
+                if len(clean_line) > 20:  # Only substantial points
+                    key_points.append(clean_line)
+        
+        return {
+            'summary': content,
+            'sources': citations[:num_results],  # Limit to requested number
+            'key_points': key_points[:10],  # Top 10 key points
+            'success': True
+        }
+        
+    except requests.exceptions.Timeout:
+        return {
+            'summary': '',
+            'sources': [],
+            'key_points': [],
+            'error': 'Perplexity API timeout - research took too long'
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            'summary': '',
+            'sources': [],
+            'key_points': [],
+            'error': f'Perplexity API error: {str(e)}'
+        }
+    except Exception as e:
+        return {
+            'summary': '',
+            'sources': [],
+            'key_points': [],
+            'error': f'Research error: {str(e)}'
+        }
+
 def generate_with_best_of_all(prompt, system_prompt, word_count=500):
     """
     Generate content using "Best of All" approach:
@@ -271,7 +392,7 @@ def generate_with_best_of_all(prompt, system_prompt, word_count=500):
     # 1. GPT-4.1 - Structure & SEO optimization
     try:
         if client:
-            response = client.chat.completions.create(
+            response = call_openai_with_correct_params(
                 model="gpt-4.1",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -544,6 +665,11 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
     if not client:
         raise Exception("OpenAI API key not configured")
     
+    # Check if "Best of All" mode - use GPT-4.1
+    if model == "best-of-all":
+        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
+        model = "gpt-4.1"
+    
     extra_context = ""
     if extra:
         extra_context = f"\nEXTRA CONTEXT:\n{extra}"
@@ -555,7 +681,7 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
     )
     
     try:
-        response = client.chat.completions.create(
+        response = call_openai_with_correct_params(
             model=model,
             messages=[
                 {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen."},
@@ -576,10 +702,135 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
         print(f"OpenAI Topic Generation Error: {e}")
         raise
 
+def extract_topic_from_urls(anchor1, url1, anchor2, url2, context=""):
+    """Extract topic suggestion from URLs and anchors using AI"""
+    if not client:
+        return None
+    
+    try:
+        prompt = f"""Analyseer deze linkbuilding informatie en suggereer een KORT en SPECIFIEK onderwerp voor een artikel.
+
+ANCHOR 1: {anchor1}
+URL 1: {url1}
+
+ANCHOR 2: {anchor2}
+URL 2: {url2}
+
+{f"EXTRA CONTEXT: {context}" if context else ""}
+
+Geef ALLEEN het onderwerp terug, zonder uitleg. Het onderwerp moet:
+- Kort zijn (max 5-7 woorden)
+- Relevant zijn voor beide anchors
+- Natuurlijk klinken als artikel titel
+- In het Nederlands zijn
+
+Voorbeeld output: "Kleine lease auto voor zakelijk gebruik"
+"""
+        
+        response = call_openai_with_correct_params(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Je bent een SEO expert die perfecte artikel onderwerpen bedenkt."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=50
+        )
+        
+        topic = response.choices[0].message.content.strip()
+        # Remove quotes if present
+        topic = topic.strip('"').strip("'")
+        print(f"✅ Auto-generated topic: {topic}")
+        return topic
+        
+    except Exception as e:
+        print(f"⚠️ Topic extraction error: {e}")
+        return None
+
+def analyze_placement_domain(domain_url):
+    """Analyze placement domain to adjust writing style"""
+    if not domain_url:
+        return ""
+    
+    try:
+        # Extract domain from URL
+        from urllib.parse import urlparse
+        parsed = urlparse(domain_url if domain_url.startswith('http') else f'https://{domain_url}')
+        domain = parsed.netloc or parsed.path
+        
+        print(f"📊 Analyzing domain: {domain}")
+        
+        # Scrape homepage (with timeout)
+        try:
+            response = requests.get(f'https://{domain}', timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            })
+            content = response.text[:5000]  # First 5000 chars
+        except:
+            print(f"⚠️ Could not scrape {domain}, using domain name only")
+            content = domain
+        
+        # Use AI to analyze
+        if client:
+            prompt = f"""Analyseer deze website en geef een KORTE stijlgids (max 3 zinnen):
+
+DOMEIN: {domain}
+CONTENT SAMPLE: {content[:1000]}
+
+Geef aan:
+1. Tone of voice (formeel/informeel/professioneel/casual)
+2. Doelgroep (zakelijk/particulier/breed)
+3. Schrijfstijl aanbeveling
+
+Hou het KORT en PRAKTISCH."""
+            
+            response = call_openai_with_correct_params(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "Je bent een content strategist."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=150
+            )
+            
+            analysis = response.choices[0].message.content.strip()
+            print(f"✅ Domain analysis complete")
+            return f"\n\nSTIJLGIDS VOOR {domain}:\n{analysis}"
+        
+        return ""
+        
+    except Exception as e:
+        print(f"⚠️ Domain analysis error: {e}")
+        return ""
+
+def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens=2000):
+    """Call OpenAI API with correct parameters based on model"""
+    # GPT-5 and newer models use max_completion_tokens instead of max_tokens
+    if model in ["gpt-5", "o1-preview", "o1-mini"]:
+        return client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_completion_tokens=max_tokens
+        )
+    else:
+        return client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+
 def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="gpt-4o", max_retries=3):
     """Generate linkbuilding article with forbidden words check"""
     if not client:
         raise Exception("OpenAI API key not configured")
+    
+    # Check if "Best of All" mode - use GPT-4.1 (best available model)
+    if model == "best-of-all":
+        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
+        model = "gpt-4.1"
     
     extra_context = ""
     if extra:
@@ -596,7 +847,7 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
     
     for attempt in range(max_retries):
         try:
-            response = client.chat.completions.create(
+            response = call_openai_with_correct_params(
                 model=model,
                 messages=[
                     {"role": "system", "content": f"Je bent een expert Nederlandse contentschrijver. H1 is EXACT '{onderwerp}'. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."},
@@ -638,7 +889,7 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
                 raise
 
 def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", 
-                            elements=None, max_retries=3):
+                            elements=None, max_retries=3, use_research=False):
     """
     Generate general article with optional extra elements
     Supports GPT models, Claude models, and "Best of All" combination
@@ -657,10 +908,43 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
             - dalle_style: str (style for DALL-E images)
             - youtube_video: bool
         max_retries: Max retry attempts
+        use_research: If True, use Perplexity to research topic first
     """
     # Default elements
     if elements is None:
         elements = {}
+    
+    # Perform research if requested
+    research_context = ""
+    research_sources = []
+    if use_research and PERPLEXITY_API_KEY:
+        print(f"🔍 Researching topic: {onderwerp}")
+        research_result = perplexity_research(onderwerp, num_results=5)
+        
+        if research_result.get('success'):
+            research_context = f"""
+RESEARCH RESULTATEN (gebruik deze informatie om een beter artikel te schrijven):
+
+{research_result['summary']}
+
+BELANGRIJKE PUNTEN OM TE BEHANDELEN:
+{chr(10).join(f"• {point}" for point in research_result['key_points'])}
+
+BRONNEN (voeg deze toe aan het einde van het artikel):
+{chr(10).join(f"• {source}" for source in research_result['sources'])}
+
+Gebruik deze research om:
+1. Actuele en accurate informatie te geven
+2. Unieke invalshoeken te vinden die andere artikelen niet hebben
+3. Diepgaander in te gaan op belangrijke aspecten
+4. Betere content te maken dan wat er al online staat
+"""
+            research_sources = research_result['sources']
+            print(f"✅ Research completed: {len(research_result['key_points'])} key points, {len(research_sources)} sources")
+        else:
+            print(f"⚠️ Research failed: {research_result.get('error', 'Unknown error')}")
+    elif use_research and not PERPLEXITY_API_KEY:
+        print("⚠️ Research requested but Perplexity API key not configured")
     
     word_count_instruction = f"Schrijf een artikel van ongeveer {word_count} woorden."
     
@@ -731,6 +1015,10 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
     if extra:
         extra_context = f"\nEXTRA CONTEXT:\n{extra}"
     
+    # Add research context if available
+    if research_context:
+        extra_context += f"\n\n{research_context}"
+    
     prompt = GENERAL_ARTICLE_PROMPT.format(
         onderwerp=onderwerp,
         word_count_instruction=word_count_instruction,
@@ -740,16 +1028,10 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
     
     system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."
     
-    # Check if "Best of All" mode
+    # Check if "Best of All" mode - use GPT-4.1 (best available model)
     if model == "best-of-all":
-        print("🌟 Using Best of All mode - combining GPT-4.1, Claude Sonnet 4, and Claude Opus 4")
-        article = generate_with_best_of_all(prompt, system_prompt, word_count)
-        
-        # Process and format
-        article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
-        article = process_article_placeholders(article, onderwerp, elements)
-        article = format_article_html(article)
-        return article
+        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
+        model = "gpt-4.1"
     
     # Check if Claude model
     is_claude = model.startswith('claude-')
@@ -772,7 +1054,7 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                 if not client:
                     raise Exception("OpenAI API key not configured")
                 
-                response = client.chat.completions.create(
+                response = call_openai_with_correct_params(
                     model=model,
                     messages=[
                         {"role": "system", "content": system_prompt},
@@ -860,6 +1142,11 @@ def refine_article(article, topic, anchors, user_request, history=[], model="gpt
     if not client:
         raise Exception("OpenAI API key not configured")
     
+    # Check if "Best of All" mode - use GPT-4.1
+    if model == "best-of-all":
+        print("🌟 Using Best of All mode - using GPT-4.1 (best model)")
+        model = "gpt-4.1"
+    
     article_plain = re.sub(r'<[^>]+>', '', article)
     article_plain = article_plain.replace('<h1>', 'H1: ').replace('</h1>', '')
     article_plain = article_plain.replace('<h2>', 'H2: ').replace('</h2>', '')
@@ -886,7 +1173,7 @@ Pas het artikel aan volgens de vraag van de gebruiker."""
     ]
     
     try:
-        response = client.chat.completions.create(
+        response = call_openai_with_correct_params(
             model=model,
             messages=messages,
             temperature=0.8,
@@ -1098,7 +1385,13 @@ def fetch_wordpress_posts(site_url, username, app_password):
 def check_originality(content):
     """Check content with Originality.AI"""
     if not ORIGINALITY_API_KEY:
-        return {"error": "Originality.AI API key not configured"}
+        print("⚠️ Originality.AI API key not configured")
+        return {
+            "success": False,
+            "ai_score": None,
+            "human_score": None,
+            "error": "API key not configured"
+        }
     
     try:
         url = "https://api.originality.ai/api/v1/scan/ai"
@@ -1112,26 +1405,52 @@ def check_originality(content):
         text_content = re.sub(r'<[^>]+>', '', content)
         text_content = text_content.replace('\n', ' ').strip()
         
+        # Limit content length (Originality.AI has limits)
+        if len(text_content) > 25000:
+            text_content = text_content[:25000]
+        
         payload = {
             "content": text_content,
             "title": "Article Scan",
             "aiModelVersion": "1"
         }
         
+        print(f"📊 Checking originality with Originality.AI...")
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         
         if response.status_code == 200:
             data = response.json()
+            ai_score = round(data.get('score', {}).get('ai', 0) * 100, 1)
+            human_score = round(data.get('score', {}).get('original', 0) * 100, 1)
+            print(f"✅ Originality check complete: AI={ai_score}%, Human={human_score}%")
             return {
                 "success": True,
-                "ai_score": round(data.get('score', {}).get('ai', 0) * 100, 1),
-                "human_score": round(data.get('score', {}).get('original', 0) * 100, 1)
+                "ai_score": ai_score,
+                "human_score": human_score
             }
         else:
-            return {"error": f"API Error: {response.status_code}"}
+            error_msg = f"API Error: {response.status_code}"
+            print(f"⚠️ Originality.AI error: {error_msg}")
+            try:
+                error_data = response.json()
+                error_msg += f" - {error_data.get('message', '')}"
+            except:
+                pass
+            return {
+                "success": False,
+                "ai_score": None,
+                "human_score": None,
+                "error": error_msg
+            }
             
     except Exception as e:
-        return {"error": str(e)}
+        print(f"⚠️ Originality.AI exception: {str(e)}")
+        return {
+            "success": False,
+            "ai_score": None,
+            "human_score": None,
+            "error": str(e)
+        }
 
 def search_pixabay_images(query, per_page=5):
     """Search for images on Pixabay"""
@@ -1216,6 +1535,30 @@ def api_generate_topic():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/suggest-topic', methods=['POST'])
+def api_suggest_topic():
+    """Suggest topic based on URLs and anchors"""
+    try:
+        data = request.json
+        anchor1 = data.get('anchor1', '').strip()
+        url1 = data.get('url1', '').strip()
+        anchor2 = data.get('anchor2', '').strip()
+        url2 = data.get('url2', '').strip()
+        context = data.get('context', '').strip()
+        
+        if not all([anchor1, url1, anchor2, url2]):
+            return jsonify({"error": "All anchors and URLs are required"}), 400
+        
+        topic = extract_topic_from_urls(anchor1, url1, anchor2, url2, context)
+        
+        if topic:
+            return jsonify({"success": True, "topic": topic})
+        else:
+            return jsonify({"error": "Could not generate topic"}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/generate-article', methods=['POST'])
 def api_generate_article():
     """Generate linkbuilding article"""
@@ -1228,6 +1571,13 @@ def api_generate_article():
         url2 = data.get('url2', '').strip()
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
+        placement_domain = data.get('placement_domain', '').strip()
+        
+        # Add domain analysis to extra context if provided
+        if placement_domain:
+            domain_analysis = analyze_placement_domain(placement_domain)
+            if domain_analysis:
+                extra += domain_analysis
         
         if not all([onderwerp, anchor1, url1, anchor2, url2]):
             return jsonify({"error": "All fields are required"}), 400
@@ -1256,6 +1606,7 @@ def api_generate_general_article():
         word_count = int(data.get('word_count', 500))
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
+        use_research = data.get('use_research', False)  # NEW: Research toggle
         
         # Extract extra elements
         elements = {
@@ -1271,7 +1622,7 @@ def api_generate_general_article():
         if not onderwerp:
             return jsonify({"error": "Topic is required"}), 400
         
-        article = generate_general_article(onderwerp, word_count, extra, model, elements)
+        article = generate_general_article(onderwerp, word_count, extra, model, elements, use_research=use_research)
         
         # Count words
         text_content = re.sub(r'<[^>]+>', '', article)
