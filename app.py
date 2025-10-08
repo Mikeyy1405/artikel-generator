@@ -22,6 +22,9 @@ try:
 except ImportError:
     anthropic = None
 
+# Import nieuwe Pixabay API module
+from pixabay_api import PixabayAPI, search_pixabay_images, search_pixabay_videos
+
 app = Flask(__name__)
 CORS(app)
 
@@ -1040,7 +1043,7 @@ def process_article_placeholders(article, onderwerp, elements):
         for match in matches:
             search_query = match.strip()
             try:
-                images = search_pixabay_images(search_query, per_page=1)
+                images = search_pixabay_images_wrapper(search_query, per_page=1)
                 if images:
                     img_url = images[0]['medium_url']
                     img_tag = f'<img src="{img_url}" alt="{search_query}" style="max-width: 100%; height: auto; margin: 20px 0;">'
@@ -1085,9 +1088,10 @@ def process_article_placeholders(article, onderwerp, elements):
     
     return article
 
-def search_pixabay_images(query, per_page=10, image_type='photo', orientation='horizontal'):
+def search_pixabay_images_wrapper(query, per_page=10, image_type='photo', orientation='horizontal'):
     """
-    Search for images on Pixabay
+    Wrapper functie voor Pixabay afbeeldingen zoeken
+    Gebruikt de nieuwe pixabay_api module
     
     Args:
         query: Search term
@@ -1102,37 +1106,24 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
         raise Exception("Pixabay API key not configured")
     
     try:
-        url = "https://pixabay.com/api/"
-        params = {
-            'key': PIXABAY_API_KEY,
-            'q': query,
-            'per_page': min(per_page, 200),  # Max 200
-            'image_type': image_type,
-            'orientation': orientation,
-            'safesearch': 'true',
-            'lang': 'nl'
-        }
+        # Gebruik nieuwe API module
+        client = PixabayAPI(PIXABAY_API_KEY)
+        result = client.search_images(
+            query=query,
+            per_page=per_page,
+            image_type=image_type,
+            orientation=orientation,
+            lang='nl',
+            safesearch=True
+        )
         
-        print(f"Making Pixabay API request with query: {query}")
-        response = requests.get(url, params=params, timeout=10)
+        if not result['success']:
+            print(f"❌ Pixabay API error: {result['error']}")
+            raise Exception(result['error'])
         
-        if response.status_code != 200:
-            print(f"Pixabay API returned status code: {response.status_code}")
-            print(f"Response: {response.text}")
-        
-        response.raise_for_status()
-        
-        data = response.json()
-        
-        if data.get('totalHits', 0) == 0:
-            print(f"No images found for query: {query}")
-            return []
-        
-        print(f"Pixabay returned {data.get('totalHits', 0)} total hits")
-        
-        # Format results
+        # Converteer naar oude formaat voor backward compatibility
         images = []
-        for hit in data.get('hits', []):
+        for hit in result['data']['hits']:
             images.append({
                 'id': hit.get('id'),
                 'preview_url': hit.get('previewURL'),
@@ -1148,11 +1139,8 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
         
         return images
         
-    except requests.exceptions.RequestException as e:
-        print(f"Pixabay API Request Error: {type(e).__name__}: {str(e)}")
-        raise Exception(f"Failed to fetch images from Pixabay: {str(e)}")
     except Exception as e:
-        print(f"Unexpected error in search_pixabay_images: {type(e).__name__}: {str(e)}")
+        print(f"❌ Fout bij zoeken naar afbeeldingen: {str(e)}")
         raise
 
 def fetch_wordpress_posts(site_url, username, app_password):
@@ -1274,40 +1262,7 @@ def check_originality(content):
             "error": str(e)
         }
 
-def search_pixabay_images(query, per_page=5):
-    """Search for images on Pixabay"""
-    if not PIXABAY_API_KEY:
-        return {"error": "Pixabay API key not configured"}
-    
-    try:
-        url = "https://pixabay.com/api/"
-        params = {
-            "key": PIXABAY_API_KEY,
-            "q": query,
-            "image_type": "photo",
-            "per_page": per_page,
-            "safesearch": "true"
-        }
-        
-        response = requests.get(url, params=params, timeout=30)
-        
-        if response.status_code == 200:
-            data = response.json()
-            images = []
-            for hit in data.get('hits', []):
-                images.append({
-                    'id': hit['id'],
-                    'url': hit['largeImageURL'],
-                    'preview': hit['previewURL'],
-                    'width': hit['imageWidth'],
-                    'height': hit['imageHeight']
-                })
-            return {"success": True, "images": images}
-        else:
-            return {"error": f"API Error: {response.status_code}"}
-            
-    except Exception as e:
-        return {"error": str(e)}
+
 
 def generate_dalle_image(prompt):
     """Generate image using DALL-E 3"""
@@ -1521,7 +1476,7 @@ def api_search_images():
         
         print(f"Searching Pixabay for: {query} (per_page={per_page})")
         
-        images = search_pixabay_images(
+        images = search_pixabay_images_wrapper(
             query=query,
             per_page=per_page,
             image_type=image_type,
