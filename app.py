@@ -1,10 +1,10 @@
+
 #!/usr/bin/env python3
 """
-WritgoAI Content Generator v14
+WritgoAI Content Generator v15
 Multi-feature content creation platform with WordPress integration
 Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
-NEW: Claude AI models support + "Best of All" combination mode
-Mobile responsive design with hamburger menu
+NEW: Consolidated SEO writer with dropdown, improved heading capitalization, better list/table rendering
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -209,158 +209,34 @@ def check_forbidden_words(text):
     
     return (len(found_phrases) > 0, found_phrases)
 
-def call_claude_api(prompt, system_prompt, model="claude-sonnet-4", max_tokens=4000):
+def to_sentence_case(text):
     """
-    Call Claude API with given prompt
-    
-    Args:
-        prompt: User prompt
-        system_prompt: System prompt
-        model: Claude model to use
-        max_tokens: Maximum tokens to generate
-    
-    Returns:
-        Generated text
+    Convert text to sentence case (first letter uppercase, rest lowercase)
+    Preserves proper nouns and acronyms if they're already capitalized
     """
-    if not anthropic_client:
-        raise Exception("Anthropic API key not configured or library not installed")
+    if not text:
+        return text
     
-    # Map friendly names to actual model IDs
-    model_mapping = {
-        "claude-sonnet-4": "claude-sonnet-4-20250514",
-        "claude-opus-4": "claude-opus-4-20250514",
-        "claude-sonnet-3.7": "claude-3-7-sonnet-20250219",
-        "claude-sonnet-3.5": "claude-3-5-sonnet-20241022",
-        "claude-haiku-3.5": "claude-3-5-haiku-20241022"
-    }
-    
-    actual_model = model_mapping.get(model, model)
-    
-    try:
-        message = anthropic_client.messages.create(
-            model=actual_model,
-            max_tokens=max_tokens,
-            temperature=0.9,
-            system=system_prompt,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+    # First letter uppercase, rest as-is (to preserve proper nouns)
+    return text[0].upper() + text[1:]
+
+def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens=2000):
+    """Call OpenAI API with correct parameters based on model"""
+    # GPT-5 and newer models use max_completion_tokens instead of max_tokens
+    if model in ["gpt-5", "o1-preview", "o1-mini"]:
+        return client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_completion_tokens=max_tokens
         )
-        
-        return message.content[0].text
-    except Exception as e:
-        raise Exception(f"Claude API error: {str(e)}")
-
-def generate_with_best_of_all(prompt, system_prompt, word_count=500):
-    """
-    Generate content using "Best of All" approach:
-    1. Generate with GPT-4.1 (structure & SEO)
-    2. Generate with Claude Sonnet 4 (natural writing)
-    3. Generate with Claude Opus 4 (creativity & depth)
-    4. Combine the best elements from all three
-    
-    Args:
-        prompt: User prompt
-        system_prompt: System prompt
-        word_count: Target word count
-    
-    Returns:
-        Combined best article
-    """
-    results = {}
-    
-    # 1. GPT-4.1 - Structure & SEO optimization
-    try:
-        if client:
-            response = client.chat.completions.create(
-                model="gpt-4.1",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=4000
-            )
-            results['gpt4'] = response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"GPT-4.1 failed: {e}")
-        results['gpt4'] = None
-    
-    # 2. Claude Sonnet 4 - Natural, human-like writing
-    try:
-        if anthropic_client:
-            results['claude_sonnet'] = call_claude_api(
-                prompt=prompt,
-                system_prompt=system_prompt,
-                model="claude-sonnet-4",
-                max_tokens=4000
-            )
-    except Exception as e:
-        print(f"Claude Sonnet 4 failed: {e}")
-        results['claude_sonnet'] = None
-    
-    # 3. Claude Opus 4 - Creativity & depth
-    try:
-        if anthropic_client:
-            results['claude_opus'] = call_claude_api(
-                prompt=prompt,
-                system_prompt=system_prompt,
-                model="claude-opus-4",
-                max_tokens=4000
-            )
-    except Exception as e:
-        print(f"Claude Opus 4 failed: {e}")
-        results['claude_opus'] = None
-    
-    # Filter out None results
-    valid_results = {k: v for k, v in results.items() if v is not None}
-    
-    if not valid_results:
-        raise Exception("All models failed to generate content")
-    
-    # If only one model succeeded, return that
-    if len(valid_results) == 1:
-        return list(valid_results.values())[0]
-    
-    # Combine the best elements
-    combination_prompt = f"""Je hebt 3 verschillende versies van hetzelfde artikel ontvangen van verschillende AI modellen.
-Jouw taak is om het BESTE artikel te maken door de sterke punten van elk te combineren:
-
-VERSION 1 (GPT-4.1 - Structuur & SEO):
-{results.get('gpt4', 'Niet beschikbaar')}
-
-VERSION 2 (Claude Sonnet 4 - Natuurlijk schrijven):
-{results.get('claude_sonnet', 'Niet beschikbaar')}
-
-VERSION 3 (Claude Opus 4 - Creativiteit & diepgang):
-{results.get('claude_opus', 'Niet beschikbaar')}
-
-OPDRACHT:
-Maak het ULTIEME artikel door:
-✅ De beste structuur te kiezen (waarschijnlijk van GPT-4.1)
-✅ De meest natuurlijke schrijfstijl te gebruiken (waarschijnlijk van Claude Sonnet)
-✅ De meest creatieve en diepgaande inzichten toe te voegen (waarschijnlijk van Claude Opus)
-✅ Alle H1, H2, H3 headers te behouden
-✅ Alle anchor links te behouden
-✅ Ongeveer {word_count} woorden
-✅ GEEN "voordelen" of "voordeel" gebruiken
-
-Geef ALLEEN het gecombineerde artikel terug, geen uitleg."""
-
-    # Use Claude Sonnet 4 for the combination (best at natural writing)
-    try:
-        if anthropic_client:
-            final_article = call_claude_api(
-                prompt=combination_prompt,
-                system_prompt="Je bent een expert editor die het beste uit meerdere artikelen combineert tot één perfect artikel.",
-                model="claude-sonnet-4",
-                max_tokens=4000
-            )
-            return final_article
-    except Exception as e:
-        print(f"Combination failed: {e}")
-        # Fallback: return the longest article
-        return max(valid_results.values(), key=len)
+    else:
+        return client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
 
 # Topic generation prompt
 TOPIC_GENERATION_PROMPT = """Je bent een SEO expert die perfecte artikel onderwerpen bedenkt voor linkbuilding.
@@ -418,8 +294,10 @@ KRITIEKE REGELS VOOR ANCHOR TEKSTEN:
 ✅ GEEN actieve promotie of verkoop-taal
 ✅ Gewoon terloops noemen als voorbeeld of optie
 
-HEADINGS - ZEER BELANGRIJK:
+HEADINGS - ZEER BELANGRIJK (SENTENCE CASE):
 ✅ H1: Gebruik EXACT het onderwerp "{onderwerp}" (met "H1: " ervoor)
+✅ H2 en H3: Gebruik Sentence case - alleen eerste letter hoofdletter
+✅ Voorbeeld GOED: "H2: Dit is een heading" (niet "H2: Dit Is Een Heading")
 ✅ H2 en H3: Maak deze RELEVANT voor het specifieke onderwerp
 ✅ H2 en H3: GEEN vaste templates of standaard koppen
 ✅ H2 en H3: Pas aan bij de inhoud en het onderwerp
@@ -484,7 +362,7 @@ TECHNISCHE EISEN:
 - Woordenaantal: EXACT 500 woorden (±2 woorden toegestaan)
 - Anchor teksten: Beide verplicht, PRECIES 1 KEER elk, SUBTIEL verweven
 - H1: EXACT het onderwerp "{onderwerp}"
-- Headings: Relevant voor het onderwerp, GEEN vaste templates, WEL met "H1: ", "H2: ", "H3: " prefix
+- Headings: Sentence case (alleen eerste letter hoofdletter), relevant voor het onderwerp, GEEN vaste templates, WEL met "H1: ", "H2: ", "H3: " prefix
 - Conclusie: ALTIJD "H2: Conclusie" met hoofdletter C
 - Alinea's: 2-4 zinnen per alinea
 - Geen intro zoals "In dit artikel..." - begin direct met de kern
@@ -492,7 +370,8 @@ TECHNISCHE EISEN:
 {extra_context}
 
 Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}".
-ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
+ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!
+ONTHOUD: Headings in Sentence case (alleen eerste letter hoofdletter)!"""
 
 # General AI writer prompt - ENHANCED with extra elements
 GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
@@ -530,15 +409,18 @@ VERBODEN:
 ❌ Geen AI-clichés zoals "In de wereld van...", "Het is belangrijk om te..."
 ❌ Geen marketing-taal
 
-STRUCTUUR:
+STRUCTUUR (SENTENCE CASE VOOR HEADINGS):
 - Gebruik H1 voor de hoofdtitel (markeer met "H1: ")
 - Gebruik H2 voor hoofdsecties (markeer met "H2: ")
 - Gebruik H3 voor subsecties indien nodig (markeer met "H3: ")
 - Sluit af met "H2: Conclusie"
+- BELANGRIJK: Gebruik Sentence case voor alle headings (alleen eerste letter hoofdletter)
+- Voorbeeld GOED: "H2: Dit is een heading" (niet "H2: Dit Is Een Heading")
 
 {extra_context}
 
-Schrijf nu het artikel. ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
+Schrijf nu het artikel. ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!
+ONTHOUD: Headings in Sentence case (alleen eerste letter hoofdletter)!"""
 
 def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
     """Generate article topic based on anchor texts"""
@@ -679,24 +561,6 @@ Hou het KORT en PRAKTISCH."""
         print(f"⚠️ Domain analysis error: {e}")
         return ""
 
-def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens=2000):
-    """Call OpenAI API with correct parameters based on model"""
-    # GPT-5 and newer models use max_completion_tokens instead of max_tokens
-    if model in ["gpt-5", "o1-preview", "o1-mini"]:
-        return client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_completion_tokens=max_tokens
-        )
-    else:
-        return client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
-
 def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="gpt-4o", max_retries=3):
     """Generate linkbuilding article with forbidden words check"""
     if not client:
@@ -720,7 +584,7 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
             response = call_openai_with_correct_params(
                 model=model,
                 messages=[
-                    {"role": "system", "content": f"Je bent een expert Nederlandse contentschrijver. H1 is EXACT '{onderwerp}'. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."},
+                    {"role": "system", "content": f"Je bent een expert Nederlandse contentschrijver. H1 is EXACT '{onderwerp}'. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.9,
@@ -801,7 +665,7 @@ TABEL VEREIST:
         extra_elements_parts.append("""
 FAQ SECTIE VEREIST:
 ✅ Voeg een FAQ sectie toe met minimaal 5 vragen
-✅ Gebruik H2: Veelgestelde Vragen
+✅ Gebruik H2: Veelgestelde vragen
 ✅ Elke vraag als H3: [vraag]
 ✅ Geef kort en bondig antwoord onder elke vraag
 ✅ Vragen moeten relevant zijn voor het onderwerp""")
@@ -859,7 +723,7 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
         extra_context=extra_context
     )
     
-    system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde."
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."
     
     # Only use GPT-4o
     model = "gpt-4o"
@@ -913,9 +777,9 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                 raise
 
 def format_article_html(article, anchor1=None, url1=None, anchor2=None, url2=None):
-    """Convert article with H1/H2/H3 markers to HTML"""
+    """Convert article with H1/H2/H3 markers to HTML with improved list and table formatting"""
     
-    # Replace heading markers with HTML tags
+    # Replace heading markers with HTML tags (Sentence case preserved)
     article = re.sub(r'^H1:\s*(.+)$', r'<h1>\1</h1>', article, flags=re.MULTILINE)
     article = re.sub(r'^H2:\s*(.+)$', r'<h2>\1</h2>', article, flags=re.MULTILINE)
     article = re.sub(r'^H3:\s*(.+)$', r'<h3>\1</h3>', article, flags=re.MULTILINE)
@@ -939,19 +803,86 @@ def format_article_html(article, anchor1=None, url1=None, anchor2=None, url2=Non
             count=1
         )
     
-    # Wrap paragraphs in <p> tags
+    # Improved list detection and formatting
     lines = article.split('\n')
     formatted_lines = []
+    in_ul = False
+    in_ol = False
     
-    for line in lines:
+    for i, line in enumerate(lines):
         line = line.strip()
         if not line:
+            # Close any open lists
+            if in_ul:
+                formatted_lines.append('</ul>')
+                in_ul = False
+            if in_ol:
+                formatted_lines.append('</ol>')
+                in_ol = False
             continue
-        if not line.startswith('<'):
-            line = f'<p>{line}</p>'
-        formatted_lines.append(line)
+        
+        # Check if line is a list item
+        is_bullet = re.match(r'^[-•*]\s+(.+)$', line)
+        is_numbered = re.match(r'^\d+[\.)]\s+(.+)$', line)
+        
+        if is_bullet:
+            # Unordered list item
+            if not in_ul:
+                if in_ol:
+                    formatted_lines.append('</ol>')
+                    in_ol = False
+                formatted_lines.append('<ul>')
+                in_ul = True
+            formatted_lines.append(f'<li>{is_bullet.group(1)}</li>')
+        elif is_numbered:
+            # Ordered list item
+            if not in_ol:
+                if in_ul:
+                    formatted_lines.append('</ul>')
+                    in_ul = False
+                formatted_lines.append('<ol>')
+                in_ol = True
+            formatted_lines.append(f'<li>{is_numbered.group(1)}</li>')
+        else:
+            # Close any open lists
+            if in_ul:
+                formatted_lines.append('</ul>')
+                in_ul = False
+            if in_ol:
+                formatted_lines.append('</ol>')
+                in_ol = False
+            
+            # Regular content
+            if not line.startswith('<'):
+                line = f'<p>{line}</p>'
+            formatted_lines.append(line)
     
-    return '\n'.join(formatted_lines)
+    # Close any remaining open lists
+    if in_ul:
+        formatted_lines.append('</ul>')
+    if in_ol:
+        formatted_lines.append('</ol>')
+    
+    article = '\n'.join(formatted_lines)
+    
+    # Improve table formatting with better styling
+    article = re.sub(
+        r'<table>',
+        '<table style="width:100%; border-collapse:collapse; margin:20px 0; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius:8px; overflow:hidden;">',
+        article
+    )
+    article = re.sub(
+        r'<th>',
+        '<th style="background:#0C1E43; color:white; padding:14px; text-align:left; font-weight:600; font-size:15px;">',
+        article
+    )
+    article = re.sub(
+        r'<td>',
+        '<td style="padding:12px 14px; border-bottom:1px solid #e0e0e0; font-size:14px;">',
+        article
+    )
+    
+    return article
 
 def refine_article(article, topic, anchors, user_request, history=[], model="gpt-4o"):
     """Refine article based on user request"""
@@ -975,12 +906,13 @@ BELANGRIJKE REGELS:
 - Blijf rond de oorspronkelijke woordenaantal
 - Schrijf natuurlijk en menselijk
 - Geen AI-clichés
+- BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)
 
 Pas het artikel aan volgens de vraag van de gebruiker."""
 
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"HUIDIG ARTIKEL:\n\n{article_plain}\n\nAANPASSING GEVRAAGD:\n{user_request}\n\nGeef het volledige aangepaste artikel terug met H1:, H2:, H3: markers."}
+        {"role": "user", "content": f"HUIDIG ARTIKEL:\n\n{article_plain}\n\nAANPASSING GEVRAAGD:\n{user_request}\n\nGeef het volledige aangepaste artikel terug met H1:, H2:, H3: markers. ONTHOUD: Headings in Sentence case!"}
     ]
     
     try:
@@ -1043,8 +975,8 @@ def process_article_placeholders(article, onderwerp, elements):
             try:
                 images = search_pixabay_images(search_query, per_page=1)
                 if images:
-                    img_url = images[0]['medium_url']
-                    img_tag = f'<img src="{img_url}" alt="{search_query}" style="max-width: 100%; height: auto; margin: 20px 0;">'
+                    img_url = images[0]['url']
+                    img_tag = f'<img src="{img_url}" alt="{search_query}" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">'
                     article = article.replace(f'[IMAGE: {match}]', img_tag, 1)
                 else:
                     # Remove placeholder if no image found
@@ -1064,7 +996,7 @@ def process_article_placeholders(article, onderwerp, elements):
                 result = generate_dalle_image(prompt)
                 if result.get('success'):
                     img_url = result['image_url']
-                    img_tag = f'<img src="{img_url}" alt="AI Generated: {prompt[:50]}" style="max-width: 100%; height: auto; margin: 20px 0;">'
+                    img_tag = f'<img src="{img_url}" alt="AI Generated: {prompt[:50]}" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">'
                     article = article.replace(f'[AI-IMAGE: {match}]', img_tag, 1)
                 else:
                     article = article.replace(f'[AI-IMAGE: {match}]', '', 1)
@@ -1962,87 +1894,6 @@ def delete_affiliate_link(link_id):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-@app.route('/api/ai-suggestions', methods=['POST'])
-def api_ai_suggestions():
-    """Generate AI suggestions for improving text"""
-    try:
-        data = request.get_json()
-        text = data.get('text', '').strip()
-        
-        if not text:
-            return jsonify({'success': False, 'error': 'Geen tekst opgegeven'})
-        
-        if not client:
-            return jsonify({'success': False, 'error': 'OpenAI API key niet geconfigureerd'})
-        
-        prompt = f"""Je bent een professionele Nederlandse tekstverbeteraar. Analyseer de volgende tekst en geef concrete suggesties voor verbetering.
-
-TEKST:
-{text}
-
-Geef 3-5 concrete suggesties om de tekst te verbeteren op het gebied van:
-- Leesbaarheid
-- Woordkeuze
-- Zinsbouw
-- Stijl
-- Inhoud
-
-Geef elke suggestie in deze format:
-SUGGESTIE X: [korte beschrijving]
-ORIGINEEL: [relevante originele tekst]
-VERBETERD: [verbeterde versie]
-
-Houd het praktisch en direct toepasbaar."""
-
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "Je bent een expert tekstverbeteraar die concrete, bruikbare suggesties geeft."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        
-        suggestions = response.choices[0].message.content.strip()
-        
-        return jsonify({
-            'success': True,
-            'suggestions': suggestions
-        })
-        
-    except Exception as e:
-        print(f"AI Suggestions Error: {e}")
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/count-words', methods=['POST'])
-def api_count_words():
-    """Count words in text"""
-    try:
-        data = request.get_json()
-        text = data.get('text', '').strip()
-        
-        if not text:
-            return jsonify({'success': True, 'word_count': 0, 'char_count': 0})
-        
-        # Remove HTML tags for accurate word count
-        import re
-        clean_text = re.sub(r'<[^>]+>', '', text)
-        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
-        
-        word_count = len(clean_text.split()) if clean_text else 0
-        char_count = len(clean_text)
-        
-        return jsonify({
-            'success': True,
-            'word_count': word_count,
-            'char_count': char_count
-        })
-        
-    except Exception as e:
-        print(f"Word Count Error: {e}")
-        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
