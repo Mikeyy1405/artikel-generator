@@ -25,6 +25,9 @@ try:
 except ImportError:
     anthropic = None
 
+# Import backend utilities
+from backend_utils import find_sitemap, extract_internal_links, detect_affiliate_links, fetch_sitemap_urls
+
 app = Flask(__name__)
 CORS(app)
 
@@ -92,7 +95,7 @@ def init_db():
         )
     ''')
     
-    # WordPress sites table
+    # WordPress sites table with new fields
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS wordpress_sites (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,6 +103,8 @@ def init_db():
             site_url TEXT NOT NULL,
             username TEXT NOT NULL,
             app_password TEXT NOT NULL,
+            sitemap_url TEXT,
+            context TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -128,6 +133,30 @@ def init_db():
             FOREIGN KEY (site_id) REFERENCES wordpress_sites(id) ON DELETE CASCADE
         )
     ''')
+    
+    # Knowledge base documents per site
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS knowledge_base (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            site_id INTEGER NOT NULL,
+            filename TEXT NOT NULL,
+            content TEXT NOT NULL,
+            file_type TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (site_id) REFERENCES wordpress_sites(id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Add new columns to existing wordpress_sites table if they don't exist
+    try:
+        cursor.execute('ALTER TABLE wordpress_sites ADD COLUMN sitemap_url TEXT')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    
+    try:
+        cursor.execute('ALTER TABLE wordpress_sites ADD COLUMN context TEXT')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     
     conn.commit()
     conn.close()
@@ -1805,13 +1834,14 @@ def api_get_wordpress_sites():
 
 @app.route('/api/wordpress-sites', methods=['POST'])
 def api_add_wordpress_site():
-    """Add a new WordPress site"""
+    """Add a new WordPress site with automatic sitemap detection and link extraction"""
     try:
         data = request.json
         site_name = data.get('site_name', '').strip()
         site_url = data.get('site_url', '').strip()
         username = data.get('username', '').strip()
         app_password = data.get('app_password', '').strip()
+        context = data.get('context', '').strip()
         
         if not all([site_name, site_url, username, app_password]):
             return jsonify({"error": "All fields are required"}), 400
@@ -1825,20 +1855,52 @@ def api_add_wordpress_site():
             conn.close()
             return jsonify({"error": "Site with this name already exists"}), 400
         
+        # Automatically detect sitemap
+        sitemap_result = find_sitemap(site_url)
+        sitemap_url = sitemap_result.get('sitemap_url', '') if sitemap_result.get('success') else ''
+        
         # Insert new site
         cursor.execute('''
-            INSERT INTO wordpress_sites (site_name, site_url, username, app_password)
-            VALUES (?, ?, ?, ?)
-        ''', (site_name, site_url, username, app_password))
+            INSERT INTO wordpress_sites (site_name, site_url, username, app_password, sitemap_url, context)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (site_name, site_url, username, app_password, sitemap_url, context))
         
         site_id = cursor.lastrowid
+        
+        # Extract internal links from homepage
+        internal_links_result = extract_internal_links(site_url, max_links=50)
+        if internal_links_result.get('success'):
+            for link in internal_links_result.get('links', []):
+                cursor.execute('''
+                    INSERT INTO internal_links (site_id, anchor_text, url)
+                    VALUES (?, ?, ?)
+                ''', (site_id, link['anchor_text'], link['url']))
+        
+        # Detect affiliate links from homepage
+        try:
+            response = requests.get(site_url, timeout=15, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            })
+            if response.status_code == 200:
+                affiliate_result = detect_affiliate_links(response.text)
+                if affiliate_result.get('success'):
+                    for link in affiliate_result.get('links', []):
+                        cursor.execute('''
+                            INSERT INTO affiliate_links (site_id, anchor_text, url)
+                            VALUES (?, ?, ?)
+                        ''', (site_id, link['anchor_text'], link['url']))
+        except:
+            pass  # Continue even if affiliate detection fails
+        
         conn.commit()
         conn.close()
         
         return jsonify({
             "success": True,
             "site_id": site_id,
-            "message": "WordPress site added successfully"
+            "sitemap_url": sitemap_url,
+            "internal_links_count": internal_links_result.get('count', 0) if internal_links_result.get('success') else 0,
+            "message": "WordPress site added successfully with automatic link extraction"
         })
         
     except Exception as e:
@@ -1863,6 +1925,160 @@ def api_delete_wordpress_site(site_id):
         return jsonify({
             "success": True,
             "message": "WordPress site deleted successfully"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================================================================
+# INTERNAL LINKS & AFFILIATE LINKS API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/wordpress-sites/<int:site_id>/internal-links', methods=['GET'])
+def api_get_internal_links(site_id):
+    """Get internal links for a WordPress site"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, anchor_text, url, created_at 
+            FROM internal_links 
+            WHERE site_id = ?
+            ORDER BY created_at DESC
+        ''', (site_id,))
+        links = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "links": links
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/wordpress-sites/<int:site_id>/affiliate-links', methods=['GET'])
+def api_get_affiliate_links(site_id):
+    """Get affiliate links for a WordPress site"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, anchor_text, url, created_at 
+            FROM affiliate_links 
+            WHERE site_id = ?
+            ORDER BY created_at DESC
+        ''', (site_id,))
+        links = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "links": links
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================================================================
+# KNOWLEDGE BASE API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/wordpress-sites/<int:site_id>/knowledge-base', methods=['POST'])
+def api_upload_knowledge_base(site_id):
+    """Upload a document to the knowledge base for a WordPress site"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+        
+        # Read file content
+        content = file.read().decode('utf-8', errors='ignore')
+        filename = file.filename
+        file_type = filename.split('.')[-1] if '.' in filename else 'txt'
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if site exists
+        cursor.execute('SELECT id FROM wordpress_sites WHERE id = ?', (site_id,))
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({"error": "Site not found"}), 404
+        
+        # Insert document
+        cursor.execute('''
+            INSERT INTO knowledge_base (site_id, filename, content, file_type)
+            VALUES (?, ?, ?, ?)
+        ''', (site_id, filename, content, file_type))
+        
+        doc_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "doc_id": doc_id,
+            "message": "Document uploaded successfully"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/wordpress-sites/<int:site_id>/knowledge-base', methods=['GET'])
+def api_get_knowledge_base(site_id):
+    """Get all knowledge base documents for a WordPress site"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, filename, file_type, created_at 
+            FROM knowledge_base 
+            WHERE site_id = ?
+            ORDER BY created_at DESC
+        ''', (site_id,))
+        documents = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "documents": documents
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/wordpress-sites/<int:site_id>/knowledge-base/<int:doc_id>', methods=['DELETE'])
+def api_delete_knowledge_base(site_id, doc_id):
+    """Delete a knowledge base document"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM knowledge_base WHERE id = ? AND site_id = ?', (doc_id, site_id))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({"error": "Document not found"}), 404
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Document deleted successfully"
         })
         
     except Exception as e:

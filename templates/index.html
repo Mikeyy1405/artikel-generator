@@ -471,8 +471,16 @@
                 <p>Modern Editor v18</p>
             </div>
             
+            <div class="menu-item" onclick="showSection('keyword-research')">
+                <span>🔍 Zoekwoordonderzoek</span>
+            </div>
+            
             <div class="menu-item active" onclick="showSection('seo-writer')">
                 <span>📝 SEO Schrijver</span>
+            </div>
+            
+            <div class="menu-item" onclick="showSection('linkbuilding')">
+                <span>🔗 Linkbuilding Schrijver</span>
             </div>
             
             <div class="menu-item" onclick="showSection('perplexity')">
@@ -486,10 +494,55 @@
             <div class="menu-item" onclick="showSection('list')">
                 <span>📋 Lijst Artikel</span>
             </div>
+            
+            <div class="menu-item" onclick="showSection('wordpress-sites')">
+                <span>⚙️ WordPress Sites</span>
+            </div>
         </div>
         
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Keyword Research Section -->
+            <div id="keyword-research" class="section">
+                <div class="section-header">
+                    <h2>Zoekwoordonderzoek</h2>
+                    <p>Onderzoek zoekwoorden en analyseer concurrentie</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="input-panel">
+                        <div class="form-group">
+                            <label>Hoofd zoekwoord</label>
+                            <input type="text" id="keyword-main" placeholder="Bijv: yoga voor beginners">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Taal</label>
+                            <select id="keyword-language">
+                                <option value="nl">Nederlands</option>
+                                <option value="en">Engels</option>
+                                <option value="de">Duits</option>
+                                <option value="fr">Frans</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="performKeywordResearch()">
+                            Start Onderzoek
+                        </button>
+                        
+                        <div class="loading" id="keyword-loading">
+                            <div class="spinner"></div>
+                            <p>Zoekwoorden worden geanalyseerd...</p>
+                        </div>
+                        
+                        <div id="keyword-results" style="margin-top: 20px; display: none;">
+                            <h3>Resultaten</h3>
+                            <div id="keyword-results-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- SEO Writer Section -->
             <div id="seo-writer" class="section active">
                 <div class="section-header">
@@ -764,6 +817,148 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Linkbuilding Writer Section -->
+            <div id="linkbuilding" class="section">
+                <div class="section-header">
+                    <h2>Linkbuilding Schrijver</h2>
+                    <p>Genereer artikelen met interne en externe links</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="input-panel">
+                        <div class="form-group">
+                            <label>Anchor Text 1</label>
+                            <input type="text" id="lb-anchor1" placeholder="Eerste anchor text">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>URL 1</label>
+                            <input type="text" id="lb-url1" placeholder="https://...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Anchor Text 2</label>
+                            <input type="text" id="lb-anchor2" placeholder="Tweede anchor text">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>URL 2</label>
+                            <input type="text" id="lb-url2" placeholder="https://...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Onderwerp (optioneel)</label>
+                            <input type="text" id="lb-topic" placeholder="Laat leeg voor auto-genereren">
+                        </div>
+                        
+                        <button class="btn btn-secondary" onclick="autoGenerateTopic()" style="margin-bottom: 10px;">
+                            🤖 Auto-genereer Onderwerp
+                        </button>
+                        
+                        <button class="btn btn-primary" onclick="generateLinkbuildingArticle()">
+                            Genereer Artikel
+                        </button>
+                        
+                        <div class="loading" id="lb-loading">
+                            <div class="spinner"></div>
+                            <p>Artikel wordt gegenereerd...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-panel">
+                        <div class="editor-toolbar">
+                            <button onclick="copyToClipboard()">📋 Kopieer</button>
+                            <button onclick="downloadHTML()">💾 Download HTML</button>
+                            <button onclick="clearEditor()">🗑️ Wissen</button>
+                        </div>
+                        
+                        <div class="editor-container">
+                            <div id="editor-lb"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WordPress Sites Management Section -->
+            <div id="wordpress-sites" class="section">
+                <div class="section-header">
+                    <h2>WordPress Sites Beheer</h2>
+                    <p>Beheer je WordPress sites en hun instellingen</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="input-panel">
+                        <h3>Nieuwe Site Toevoegen</h3>
+                        
+                        <div class="form-group">
+                            <label>Site Naam</label>
+                            <input type="text" id="wp-site-name" placeholder="Bijv: Mijn Blog">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Site URL</label>
+                            <input type="text" id="wp-site-url" placeholder="https://example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="wp-username" placeholder="WordPress username">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>App Password</label>
+                            <input type="password" id="wp-app-password" placeholder="WordPress app password">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Context (optioneel)</label>
+                            <textarea id="wp-context" placeholder="Beschrijf de site, doelgroep, tone of voice, etc..." rows="4"></textarea>
+                            <small style="color: #666;">Deze context wordt gebruikt bij het genereren van artikelen voor deze site.</small>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="addWordPressSite()">
+                            Site Toevoegen
+                        </button>
+                        
+                        <div class="loading" id="wp-loading">
+                            <div class="spinner"></div>
+                            <p>Site wordt toegevoegd...</p>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <h3>Bestaande Sites</h3>
+                            <div id="wp-sites-list" style="margin-top: 15px;">
+                                <p style="color: #666;">Laden...</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <h3>Knowledge Base</h3>
+                            <p style="color: #666; font-size: 14px;">Upload documenten per site voor betere context bij artikel generatie.</p>
+                            
+                            <div class="form-group">
+                                <label>Selecteer Site</label>
+                                <select id="kb-site-select">
+                                    <option value="">-- Selecteer een site --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Upload Document</label>
+                                <input type="file" id="kb-file-upload" accept=".txt,.md,.html,.json">
+                            </div>
+                            
+                            <button class="btn btn-secondary" onclick="uploadKnowledgeBase()">
+                                Upload Document
+                            </button>
+                            
+                            <div id="kb-documents-list" style="margin-top: 15px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -826,9 +1021,25 @@
                 }
             });
             
+            editors['linkbuilding'] = new Quill('#editor-lb', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+            
             // Character counters
             setupCharCounter('seo-title', 'seo-title-counter', 55);
             setupCharCounter('seo-meta', 'seo-meta-counter', 130);
+            
+            // Load WordPress sites
+            loadWordPressSites();
         });
         
         function setupCharCounter(inputId, counterId, maxChars) {
@@ -1105,6 +1316,364 @@
                 getCurrentEditor().root.innerHTML = '';
             }
         }
+        
+        // ============================================================================
+        // NEW FUNCTIONS FOR BACKEND FEATURES
+        // ============================================================================
+        
+        // Keyword Research
+        function performKeywordResearch() {
+            const keyword = document.getElementById('keyword-main').value;
+            const language = document.getElementById('keyword-language').value;
+            
+            if (!keyword) {
+                alert('Voer een zoekwoord in');
+                return;
+            }
+            
+            document.getElementById('keyword-loading').style.display = 'block';
+            document.getElementById('keyword-results').style.display = 'none';
+            
+            // Placeholder - implement actual keyword research API call
+            setTimeout(() => {
+                document.getElementById('keyword-loading').style.display = 'none';
+                document.getElementById('keyword-results').style.display = 'block';
+                document.getElementById('keyword-results-content').innerHTML = `
+                    <p><strong>Hoofd zoekwoord:</strong> ${keyword}</p>
+                    <p><strong>Taal:</strong> ${language}</p>
+                    <p style="color: #666; margin-top: 10px;">Zoekwoordonderzoek functionaliteit komt binnenkort...</p>
+                `;
+            }, 1000);
+        }
+        
+        // Auto-generate topic for linkbuilding
+        async function autoGenerateTopic() {
+            const anchor1 = document.getElementById('lb-anchor1').value;
+            const anchor2 = document.getElementById('lb-anchor2').value;
+            
+            if (!anchor1 || !anchor2) {
+                alert('Vul beide anchor texts in');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/generate-topic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        anchor1: anchor1,
+                        anchor2: anchor2,
+                        model: 'gpt-4o'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('lb-topic').value = data.topic;
+                } else {
+                    alert('Fout bij genereren onderwerp: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
+        }
+        
+        // Generate linkbuilding article
+        async function generateLinkbuildingArticle() {
+            const anchor1 = document.getElementById('lb-anchor1').value;
+            const url1 = document.getElementById('lb-url1').value;
+            const anchor2 = document.getElementById('lb-anchor2').value;
+            const url2 = document.getElementById('lb-url2').value;
+            let topic = document.getElementById('lb-topic').value;
+            
+            if (!anchor1 || !url1 || !anchor2 || !url2) {
+                alert('Vul alle verplichte velden in');
+                return;
+            }
+            
+            // Auto-generate topic if empty
+            if (!topic) {
+                await autoGenerateTopic();
+                topic = document.getElementById('lb-topic').value;
+            }
+            
+            document.getElementById('lb-loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/generate-article', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        onderwerp: topic,
+                        anchor1: anchor1,
+                        url1: url1,
+                        anchor2: anchor2,
+                        url2: url2,
+                        model: 'gpt-4o'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    editors['linkbuilding'].root.innerHTML = data.article;
+                } else {
+                    alert('Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            } finally {
+                document.getElementById('lb-loading').style.display = 'none';
+            }
+        }
+        
+        // WordPress Sites Management
+        async function loadWordPressSites() {
+            try {
+                const response = await fetch('/api/wordpress-sites');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayWordPressSites(data.sites);
+                    updateKnowledgeBaseSiteSelect(data.sites);
+                }
+            } catch (error) {
+                console.error('Error loading WordPress sites:', error);
+            }
+        }
+        
+        function displayWordPressSites(sites) {
+            const listDiv = document.getElementById('wp-sites-list');
+            
+            if (sites.length === 0) {
+                listDiv.innerHTML = '<p style="color: #666;">Geen sites gevonden</p>';
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+            
+            sites.forEach(site => {
+                html += `
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid var(--light-blue);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${site.site_name}</strong><br>
+                                <small style="color: #666;">${site.site_url}</small>
+                            </div>
+                            <button onclick="deleteWordPressSite(${site.id})" style="background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                                Verwijder
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            listDiv.innerHTML = html;
+        }
+        
+        function updateKnowledgeBaseSiteSelect(sites) {
+            const select = document.getElementById('kb-site-select');
+            select.innerHTML = '<option value="">-- Selecteer een site --</option>';
+            
+            sites.forEach(site => {
+                const option = document.createElement('option');
+                option.value = site.id;
+                option.textContent = site.site_name;
+                select.appendChild(option);
+            });
+        }
+        
+        async function addWordPressSite() {
+            const siteName = document.getElementById('wp-site-name').value;
+            const siteUrl = document.getElementById('wp-site-url').value;
+            const username = document.getElementById('wp-username').value;
+            const appPassword = document.getElementById('wp-app-password').value;
+            const context = document.getElementById('wp-context').value;
+            
+            if (!siteName || !siteUrl || !username || !appPassword) {
+                alert('Vul alle verplichte velden in');
+                return;
+            }
+            
+            document.getElementById('wp-loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/wordpress-sites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        site_name: siteName,
+                        site_url: siteUrl,
+                        username: username,
+                        app_password: appPassword,
+                        context: context
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`Site toegevoegd!\n\nSitemap: ${data.sitemap_url || 'Niet gevonden'}\nInterne links: ${data.internal_links_count || 0}`);
+                    
+                    // Clear form
+                    document.getElementById('wp-site-name').value = '';
+                    document.getElementById('wp-site-url').value = '';
+                    document.getElementById('wp-username').value = '';
+                    document.getElementById('wp-app-password').value = '';
+                    document.getElementById('wp-context').value = '';
+                    
+                    // Reload sites list
+                    loadWordPressSites();
+                } else {
+                    alert('Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            } finally {
+                document.getElementById('wp-loading').style.display = 'none';
+            }
+        }
+        
+        async function deleteWordPressSite(siteId) {
+            if (!confirm('Weet je zeker dat je deze site wilt verwijderen?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/wordpress-sites/${siteId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Site verwijderd');
+                    loadWordPressSites();
+                } else {
+                    alert('Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
+        }
+        
+        // Knowledge Base Management
+        async function uploadKnowledgeBase() {
+            const siteId = document.getElementById('kb-site-select').value;
+            const fileInput = document.getElementById('kb-file-upload');
+            
+            if (!siteId) {
+                alert('Selecteer eerst een site');
+                return;
+            }
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Selecteer een bestand');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch(`/api/wordpress-sites/${siteId}/knowledge-base`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Document geüpload!');
+                    fileInput.value = '';
+                    loadKnowledgeBaseDocuments(siteId);
+                } else {
+                    alert('Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
+        }
+        
+        async function loadKnowledgeBaseDocuments(siteId) {
+            if (!siteId) return;
+            
+            try {
+                const response = await fetch(`/api/wordpress-sites/${siteId}/knowledge-base`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayKnowledgeBaseDocuments(data.documents, siteId);
+                }
+            } catch (error) {
+                console.error('Error loading knowledge base:', error);
+            }
+        }
+        
+        function displayKnowledgeBaseDocuments(documents, siteId) {
+            const listDiv = document.getElementById('kb-documents-list');
+            
+            if (documents.length === 0) {
+                listDiv.innerHTML = '<p style="color: #666;">Geen documenten gevonden</p>';
+                return;
+            }
+            
+            let html = '<h4>Documenten:</h4><div style="display: flex; flex-direction: column; gap: 8px;">';
+            
+            documents.forEach(doc => {
+                html += `
+                    <div style="padding: 10px; background: #f8f9fa; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>${doc.filename} <small style="color: #666;">(${doc.file_type})</small></span>
+                        <button onclick="deleteKnowledgeBaseDocument(${siteId}, ${doc.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                            Verwijder
+                        </button>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            listDiv.innerHTML = html;
+        }
+        
+        async function deleteKnowledgeBaseDocument(siteId, docId) {
+            if (!confirm('Weet je zeker dat je dit document wilt verwijderen?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/wordpress-sites/${siteId}/knowledge-base/${docId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Document verwijderd');
+                    loadKnowledgeBaseDocuments(siteId);
+                } else {
+                    alert('Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
+        }
+        
+        // Event listener for site selection change
+        document.addEventListener('DOMContentLoaded', function() {
+            const siteSelect = document.getElementById('kb-site-select');
+            if (siteSelect) {
+                siteSelect.addEventListener('change', function() {
+                    const siteId = this.value;
+                    if (siteId) {
+                        loadKnowledgeBaseDocuments(siteId);
+                    } else {
+                        document.getElementById('kb-documents-list').innerHTML = '';
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
