@@ -9,3 +9,4 @@ gunicorn==21.2.0
 bcrypt==4.1.2
 stripe==8.0.0
 psycopg2-binary==2.9.9
+deep_translator
