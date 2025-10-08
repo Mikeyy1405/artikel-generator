@@ -580,6 +580,24 @@
                             <div class="char-counter" id="seo-meta-counter">0 / 130</div>
                         </div>
                         
+                        <div class="form-group">
+                            <label>Afbeeldingen</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="seo-image-source" value="none" checked style="margin-right: 8px;">
+                                    Geen afbeeldingen
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="seo-image-source" value="pixabay" style="margin-right: 8px;">
+                                    Pixabay (stock foto's)
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="seo-image-source" value="dalle" style="margin-right: 8px;">
+                                    DALL-E (AI gegenereerd)
+                                </label>
+                            </div>
+                        </div>
+                        
                         <button class="btn btn-primary" onclick="generateSEOArticle()">
                             Genereer Artikel
                         </button>
@@ -647,6 +665,24 @@
                             <input type="number" id="perp-words" value="800" min="100" max="5000">
                         </div>
                         
+                        <div class="form-group">
+                            <label>Afbeeldingen</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="perp-image-source" value="none" checked style="margin-right: 8px;">
+                                    Geen afbeeldingen
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="perp-image-source" value="pixabay" style="margin-right: 8px;">
+                                    Pixabay (stock foto's)
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="perp-image-source" value="dalle" style="margin-right: 8px;">
+                                    DALL-E (AI gegenereerd)
+                                </label>
+                            </div>
+                        </div>
+                        
                         <button class="btn btn-primary" onclick="generatePerplexityArticle()">
                             Genereer Artikel
                         </button>
@@ -712,6 +748,24 @@
                             <input type="number" id="yt-words" value="500" min="100" max="3000">
                         </div>
                         
+                        <div class="form-group">
+                            <label>Afbeeldingen</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="yt-image-source" value="none" checked style="margin-right: 8px;">
+                                    Geen afbeeldingen
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="yt-image-source" value="pixabay" style="margin-right: 8px;">
+                                    Pixabay (stock foto's)
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="yt-image-source" value="dalle" style="margin-right: 8px;">
+                                    DALL-E (AI gegenereerd)
+                                </label>
+                            </div>
+                        </div>
+                        
                         <button class="btn btn-primary" onclick="generateYouTubePost()">
                             Genereer Post
                         </button>
@@ -775,6 +829,24 @@
                         <div class="form-group">
                             <label>Woorden per item</label>
                             <input type="number" id="list-words" value="100" min="50" max="500">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Afbeeldingen</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="list-image-source" value="none" checked style="margin-right: 8px;">
+                                    Geen afbeeldingen
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="list-image-source" value="pixabay" style="margin-right: 8px;">
+                                    Pixabay (stock foto's)
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                    <input type="radio" name="list-image-source" value="dalle" style="margin-right: 8px;">
+                                    DALL-E (AI gegenereerd)
+                                </label>
+                            </div>
                         </div>
                         
                         <button class="btn btn-primary" onclick="generateListArticle()">
@@ -1088,6 +1160,9 @@
             const title = document.getElementById('seo-title').value;
             const meta = document.getElementById('seo-meta').value;
             
+            // Get selected image source from radio buttons
+            const imageSource = document.querySelector('input[name="seo-image-source"]:checked').value;
+            
             if (!topic || !keyword || !title || !meta) {
                 alert('Vul alle velden in');
                 return;
@@ -1096,11 +1171,20 @@
             const loading = document.getElementById('seo-loading');
             loading.classList.add('active');
             
+            // Prepare request body with image options
+            const requestBody = { 
+                onderwerp: topic,
+                word_count: words,
+                extra: `SEO Keyword: ${keyword}\nSEO Titel: ${title}\nMeta Beschrijving: ${meta}`,
+                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
+                dalle_images: imageSource === 'dalle' ? 2 : 0
+            };
+            
             try {
-                const response = await fetch('/api/generate-seo-article', {
+                const response = await fetch('/api/generate-general-article', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic, words, keyword, title, meta })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
@@ -1122,6 +1206,9 @@
             const topic = document.getElementById('perp-topic').value;
             const words = document.getElementById('perp-words').value;
             
+            // Get selected image source from radio buttons
+            const imageSource = document.querySelector('input[name="perp-image-source"]:checked').value;
+            
             if (!topic) {
                 alert('Vul het onderwerp in');
                 return;
@@ -1130,11 +1217,20 @@
             const loading = document.getElementById('perp-loading');
             loading.classList.add('active');
             
+            // Prepare request body with image options
+            const requestBody = {
+                onderwerp: topic,
+                word_count: words,
+                use_research: true,
+                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
+                dalle_images: imageSource === 'dalle' ? 2 : 0
+            };
+            
             try {
-                const response = await fetch('/api/generate-perplexity-article', {
+                const response = await fetch('/api/generate-general-article', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic, words })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
@@ -1157,6 +1253,9 @@
             const topic = document.getElementById('yt-topic').value;
             const words = document.getElementById('yt-words').value;
             
+            // Get selected image source from radio buttons
+            const imageSource = document.querySelector('input[name="yt-image-source"]:checked').value;
+            
             if (!url || !topic) {
                 alert('Vul alle velden in');
                 return;
@@ -1165,11 +1264,21 @@
             const loading = document.getElementById('yt-loading');
             loading.classList.add('active');
             
+            // Prepare request body with image options
+            const requestBody = {
+                onderwerp: topic,
+                word_count: words,
+                extra: `YouTube URL: ${url}`,
+                youtube_video: true,
+                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
+                dalle_images: imageSource === 'dalle' ? 2 : 0
+            };
+            
             try {
-                const response = await fetch('/api/generate-youtube-post', {
+                const response = await fetch('/api/generate-general-article', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, topic, words })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
@@ -1192,6 +1301,9 @@
             const items = document.getElementById('list-items').value;
             const words = document.getElementById('list-words').value;
             
+            // Get selected image source from radio buttons
+            const imageSource = document.querySelector('input[name="list-image-source"]:checked').value;
+            
             if (!topic) {
                 alert('Vul het onderwerp in');
                 return;
@@ -1200,11 +1312,20 @@
             const loading = document.getElementById('list-loading');
             loading.classList.add('active');
             
+            // Prepare request body with image options
+            const requestBody = {
+                onderwerp: topic,
+                word_count: parseInt(items) * parseInt(words),
+                extra: `Lijst artikel met ${items} items van elk ${words} woorden`,
+                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
+                dalle_images: imageSource === 'dalle' ? 2 : 0
+            };
+            
             try {
-                const response = await fetch('/api/generate-list-article', {
+                const response = await fetch('/api/generate-general-article', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic, items, words })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
