@@ -953,9 +953,9 @@
             <!-- WordPress Management Section -->
             <div id="wordpress" class="section">
                 <div class="tabs">
-                    <button class="tab active" onclick="showTab('wp-sites')">🌐 Websites</button>
-                    <button class="tab" onclick="showTab('wp-internal')">🔗 Interne Links</button>
-                    <button class="tab" onclick="showTab('wp-affiliate')">💰 Affiliate Links</button>
+                    <button class="tab active" onclick="showTab('wp-sites', event)">🌐 Websites</button>
+                    <button class="tab" onclick="showTab('wp-internal', event)">🔗 Interne Links</button>
+                    <button class="tab" onclick="showTab('wp-affiliate', event)">💰 Affiliate Links</button>
                 </div>
                 
                 <!-- Sites Tab -->
@@ -1071,8 +1071,8 @@
             <!-- Images Section -->
             <div id="images" class="section">
                 <div class="tabs">
-                    <button class="tab active" onclick="showTab('img-pixabay')">📷 Pixabay</button>
-                    <button class="tab" onclick="showTab('img-dalle')">🎨 DALL-E 3</button>
+                    <button class="tab active" onclick="showTab('img-pixabay', event)">📷 Pixabay</button>
+                    <button class="tab" onclick="showTab('img-dalle', event)">🎨 DALL-E 3</button>
                 </div>
                 
                 <!-- Pixabay Tab -->
@@ -1160,7 +1160,13 @@
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             
             document.getElementById(sectionId).classList.add('active');
-            event.target.classList.add('active');
+            // Find and activate the corresponding menu item
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                if (item.getAttribute('onclick')?.includes(sectionId)) {
+                    item.classList.add('active');
+                }
+            });
             
             // Load data when switching to certain sections
             if (sectionId === 'wordpress') {
@@ -1172,13 +1178,17 @@
             }
         }
         
-        function showTab(tabId) {
+        function showTab(tabId, event) {
+            if (!event) return;
             const parent = event.target.closest('.section');
+            if (!parent) return;
+            
             parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
             event.target.classList.add('active');
-            parent.querySelector(`#${tabId}`).classList.add('active');
+            const targetTab = parent.querySelector(`#${tabId}`);
+            if (targetTab) targetTab.classList.add('active');
             
             // Load data for specific tabs
             if (tabId === 'wp-sites') {
