@@ -1113,13 +1113,22 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
             'lang': 'nl'
         }
         
+        print(f"Making Pixabay API request with query: {query}")
         response = requests.get(url, params=params, timeout=10)
+        
+        if response.status_code != 200:
+            print(f"Pixabay API returned status code: {response.status_code}")
+            print(f"Response: {response.text}")
+        
         response.raise_for_status()
         
         data = response.json()
         
         if data.get('totalHits', 0) == 0:
+            print(f"No images found for query: {query}")
             return []
+        
+        print(f"Pixabay returned {data.get('totalHits', 0)} total hits")
         
         # Format results
         images = []
@@ -1140,8 +1149,11 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
         return images
         
     except requests.exceptions.RequestException as e:
-        print(f"Pixabay API Error: {e}")
+        print(f"Pixabay API Request Error: {type(e).__name__}: {str(e)}")
         raise Exception(f"Failed to fetch images from Pixabay: {str(e)}")
+    except Exception as e:
+        print(f"Unexpected error in search_pixabay_images: {type(e).__name__}: {str(e)}")
+        raise
 
 def fetch_wordpress_posts(site_url, username, app_password):
     """Fetch all posts from WordPress site for internal links"""
@@ -1504,12 +1516,19 @@ def api_search_images():
         if not query:
             return jsonify({"error": "Search query is required"}), 400
         
+        if not PIXABAY_API_KEY:
+            return jsonify({"error": "Pixabay API key not configured"}), 500
+        
+        print(f"Searching Pixabay for: {query} (per_page={per_page})")
+        
         images = search_pixabay_images(
             query=query,
             per_page=per_page,
             image_type=image_type,
             orientation=orientation
         )
+        
+        print(f"Found {len(images)} images for query: {query}")
         
         return jsonify({
             "success": True,
@@ -1518,6 +1537,7 @@ def api_search_images():
         })
         
     except Exception as e:
+        print(f"Error in api_search_images: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/generate-dalle-image', methods=['POST'])

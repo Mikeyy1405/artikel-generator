@@ -1761,7 +1761,7 @@
             results.innerHTML = '<div class="loading"><div class="spinner"></div><p>Afbeeldingen zoeken...</p></div>';
             
             try {
-                const response = await fetch(`${API_URL}/search-images-pixabay`, {
+                const response = await fetch(`${API_URL}/api/search-images`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query, per_page: 20 })
@@ -1774,7 +1774,7 @@
                         <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
                         <div class="image-grid">
                             ${data.images.map(img => `
-                                <div class="image-item" onclick="selectImage('${img.large_url}')">
+                                <div class="image-item" onclick="selectImage('${img.medium_url}')">
                                     <img src="${img.preview_url}" alt="${img.tags}">
                                 </div>
                             `).join('')}
@@ -1784,7 +1784,8 @@
                     results.innerHTML = '<div class="alert alert-info">Geen afbeeldingen gevonden.</div>';
                 }
             } catch (error) {
-                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+                console.error('Pixabay search error:', error);
+                results.innerHTML = `<div class="alert alert-error">❌ Fout bij zoeken naar afbeeldingen: ${error.message}</div>`;
             }
         }
         
