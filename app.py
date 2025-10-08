@@ -17,6 +17,7 @@ import os
 import re
 from datetime import datetime
 import sqlite3
+from deep_translator import GoogleTranslator
 try:
     import anthropic
 except ImportError:
@@ -1085,12 +1086,39 @@ def process_article_placeholders(article, onderwerp, elements):
     
     return article
 
+def translate_to_english(text):
+    """
+    Translate search query to English for maximum Pixabay results
+    
+    Args:
+        text: Search query in any language
+    
+    Returns:
+        Translated text in English (or original if already English or translation fails)
+    """
+    if not text or not text.strip():
+        return text
+    
+    try:
+        # Detect if text is already in English (simple check)
+        # If translation fails or text is already English, return original
+        translator = GoogleTranslator(source='auto', target='en')
+        translated = translator.translate(text.strip())
+        
+        # Return translated text
+        print(f"🌐 Translated '{text}' → '{translated}'")
+        return translated
+    except Exception as e:
+        # If translation fails, return original query
+        print(f"⚠️  Translation failed for '{text}': {e}. Using original query.")
+        return text
+
 def search_pixabay_images(query, per_page=10, image_type='photo', orientation='horizontal'):
     """
     Search for images on Pixabay
     
     Args:
-        query: Search term
+        query: Search term (will be automatically translated to English)
         per_page: Number of results (default 10, max 200)
         image_type: 'all', 'photo', 'illustration', 'vector'
         orientation: 'all', 'horizontal', 'vertical'
@@ -1100,6 +1128,9 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
     """
     if not PIXABAY_API_KEY:
         raise Exception("Pixabay API key not configured")
+    
+    # Translate query to English for maximum results
+    query = translate_to_english(query)
     
     try:
         url = "https://pixabay.com/api/"
@@ -1259,9 +1290,12 @@ def check_originality(content):
         }
 
 def search_pixabay_videos(query, per_page=10):
-    """Search for videos on Pixabay"""
+    """Search for videos on Pixabay (query will be automatically translated to English)"""
     if not PIXABAY_API_KEY:
         return {"error": "Pixabay API key not configured"}
+    
+    # Translate query to English for maximum results
+    query = translate_to_english(query)
     
     try:
         url = "https://pixabay.com/api/videos/"
