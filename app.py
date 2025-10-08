@@ -1106,15 +1106,14 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
         params = {
             'key': PIXABAY_API_KEY,
             'q': query,
-            'per_page': min(per_page, 200),  # Max 200
-            'image_type': image_type,
-            'orientation': orientation,
-            'safesearch': 'true',
-            'lang': 'nl'
+            'per_page': min(per_page, 200)  # Max 200
         }
         
         response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
+        
+        if response.status_code != 200:
+            print(f"Pixabay API Error: {response.status_code} - {response.text}")
+            return []
         
         data = response.json()
         
@@ -1126,15 +1125,12 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
         for hit in data.get('hits', []):
             images.append({
                 'id': hit.get('id'),
-                'preview_url': hit.get('previewURL'),
-                'small_url': hit.get('webformatURL'),  # 640px
-                'medium_url': hit.get('largeImageURL'),  # 1280px
-                'full_url': hit.get('fullHDURL') or hit.get('imageURL'),  # Full size
+                'preview': hit.get('previewURL'),
+                'url': hit.get('largeImageURL'),
                 'width': hit.get('imageWidth'),
                 'height': hit.get('imageHeight'),
                 'tags': hit.get('tags'),
-                'user': hit.get('user'),
-                'page_url': hit.get('pageURL')
+                'user': hit.get('user')
             })
         
         return images
@@ -1262,39 +1258,50 @@ def check_originality(content):
             "error": str(e)
         }
 
-def search_pixabay_images(query, per_page=5):
-    """Search for images on Pixabay"""
+def search_pixabay_videos(query, per_page=10):
+    """Search for videos on Pixabay"""
     if not PIXABAY_API_KEY:
         return {"error": "Pixabay API key not configured"}
     
     try:
-        url = "https://pixabay.com/api/"
+        url = "https://pixabay.com/api/videos/"
         params = {
             "key": PIXABAY_API_KEY,
             "q": query,
-            "image_type": "photo",
-            "per_page": per_page,
-            "safesearch": "true"
+            "per_page": max(3, min(per_page, 200))  # Min 3, Max 200
         }
         
-        response = requests.get(url, params=params, timeout=30)
+        response = requests.get(url, params=params, timeout=10)
         
-        if response.status_code == 200:
-            data = response.json()
-            images = []
-            for hit in data.get('hits', []):
-                images.append({
-                    'id': hit['id'],
-                    'url': hit['largeImageURL'],
-                    'preview': hit['previewURL'],
-                    'width': hit['imageWidth'],
-                    'height': hit['imageHeight']
-                })
-            return {"success": True, "images": images}
-        else:
+        if response.status_code != 200:
+            print(f"Pixabay Video API Error: {response.status_code} - {response.text}")
             return {"error": f"API Error: {response.status_code}"}
+        
+        data = response.json()
+        
+        if data.get('totalHits', 0) == 0:
+            return {"success": True, "videos": []}
+        
+        videos = []
+        for hit in data.get('hits', []):
+            # Get medium quality video
+            video_files = hit.get('videos', {})
+            medium_video = video_files.get('medium', {})
+            
+            videos.append({
+                'id': hit.get('id'),
+                'url': medium_video.get('url', ''),
+                'thumbnail': medium_video.get('thumbnail', ''),
+                'width': medium_video.get('width', 0),
+                'height': medium_video.get('height', 0),
+                'duration': hit.get('duration', 0),
+                'tags': hit.get('tags', '')
+            })
+        
+        return {"success": True, "videos": videos}
             
     except Exception as e:
+        print(f"Pixabay Video API Exception: {e}")
         return {"error": str(e)}
 
 def generate_dalle_image(prompt):
@@ -1515,6 +1522,31 @@ def api_search_images():
             "success": True,
             "total": len(images),
             "images": images
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/search-videos', methods=['POST'])
+def api_search_videos():
+    """Search for videos on Pixabay"""
+    try:
+        data = request.json
+        query = data.get('query', '').strip()
+        per_page = data.get('per_page', 10)
+        
+        if not query:
+            return jsonify({"error": "Search query is required"}), 400
+        
+        result = search_pixabay_videos(query=query, per_page=per_page)
+        
+        if "error" in result:
+            return jsonify(result), 500
+        
+        return jsonify({
+            "success": True,
+            "total": len(result.get('videos', [])),
+            "videos": result.get('videos', [])
         })
         
     except Exception as e:
