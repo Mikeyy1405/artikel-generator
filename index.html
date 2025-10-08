@@ -1025,6 +1025,22 @@
                             <small style="color: #666; display: block; margin-top: 5px;">Let op: DALL-E kost $0.040 per afbeelding</small>
                         </div>
                         
+                        <!-- Perplexity Research -->
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="use-perplexity-research">
+                                <span>🔍 Perplexity AI Onderzoek (Actuele informatie)</span>
+                            </label>
+                            <small style="color: #666; display: block; margin-top: 5px;">Voegt actuele informatie en bronnen toe aan het artikel</small>
+                        </div>
+                        
+                        <!-- WordPress Sitemap URL -->
+                        <div class="form-group">
+                            <label>🔗 WordPress Sitemap URL (optioneel)</label>
+                            <input type="url" id="wordpress-sitemap-url" placeholder="https://example.com/sitemap.xml">
+                            <small style="color: #666; display: block; margin-top: 5px;">Voegt automatisch interne links toe uit je WordPress sitemap</small>
+                        </div>
+                        
                         <div class="form-group">
                             <label>Direct Publiceren naar WordPress (optioneel)</label>
                             <select id="general-site">
@@ -1470,6 +1486,8 @@
             const pixabay_images = parseInt(document.getElementById('pixabay-images').value) || 0;
             const dalle_images = parseInt(document.getElementById('dalle-images').value) || 0;
             const dalle_style = document.getElementById('dalle-style').value;
+            const use_research = document.getElementById('use-perplexity-research').checked;
+            const wordpress_site_url = document.getElementById('wordpress-sitemap-url').value;
             
             if (!onderwerp) {
                 alert('Vul het onderwerp in!');
@@ -1491,7 +1509,9 @@
                     youtube_video,
                     pixabay_images,
                     dalle_images,
-                    dalle_style
+                    dalle_style,
+                    use_research,
+                    wordpress_site_url
                 };
                 
                 if (site_id) {

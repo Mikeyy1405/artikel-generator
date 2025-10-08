@@ -28,6 +28,42 @@ except ImportError:
 app = Flask(__name__)
 CORS(app)
 
+# Error handler for JSON parsing errors
+@app.errorhandler(400)
+def bad_request(error):
+    """Handle bad request errors"""
+    return jsonify({
+        "success": False,
+        "error": "Bad request - Invalid JSON or missing required fields"
+    }), 400
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle not found errors"""
+    return jsonify({
+        "success": False,
+        "error": "Endpoint not found"
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle internal server errors"""
+    return jsonify({
+        "success": False,
+        "error": "Internal server error"
+    }), 500
+
+# Ensure all responses have correct Content-Type
+@app.after_request
+def after_request(response):
+    """Ensure JSON responses have correct Content-Type"""
+    if response.status_code >= 200 and response.status_code < 300:
+        if not response.content_type or 'text/html' in response.content_type:
+            # Only set JSON content type for API endpoints
+            if request.path.startswith('/api/'):
+                response.content_type = 'application/json'
+    return response
+
 # Database setup
 DB_PATH = 'writgo_content.db'
 
@@ -161,10 +197,10 @@ ORIGINALITY_API_KEY = api_keys['originality']
 PIXABAY_API_KEY = api_keys['pixabay']
 PERPLEXITY_API_KEY = api_keys['perplexity']
 
-# Initialize OpenAI client
+# Initialize OpenAI client with increased timeout for DALL-E
 client = None
 if OPENAI_API_KEY:
-    http_client = httpx.Client(timeout=60.0, follow_redirects=True)
+    http_client = httpx.Client(timeout=120.0, follow_redirects=True)
     client = OpenAI(api_key=OPENAI_API_KEY, http_client=http_client)
     print("✅ OpenAI API key loaded")
 else:
@@ -1070,9 +1106,10 @@ def format_article_html(article, anchor1=None, url1=None, anchor2=None, url2=Non
     """Convert article with H1/H2/H3 markers to HTML with improved list and table formatting"""
     
     # Replace heading markers with HTML tags (Sentence case preserved)
-    article = re.sub(r'^H1:\s*(.+)$', r'<h1>\1</h1>', article, flags=re.MULTILINE)
-    article = re.sub(r'^H2:\s*(.+)$', r'<h2>\1</h2>', article, flags=re.MULTILINE)
-    article = re.sub(r'^H3:\s*(.+)$', r'<h3>\1</h3>', article, flags=re.MULTILINE)
+    # Use word boundaries to ensure we only match heading markers at the start of lines
+    article = re.sub(r'^H1:\s*(.+?)$', r'<h1>\1</h1>', article, flags=re.MULTILINE)
+    article = re.sub(r'^H2:\s*(.+?)$', r'<h2>\1</h2>', article, flags=re.MULTILINE)
+    article = re.sub(r'^H3:\s*(.+?)$', r'<h3>\1</h3>', article, flags=re.MULTILINE)
     
     # Replace anchor texts with links if provided
     if anchor1 and url1:
@@ -1242,7 +1279,7 @@ def process_article_placeholders(article, onderwerp, elements):
         for match in matches:
             search_query = match.strip()
             try:
-                images = search_pixabay_images(search_query, per_page=1)
+                images = search_pixabay_images(search_query, per_page=3)
                 if images:
                     img_url = images[0]['url']
                     img_tag = f'<img src="{img_url}" alt="{search_query}" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">'
@@ -1323,7 +1360,7 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
     
     Args:
         query: Search term (will be automatically translated to English)
-        per_page: Number of results (default 10, max 200)
+        per_page: Number of results (default 10, max 200, min 3)
         image_type: 'all', 'photo', 'illustration', 'vector'
         orientation: 'all', 'horizontal', 'vertical'
     
@@ -1336,12 +1373,15 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
     # Translate query to English for maximum results
     query = translate_to_english(query)
     
+    # Ensure per_page is within valid range (3-200)
+    per_page = max(3, min(per_page, 200))
+    
     try:
         url = "https://pixabay.com/api/"
         params = {
             'key': PIXABAY_API_KEY,
             'q': query,
-            'per_page': min(per_page, 200)  # Max 200
+            'per_page': per_page
         }
         
         response = requests.get(url, params=params, timeout=10)
@@ -1738,6 +1778,125 @@ def api_perplexity_research():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ============================================================================
+# WORDPRESS SITES API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/wordpress-sites', methods=['GET'])
+def api_get_wordpress_sites():
+    """Get all WordPress sites"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT id, site_name, site_url, username, created_at FROM wordpress_sites ORDER BY site_name')
+        sites = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "sites": sites
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/wordpress-sites', methods=['POST'])
+def api_add_wordpress_site():
+    """Add a new WordPress site"""
+    try:
+        data = request.json
+        site_name = data.get('site_name', '').strip()
+        site_url = data.get('site_url', '').strip()
+        username = data.get('username', '').strip()
+        app_password = data.get('app_password', '').strip()
+        
+        if not all([site_name, site_url, username, app_password]):
+            return jsonify({"error": "All fields are required"}), 400
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if site already exists
+        cursor.execute('SELECT id FROM wordpress_sites WHERE site_name = ?', (site_name,))
+        if cursor.fetchone():
+            conn.close()
+            return jsonify({"error": "Site with this name already exists"}), 400
+        
+        # Insert new site
+        cursor.execute('''
+            INSERT INTO wordpress_sites (site_name, site_url, username, app_password)
+            VALUES (?, ?, ?, ?)
+        ''', (site_name, site_url, username, app_password))
+        
+        site_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "site_id": site_id,
+            "message": "WordPress site added successfully"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/wordpress-sites/<int:site_id>', methods=['DELETE'])
+def api_delete_wordpress_site(site_id):
+    """Delete a WordPress site"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM wordpress_sites WHERE id = ?', (site_id,))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({"error": "Site not found"}), 404
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "WordPress site deleted successfully"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ============================================================================
+# ARTICLES API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/articles', methods=['GET'])
+def api_get_articles():
+    """Get all articles"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, title, article_type, word_count, human_score, ai_score, created_at 
+            FROM articles 
+            ORDER BY created_at DESC
+        ''')
+        articles = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "articles": articles
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
