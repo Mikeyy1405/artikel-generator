@@ -1,3 +1,4 @@
+
 Flask==3.0.0
 flask-cors==4.0.0
 flask-login==0.6.3
@@ -9,4 +10,6 @@ gunicorn==21.2.0
 bcrypt==4.1.2
 stripe==8.0.0
 psycopg2-binary==2.9.9
-deep_translator
+deep_translator==1.11.4
+beautifulsoup4==4.12.3
+lxml==5.1.0

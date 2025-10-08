@@ -1,10 +1,10 @@
 
 #!/usr/bin/env python3
 """
-WritgoAI Content Generator v15
+WritgoAI Content Generator v18
 Multi-feature content creation platform with WordPress integration
 Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
-NEW: Consolidated SEO writer with dropdown, improved heading capitalization, better list/table rendering
+NEW: Perplexity research, WordPress sitemap integration, improved word count accuracy
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -18,6 +18,8 @@ import re
 from datetime import datetime
 import sqlite3
 from deep_translator import GoogleTranslator
+from urllib.parse import urljoin, urlparse
+import xml.etree.ElementTree as ET
 try:
     import anthropic
 except ImportError:
@@ -105,7 +107,8 @@ def load_api_keys():
         'openai': None,
         'anthropic': None,
         'originality': None,
-        'pixabay': None
+        'pixabay': None,
+        'perplexity': None
     }
     
     # First, try to load from environment variables (for Render deployment)
@@ -113,6 +116,7 @@ def load_api_keys():
     keys['anthropic'] = os.getenv('ANTHROPIC_API_KEY')
     keys['originality'] = os.getenv('ORIGINALITY_API_KEY')
     keys['pixabay'] = os.getenv('PIXABAY_API_KEY')
+    keys['perplexity'] = os.getenv('PERPLEXITY_API_KEY')
     
     # If not found in env vars, try loading from secrets file (for local development)
     secrets_path = '/home/ubuntu/.config/abacusai_auth_secrets.json'
@@ -140,6 +144,11 @@ def load_api_keys():
             if not keys['pixabay'] and 'pixabay' in secrets and 'secrets' in secrets['pixabay']:
                 if 'api_key' in secrets['pixabay']['secrets']:
                     keys['pixabay'] = secrets['pixabay']['secrets']['api_key']['value']
+            
+            # Perplexity
+            if not keys['perplexity'] and 'perplexity' in secrets and 'secrets' in secrets['perplexity']:
+                if 'api_key' in secrets['perplexity']['secrets']:
+                    keys['perplexity'] = secrets['perplexity']['secrets']['api_key']['value']
         except Exception as e:
             print(f"⚠️  Error loading API keys from secrets file: {e}")
     
@@ -150,6 +159,7 @@ OPENAI_API_KEY = api_keys['openai']
 ANTHROPIC_API_KEY = api_keys['anthropic']
 ORIGINALITY_API_KEY = api_keys['originality']
 PIXABAY_API_KEY = api_keys['pixabay']
+PERPLEXITY_API_KEY = api_keys['perplexity']
 
 # Initialize OpenAI client
 client = None
@@ -181,6 +191,11 @@ if PIXABAY_API_KEY:
     print("✅ Pixabay API key loaded")
 else:
     print("⚠️  Pixabay API key not found")
+
+if PERPLEXITY_API_KEY:
+    print("✅ Perplexity API key loaded")
+else:
+    print("⚠️  Perplexity API key not found")
 
 # FORBIDDEN PHRASES - Comprehensive list with variations
 FORBIDDEN_PHRASES = [
@@ -373,7 +388,7 @@ Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}".
 ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!
 ONTHOUD: Headings in Sentence case (alleen eerste letter hoofdletter)!"""
 
-# General AI writer prompt - ENHANCED with extra elements
+# General AI writer prompt - ENHANCED with extra elements and word count enforcement
 GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
 
 OPDRACHT:
@@ -381,7 +396,16 @@ Schrijf een artikel over: {onderwerp}
 
 {word_count_instruction}
 
+KRITIEK - WOORDENAANTAL:
+✅ Het artikel moet EXACT {target_word_count} woorden bevatten
+✅ Tel de woorden terwijl je schrijft
+✅ Pas de lengte van secties aan om het exacte aantal te bereiken
+✅ Geen intro/outro teksten - alleen het artikel zelf
+✅ Elke sectie moet voldoende diepgang hebben om het woordenaantal te halen
+
 {extra_elements}
+
+{research_context}
 
 SCHRIJFSTIJL:
 ✅ Gebruik ALTIJD "je" en "jij" (NOOIT "u")
@@ -398,35 +422,282 @@ SCHRIJFSTIJL:
 ❌ ABSOLUUT VERBODEN: "voordelen van"
 ❌ ABSOLUUT VERBODEN: "voordeel van"
 ❌ ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
+❌ ABSOLUUT VERBODEN: "Dat is best een opluchting"
 
 ✅ GEBRUIK IN PLAATS DAARVAN:
-- pluspunten, sterke punten, wat het biedt, waarom het werkt, de kracht van, wat je ermee bereikt, de meerwaarde, het nut van
+- pluspunten
+- sterke punten
+- wat het biedt
+- waarom het werkt
+- de kracht van
+- wat je ermee bereikt
+- wat het je oplevert
+- de meerwaarde
+- het nut van
+- de waarde van
+- wat het bijzonder maakt
+- waarom het interessant is
 
-VERBODEN:
-❌ NOOIT "u" gebruiken
-❌ NOOIT "voordelen" of "voordeel" gebruiken
-❌ NOOIT "Dat is best een opluchting, toch?" gebruiken
-❌ Geen AI-clichés zoals "In de wereld van...", "Het is belangrijk om te..."
+NIET doen:
+❌ NOOIT "u" gebruiken - ALTIJD "je" en "jij"
+❌ NOOIT verboden woorden/zinnen gebruiken
+❌ Geen AI-clichés
+❌ Geen perfecte, gepolijste zinnen
 ❌ Geen marketing-taal
 
-STRUCTUUR (SENTENCE CASE VOOR HEADINGS):
-- Gebruik H1 voor de hoofdtitel (markeer met "H1: ")
-- Gebruik H2 voor hoofdsecties (markeer met "H2: ")
-- Gebruik H3 voor subsecties indien nodig (markeer met "H3: ")
-- Sluit af met "H2: Conclusie"
-- BELANGRIJK: Gebruik Sentence case voor alle headings (alleen eerste letter hoofdletter)
-- Voorbeeld GOED: "H2: Dit is een heading" (niet "H2: Dit Is Een Heading")
+TOON:
+- Professioneel maar niet stijf
+- Praktisch en direct
+- Alsof een expert advies geeft
+- Geen verkoop-pitch, maar eerlijk advies
+- Licht conversationeel zonder te casual te zijn
 
 {extra_context}
 
-Schrijf nu het artikel. ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!
-ONTHOUD: Headings in Sentence case (alleen eerste letter hoofdletter)!"""
+Schrijf nu het artikel van EXACT {target_word_count} woorden.
+ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!"""
 
-def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
-    """Generate article topic based on anchor texts"""
-    if not client:
-        raise Exception("OpenAI API key not configured")
+# ============================================================================
+# WORDPRESS SITEMAP INTEGRATION
+# ============================================================================
+
+def fetch_wordpress_sitemap(site_url):
+    """
+    Fetch and parse WordPress sitemap to extract internal links
     
+    Args:
+        site_url: WordPress site URL (e.g., https://example.com)
+    
+    Returns:
+        List of internal links with titles
+    """
+    try:
+        # Normalize URL
+        if not site_url.startswith('http'):
+            site_url = 'https://' + site_url
+        
+        parsed_url = urlparse(site_url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        
+        # Try common sitemap locations
+        sitemap_urls = [
+            urljoin(base_url, '/sitemap.xml'),
+            urljoin(base_url, '/sitemap_index.xml'),
+            urljoin(base_url, '/wp-sitemap.xml'),
+            urljoin(base_url, '/sitemap-index.xml')
+        ]
+        
+        internal_links = []
+        
+        for sitemap_url in sitemap_urls:
+            try:
+                print(f"🔍 Trying sitemap: {sitemap_url}")
+                response = requests.get(sitemap_url, timeout=10, headers={
+                    'User-Agent': 'Mozilla/5.0 (compatible; WritgoAI/1.0)'
+                })
+                
+                if response.status_code != 200:
+                    continue
+                
+                # Parse XML
+                root = ET.fromstring(response.content)
+                
+                # Handle sitemap index (contains links to other sitemaps)
+                if 'sitemapindex' in root.tag:
+                    print(f"📑 Found sitemap index, parsing sub-sitemaps...")
+                    for sitemap in root.findall('.//{http://www.sitemaps.org/schemas/sitemap/0.9}loc'):
+                        sub_sitemap_url = sitemap.text
+                        try:
+                            sub_response = requests.get(sub_sitemap_url, timeout=10, headers={
+                                'User-Agent': 'Mozilla/5.0 (compatible; WritgoAI/1.0)'
+                            })
+                            if sub_response.status_code == 200:
+                                sub_root = ET.fromstring(sub_response.content)
+                                links = parse_sitemap_urls(sub_root, base_url)
+                                internal_links.extend(links)
+                        except Exception as e:
+                            print(f"⚠️  Error parsing sub-sitemap {sub_sitemap_url}: {e}")
+                            continue
+                else:
+                    # Regular sitemap
+                    links = parse_sitemap_urls(root, base_url)
+                    internal_links.extend(links)
+                
+                if internal_links:
+                    print(f"✅ Found {len(internal_links)} internal links from sitemap")
+                    return internal_links[:50]  # Limit to 50 links
+                    
+            except Exception as e:
+                print(f"⚠️  Error fetching {sitemap_url}: {e}")
+                continue
+        
+        if not internal_links:
+            print("⚠️  No sitemap found or no links extracted")
+        
+        return internal_links
+        
+    except Exception as e:
+        print(f"❌ Error fetching WordPress sitemap: {e}")
+        return []
+
+def parse_sitemap_urls(root, base_url):
+    """Parse URLs from sitemap XML"""
+    links = []
+    
+    # Find all URL entries
+    for url_elem in root.findall('.//{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
+        loc = url_elem.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
+        
+        if loc is not None and loc.text:
+            url = loc.text
+            
+            # Only include URLs from the same domain
+            if url.startswith(base_url):
+                # Extract title from URL (last part of path)
+                path = urlparse(url).path
+                title = path.strip('/').split('/')[-1].replace('-', ' ').title()
+                
+                links.append({
+                    'url': url,
+                    'title': title
+                })
+    
+    return links
+
+def add_internal_links_to_article(article, internal_links, num_links=3):
+    """
+    Add internal links to article content
+    
+    Args:
+        article: HTML article content
+        internal_links: List of internal link dicts with 'url' and 'title'
+        num_links: Number of internal links to add
+    
+    Returns:
+        Article with internal links added
+    """
+    if not internal_links or num_links <= 0:
+        return article
+    
+    # Select random links
+    import random
+    selected_links = random.sample(internal_links, min(num_links, len(internal_links)))
+    
+    # Find good places to insert links (after paragraphs)
+    paragraphs = re.findall(r'<p>.*?</p>', article, re.DOTALL)
+    
+    if len(paragraphs) < num_links:
+        return article
+    
+    # Insert links at strategic positions
+    for i, link in enumerate(selected_links):
+        # Calculate position (spread evenly throughout article)
+        position = int((i + 1) * len(paragraphs) / (num_links + 1))
+        
+        if position < len(paragraphs):
+            # Create link HTML
+            link_html = f'<p><em>Lees ook: <a href="{link["url"]}" target="_blank">{link["title"]}</a></em></p>'
+            
+            # Insert after the paragraph at position
+            paragraph = paragraphs[position]
+            article = article.replace(paragraph, paragraph + '\n' + link_html, 1)
+    
+    return article
+
+# ============================================================================
+# PERPLEXITY AI RESEARCH
+# ============================================================================
+
+def perplexity_research(topic, num_results=5):
+    """
+    Use Perplexity AI to research a topic and gather key information
+    
+    Args:
+        topic: Topic to research
+        num_results: Number of key points to extract
+    
+    Returns:
+        Dict with research summary, sources, and key points
+    """
+    if not PERPLEXITY_API_KEY:
+        print("⚠️  Perplexity API key not configured")
+        return None
+    
+    try:
+        print(f"🔍 Starting Perplexity research for: {topic}")
+        
+        # Research prompt
+        research_prompt = f"""Onderzoek het volgende onderwerp grondig en geef een gedetailleerde analyse:
+
+Onderwerp: {topic}
+
+Geef de volgende informatie:
+1. Een korte samenvatting van de belangrijkste informatie over dit onderwerp
+2. De top {num_results} belangrijkste punten die behandeld moeten worden in een artikel
+3. Actuele trends en ontwikkelingen
+4. Praktische tips en adviezen
+
+Schrijf in het Nederlands en wees specifiek en gedetailleerd."""
+
+        # Call Perplexity API
+        response = requests.post(
+            'https://api.perplexity.ai/chat/completions',
+            headers={
+                'Authorization': f'Bearer {PERPLEXITY_API_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'llama-3.1-sonar-large-128k-online',
+                'messages': [
+                    {
+                        'role': 'system',
+                        'content': 'Je bent een onderzoeksassistent die actuele informatie verzamelt en analyseert. Geef altijd bronnen aan.'
+                    },
+                    {
+                        'role': 'user',
+                        'content': research_prompt
+                    }
+                ],
+                'temperature': 0.2,
+                'max_tokens': 2000,
+                'return_citations': True,
+                'search_recency_filter': 'month'
+            },
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print(f"❌ Perplexity API error: {response.status_code} - {response.text}")
+            return None
+        
+        data = response.json()
+        
+        # Extract research content
+        research_content = data['choices'][0]['message']['content']
+        
+        # Extract citations if available
+        citations = []
+        if 'citations' in data:
+            citations = data['citations']
+        
+        print(f"✅ Perplexity research completed with {len(citations)} sources")
+        
+        return {
+            'summary': research_content,
+            'citations': citations,
+            'success': True
+        }
+        
+    except Exception as e:
+        print(f"❌ Perplexity research error: {e}")
+        return None
+
+# ============================================================================
+# CONTENT GENERATION FUNCTIONS
+# ============================================================================
+
+def generate_topic(anchor1, anchor2, extra="", model="gpt-4o", max_retries=3):
+    """Generate article topic based on anchor texts"""
     extra_context = ""
     if extra:
         extra_context = f"\nEXTRA CONTEXT:\n{extra}"
@@ -437,135 +708,36 @@ def generate_topic(anchor1, anchor2, extra="", model="gpt-4o"):
         extra_context=extra_context
     )
     
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "Je bent een SEO expert die ALGEMENE artikel onderwerpen bedenkt. GEEN productnamen, merknamen, keywords, dubbele punten of jaartallen."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.8,
-            max_tokens=100
-        )
-        
-        topic = response.choices[0].message.content.strip()
-        topic = topic.strip('"').strip("'")
-        topic = topic.replace(':', '').replace('|', '').replace('-', ' ')
-        topic = re.sub(r'\b20\d{2}\b', '', topic)
-        topic = re.sub(r'\s+', ' ', topic).strip()
-        
-        return topic
-    except Exception as e:
-        print(f"OpenAI Topic Generation Error: {e}")
-        raise
-
-def extract_topic_from_urls(anchor1, url1, anchor2, url2, context=""):
-    """Extract topic suggestion from URLs and anchors using AI"""
-    if not client:
-        return None
+    system_prompt = "Je bent een SEO expert. Genereer ALLEEN het onderwerp, geen extra tekst."
     
-    try:
-        prompt = f"""Analyseer deze linkbuilding informatie en suggereer een KORT en SPECIFIEK onderwerp voor een artikel.
-
-ANCHOR 1: {anchor1}
-URL 1: {url1}
-
-ANCHOR 2: {anchor2}
-URL 2: {url2}
-
-{f"EXTRA CONTEXT: {context}" if context else ""}
-
-Geef ALLEEN het onderwerp terug, zonder uitleg. Het onderwerp moet:
-- Kort zijn (max 5-7 woorden)
-- Relevant zijn voor beide anchors
-- Natuurlijk klinken als artikel titel
-- In het Nederlands zijn
-
-Voorbeeld output: "Kleine lease auto voor zakelijk gebruik"
-"""
-        
-        response = call_openai_with_correct_params(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "Je bent een SEO expert die perfecte artikel onderwerpen bedenkt."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=50
-        )
-        
-        topic = response.choices[0].message.content.strip()
-        # Remove quotes if present
-        topic = topic.strip('"').strip("'")
-        print(f"✅ Auto-generated topic: {topic}")
-        return topic
-        
-    except Exception as e:
-        print(f"⚠️ Topic extraction error: {e}")
-        return None
-
-def analyze_placement_domain(domain_url):
-    """Analyze placement domain to adjust writing style"""
-    if not domain_url:
-        return ""
-    
-    try:
-        # Extract domain from URL
-        from urllib.parse import urlparse
-        parsed = urlparse(domain_url if domain_url.startswith('http') else f'https://{domain_url}')
-        domain = parsed.netloc or parsed.path
-        
-        print(f"📊 Analyzing domain: {domain}")
-        
-        # Scrape homepage (with timeout)
+    for attempt in range(max_retries):
         try:
-            response = requests.get(f'https://{domain}', timeout=10, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            })
-            content = response.text[:5000]  # First 5000 chars
-        except:
-            print(f"⚠️ Could not scrape {domain}, using domain name only")
-            content = domain
-        
-        # Use AI to analyze
-        if client:
-            prompt = f"""Analyseer deze website en geef een KORTE stijlgids (max 3 zinnen):
-
-DOMEIN: {domain}
-CONTENT SAMPLE: {content[:1000]}
-
-Geef aan:
-1. Tone of voice (formeel/informeel/professioneel/casual)
-2. Doelgroep (zakelijk/particulier/breed)
-3. Schrijfstijl aanbeveling
-
-Hou het KORT en PRAKTISCH."""
+            if not client:
+                raise Exception("OpenAI API key not configured")
             
             response = call_openai_with_correct_params(
-                model="gpt-4o",
+                model=model,
                 messages=[
-                    {"role": "system", "content": "Je bent een content strategist."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
-                max_tokens=150
+                temperature=0.8,
+                max_tokens=100
             )
             
-            analysis = response.choices[0].message.content.strip()
-            print(f"✅ Domain analysis complete")
-            return f"\n\nSTIJLGIDS VOOR {domain}:\n{analysis}"
-        
-        return ""
-        
-    except Exception as e:
-        print(f"⚠️ Domain analysis error: {e}")
-        return ""
+            topic = response.choices[0].message.content.strip()
+            topic = topic.strip('"').strip("'").strip()
+            
+            print(f"✅ Topic generated: {topic}")
+            return topic
+            
+        except Exception as e:
+            print(f"OpenAI Error (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                raise
 
 def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="gpt-4o", max_retries=3):
-    """Generate linkbuilding article with forbidden words check"""
-    if not client:
-        raise Exception("OpenAI API key not configured")
-    
+    """Generate linkbuilding article with two anchor texts"""
     extra_context = ""
     if extra:
         extra_context = f"\nEXTRA CONTEXT:\n{extra}"
@@ -579,18 +751,22 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
         extra_context=extra_context
     )
     
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."
+    
     for attempt in range(max_retries):
         try:
+            if not client:
+                raise Exception("OpenAI API key not configured")
+            
             response = call_openai_with_correct_params(
                 model=model,
                 messages=[
-                    {"role": "system", "content": f"Je bent een expert Nederlandse contentschrijver. H1 is EXACT '{onderwerp}'. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.9,
                 max_tokens=2000
             )
-            
             article = response.choices[0].message.content.strip()
             
             # Check for forbidden words BEFORE formatting
@@ -599,7 +775,6 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
             if has_forbidden:
                 print(f"⚠️ Attempt {attempt + 1}: Found forbidden phrases: {found_phrases}")
                 if attempt < max_retries - 1:
-                    # Add stronger warning to prompt
                     prompt += f"\n\n⚠️ KRITIEK: Je gebruikte verboden woorden: {', '.join(found_phrases)}. Herschrijf ZONDER deze woorden!"
                     continue
                 else:
@@ -622,32 +797,134 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
             if attempt == max_retries - 1:
                 raise
 
+def enforce_word_count(article, target_word_count, onderwerp, model="gpt-4o"):
+    """
+    Enforce exact word count by extending or trimming article
+    
+    Args:
+        article: Current article content (HTML)
+        target_word_count: Target word count
+        onderwerp: Article topic
+        model: AI model to use
+    
+    Returns:
+        Article with correct word count
+    """
+    # Strip HTML and count words
+    text_content = re.sub(r'<[^>]+>', '', article)
+    current_word_count = len(text_content.split())
+    
+    difference = target_word_count - current_word_count
+    
+    # If within 5% tolerance, accept it
+    tolerance = int(target_word_count * 0.05)
+    if abs(difference) <= tolerance:
+        print(f"✅ Word count {current_word_count} is within tolerance of {target_word_count}")
+        return article
+    
+    print(f"⚠️  Word count adjustment needed: {current_word_count} → {target_word_count} (difference: {difference})")
+    
+    try:
+        if difference > 0:
+            # Need to add more content
+            prompt = f"""Het volgende artikel over "{onderwerp}" heeft {current_word_count} woorden, maar moet {target_word_count} woorden hebben.
+
+Voeg {difference} woorden toe door bestaande secties uit te breiden met meer details, voorbeelden en diepgang.
+
+BELANGRIJK:
+- Behoud de bestaande structuur en headings
+- Voeg GEEN nieuwe secties toe
+- Breid bestaande alinea's uit met relevante informatie
+- Blijf on-topic en relevant
+- Gebruik NOOIT "voordelen" of "voordeel"
+- Behoud de HTML formatting
+
+Huidig artikel:
+{article}
+
+Geef het uitgebreide artikel terug met EXACT {target_word_count} woorden."""
+        else:
+            # Need to remove content
+            prompt = f"""Het volgende artikel over "{onderwerp}" heeft {current_word_count} woorden, maar moet {target_word_count} woorden hebben.
+
+Verwijder {abs(difference)} woorden door minder belangrijke details te schrappen, maar behoud de kernboodschap.
+
+BELANGRIJK:
+- Behoud de bestaande structuur en headings
+- Verwijder GEEN hele secties
+- Maak alinea's korter en bondiger
+- Blijf on-topic en relevant
+- Behoud de HTML formatting
+
+Huidig artikel:
+{article}
+
+Geef het ingekorte artikel terug met EXACT {target_word_count} woorden."""
+        
+        if not client:
+            print("⚠️  Cannot adjust word count - OpenAI client not available")
+            return article
+        
+        response = call_openai_with_correct_params(
+            model=model,
+            messages=[
+                {"role": "system", "content": "Je bent een expert editor die artikelen precies op het juiste woordenaantal brengt."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=4000
+        )
+        
+        adjusted_article = response.choices[0].message.content.strip()
+        
+        # Verify new word count
+        new_text_content = re.sub(r'<[^>]+>', '', adjusted_article)
+        new_word_count = len(new_text_content.split())
+        
+        print(f"✅ Word count adjusted: {current_word_count} → {new_word_count} (target: {target_word_count})")
+        
+        return adjusted_article
+        
+    except Exception as e:
+        print(f"❌ Error adjusting word count: {e}")
+        return article
+
 def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", 
-                            elements=None, max_retries=3):
+                            elements=None, use_research=False, wordpress_site_url=None,
+                            max_retries=3):
     """
     Generate general article with optional extra elements
-    Only supports GPT-4o model
     
     Args:
         onderwerp: Article topic
         word_count: Target word count
         extra: Extra context
         model: Model to use (only gpt-4o supported)
-        elements: Dict with optional elements:
-            - include_table: bool
-            - include_faq: bool
-            - include_bold: bool
-            - pixabay_images: int (number of images)
-            - dalle_images: int (number of AI images)
-            - dalle_style: str (style for DALL-E images)
-            - youtube_video: bool
+        elements: Dict with optional elements
+        use_research: Whether to use Perplexity research
+        wordpress_site_url: WordPress site URL for internal links
         max_retries: Max retry attempts
     """
     # Default elements
     if elements is None:
         elements = {}
     
-    word_count_instruction = f"Schrijf een artikel van ongeveer {word_count} woorden."
+    # Perplexity research
+    research_context = ""
+    if use_research and PERPLEXITY_API_KEY:
+        print("🔍 Performing Perplexity research...")
+        research_result = perplexity_research(onderwerp)
+        
+        if research_result and research_result.get('success'):
+            research_context = f"""
+ONDERZOEKSRESULTATEN (gebruik deze informatie in je artikel):
+{research_result['summary']}
+
+Bronnen: {len(research_result.get('citations', []))} actuele bronnen geraadpleegd
+"""
+            print("✅ Research completed and added to context")
+    
+    word_count_instruction = f"Schrijf een artikel van EXACT {word_count} woorden. Tel de woorden en zorg dat je precies op dit aantal uitkomt."
     
     # Build extra elements instruction
     extra_elements_parts = []
@@ -719,7 +996,9 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
     prompt = GENERAL_ARTICLE_PROMPT.format(
         onderwerp=onderwerp,
         word_count_instruction=word_count_instruction,
+        target_word_count=word_count,
         extra_elements=extra_elements_instruction,
+        research_context=research_context,
         extra_context=extra_context
     )
     
@@ -768,6 +1047,17 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
             article = process_article_placeholders(article, onderwerp, elements)
             article = format_article_html(article)
             
+            # Enforce word count
+            article = enforce_word_count(article, word_count, onderwerp, model)
+            
+            # Add WordPress internal links if site URL provided
+            if wordpress_site_url:
+                print(f"🔗 Fetching internal links from {wordpress_site_url}")
+                internal_links = fetch_wordpress_sitemap(wordpress_site_url)
+                if internal_links:
+                    article = add_internal_links_to_article(article, internal_links, num_links=3)
+                    print(f"✅ Added {min(3, len(internal_links))} internal links to article")
+            
             print(f"✅ Article generated successfully with {model} (attempt {attempt + 1})")
             return article
             
@@ -803,155 +1093,134 @@ def format_article_html(article, anchor1=None, url1=None, anchor2=None, url2=Non
             count=1
         )
     
-    # Improved list detection and formatting
+    # Split into lines for processing
     lines = article.split('\n')
     formatted_lines = []
-    in_ul = False
-    in_ol = False
+    in_list = False
+    in_table = False
     
-    for i, line in enumerate(lines):
+    for line in lines:
         line = line.strip()
+        
         if not line:
-            # Close any open lists
-            if in_ul:
+            if in_list:
                 formatted_lines.append('</ul>')
-                in_ul = False
-            if in_ol:
-                formatted_lines.append('</ol>')
-                in_ol = False
+                in_list = False
+            formatted_lines.append('')
             continue
         
-        # Check if line is a list item
-        is_bullet = re.match(r'^[-•*]\s+(.+)$', line)
-        is_numbered = re.match(r'^\d+[\.)]\s+(.+)$', line)
-        
-        if is_bullet:
-            # Unordered list item
-            if not in_ul:
-                if in_ol:
-                    formatted_lines.append('</ol>')
-                    in_ol = False
-                formatted_lines.append('<ul>')
-                in_ul = True
-            formatted_lines.append(f'<li>{is_bullet.group(1)}</li>')
-        elif is_numbered:
-            # Ordered list item
-            if not in_ol:
-                if in_ul:
-                    formatted_lines.append('</ul>')
-                    in_ul = False
-                formatted_lines.append('<ol>')
-                in_ol = True
-            formatted_lines.append(f'<li>{is_numbered.group(1)}</li>')
-        else:
-            # Close any open lists
-            if in_ul:
+        # Check if line is already HTML (heading, table, etc.)
+        if line.startswith('<'):
+            if in_list and not line.startswith('<li>'):
                 formatted_lines.append('</ul>')
-                in_ul = False
-            if in_ol:
-                formatted_lines.append('</ol>')
-                in_ol = False
-            
-            # Regular content
-            if not line.startswith('<'):
-                line = f'<p>{line}</p>'
+                in_list = False
             formatted_lines.append(line)
+            
+            # Track table state
+            if '<table' in line.lower():
+                in_table = True
+            elif '</table>' in line.lower():
+                in_table = False
+            continue
+        
+        # Skip processing if we're inside a table
+        if in_table:
+            formatted_lines.append(line)
+            continue
+        
+        # Check for list items (lines starting with -, *, or numbers)
+        if re.match(r'^[-*•]\s+', line) or re.match(r'^\d+\.\s+', line):
+            if not in_list:
+                formatted_lines.append('<ul>')
+                in_list = True
+            
+            # Remove list marker and wrap in <li>
+            item_text = re.sub(r'^[-*•]\s+', '', line)
+            item_text = re.sub(r'^\d+\.\s+', '', item_text)
+            formatted_lines.append(f'<li>{item_text}</li>')
+        else:
+            # Regular paragraph
+            if in_list:
+                formatted_lines.append('</ul>')
+                in_list = False
+            
+            # Don't wrap if already wrapped in HTML tags
+            if not re.match(r'^<[^>]+>.*</[^>]+>$', line):
+                formatted_lines.append(f'<p>{line}</p>')
+            else:
+                formatted_lines.append(line)
     
-    # Close any remaining open lists
-    if in_ul:
+    # Close any open list
+    if in_list:
         formatted_lines.append('</ul>')
-    if in_ol:
-        formatted_lines.append('</ol>')
     
-    article = '\n'.join(formatted_lines)
-    
-    # Improve table formatting with better styling
-    article = re.sub(
-        r'<table>',
-        '<table style="width:100%; border-collapse:collapse; margin:20px 0; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius:8px; overflow:hidden;">',
-        article
-    )
-    article = re.sub(
-        r'<th>',
-        '<th style="background:#0C1E43; color:white; padding:14px; text-align:left; font-weight:600; font-size:15px;">',
-        article
-    )
-    article = re.sub(
-        r'<td>',
-        '<td style="padding:12px 14px; border-bottom:1px solid #e0e0e0; font-size:14px;">',
-        article
-    )
-    
-    return article
+    return '\n'.join(formatted_lines)
 
-def refine_article(article, topic, anchors, user_request, history=[], model="gpt-4o"):
+def refine_article(article, topic, anchors, user_request, model="gpt-4o", max_retries=3):
     """Refine article based on user request"""
-    if not client:
-        raise Exception("OpenAI API key not configured")
     
-    article_plain = re.sub(r'<[^>]+>', '', article)
-    article_plain = article_plain.replace('<h1>', 'H1: ').replace('</h1>', '')
-    article_plain = article_plain.replace('<h2>', 'H2: ').replace('</h2>', '')
-    article_plain = article_plain.replace('<h3>', 'H3: ').replace('</h3>', '')
+    # Extract text content for context
+    text_content = re.sub(r'<[^>]+>', '', article)
     
-    system_prompt = f"""Je bent een expert Nederlandse contentschrijver die artikelen aanpast op basis van feedback.
+    # Build refinement prompt
+    prompt = f"""Je bent een expert content editor. Je hebt een artikel geschreven over "{topic}" en de gebruiker wil aanpassingen.
 
-HUIDIGE ARTIKEL ONDERWERP: {topic}
+HUIDIG ARTIKEL (tekst):
+{text_content[:2000]}...
+
+GEBRUIKER VRAAGT:
+{user_request}
 
 BELANGRIJKE REGELS:
-- Gebruik ALTIJD "je" en "jij" (NOOIT "u")
-- ABSOLUUT VERBODEN: "voordelen", "voordeel" in ELKE vorm
-- ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
-- Gebruik alternatieven: pluspunten, sterke punten, wat het biedt, de meerwaarde
-- Blijf rond de oorspronkelijke woordenaantal
-- Schrijf natuurlijk en menselijk
-- Geen AI-clichés
-- BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)
+✅ Behoud de HTML structuur en formatting
+✅ Behoud bestaande anchor links: {anchors}
+✅ NOOIT "voordelen" of "voordeel" gebruiken
+✅ Headings in Sentence case (alleen eerste letter hoofdletter)
+✅ Gebruik "je" en "jij" (NOOIT "u")
 
-Pas het artikel aan volgens de vraag van de gebruiker."""
+Geef het VOLLEDIGE aangepaste artikel terug in HTML formaat."""
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"HUIDIG ARTIKEL:\n\n{article_plain}\n\nAANPASSING GEVRAAGD:\n{user_request}\n\nGeef het volledige aangepaste artikel terug met H1:, H2:, H3: markers. ONTHOUD: Headings in Sentence case!"}
-    ]
+    system_prompt = "Je bent een expert Nederlandse content editor. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm."
     
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0.8,
-            max_tokens=3000
-        )
-        
-        refined_article = response.choices[0].message.content.strip()
-        
-        # Check for forbidden words
-        has_forbidden, found_phrases = check_forbidden_words(refined_article)
-        if has_forbidden:
-            print(f"⚠️ Refined article contains forbidden phrases: {found_phrases}. Cleaning...")
-            refined_article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', refined_article, flags=re.IGNORECASE)
-            refined_article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', refined_article, flags=re.IGNORECASE)
-            refined_article = re.sub(r'\bvoordelen\b', 'pluspunten', refined_article, flags=re.IGNORECASE)
-            refined_article = re.sub(r'\bvoordeel\b', 'pluspunt', refined_article, flags=re.IGNORECASE)
-        
-        refined_article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', refined_article, flags=re.MULTILINE | re.IGNORECASE)
-        
-        # Convert to HTML with anchors if provided
-        if anchors and 'anchor1' in anchors:
-            refined_article = format_article_html(
-                refined_article,
-                anchors.get('anchor1'),
-                anchors.get('url1'),
-                anchors.get('anchor2'),
-                anchors.get('url2')
+    for attempt in range(max_retries):
+        try:
+            if not client:
+                raise Exception("OpenAI API key not configured")
+            
+            response = call_openai_with_correct_params(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.8,
+                max_tokens=4000
             )
-        else:
-            refined_article = format_article_html(refined_article)
-        
-        return refined_article
-    except Exception as e:
-        print(f"OpenAI Refinement Error: {e}")
-        raise
+            
+            refined_article = response.choices[0].message.content.strip()
+            
+            # Check for forbidden words
+            has_forbidden, found_phrases = check_forbidden_words(refined_article)
+            
+            if has_forbidden:
+                print(f"⚠️ Attempt {attempt + 1}: Found forbidden phrases in refinement: {found_phrases}")
+                if attempt < max_retries - 1:
+                    prompt += f"\n\n⚠️ KRITIEK: Je gebruikte verboden woorden: {', '.join(found_phrases)}. Herschrijf ZONDER deze woorden!"
+                    continue
+                else:
+                    # Manually remove forbidden words
+                    refined_article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', refined_article, flags=re.IGNORECASE)
+                    refined_article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', refined_article, flags=re.IGNORECASE)
+                    refined_article = re.sub(r'\bvoordelen\b', 'pluspunten', refined_article, flags=re.IGNORECASE)
+                    refined_article = re.sub(r'\bvoordeel\b', 'pluspunt', refined_article, flags=re.IGNORECASE)
+            
+            print(f"✅ Article refined successfully (attempt {attempt + 1})")
+            return refined_article
+            
+        except Exception as e:
+            print(f"OpenAI Refinement Error (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                raise
 
 def process_article_placeholders(article, onderwerp, elements):
     """
@@ -994,14 +1263,17 @@ def process_article_placeholders(article, onderwerp, elements):
             prompt = match.strip()
             try:
                 result = generate_dalle_image(prompt)
-                if result.get('success'):
+                if result.get('success') and result.get('image_url'):
                     img_url = result['image_url']
                     img_tag = f'<img src="{img_url}" alt="AI Generated: {prompt[:50]}" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">'
                     article = article.replace(f'[AI-IMAGE: {match}]', img_tag, 1)
+                    print(f"✅ DALL-E image generated for: {prompt[:50]}")
                 else:
+                    error_msg = result.get('error', 'Unknown error')
+                    print(f"❌ DALL-E image generation failed: {error_msg}")
                     article = article.replace(f'[AI-IMAGE: {match}]', '', 1)
             except Exception as e:
-                print(f"Error generating DALL-E image for '{prompt}': {e}")
+                print(f"❌ Error generating DALL-E image for '{prompt}': {e}")
                 article = article.replace(f'[AI-IMAGE: {match}]', '', 1)
     
     # Process YouTube video placeholders
@@ -1078,7 +1350,13 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
             print(f"Pixabay API Error: {response.status_code} - {response.text}")
             return []
         
-        data = response.json()
+        # Check if response is valid JSON
+        try:
+            data = response.json()
+        except json.JSONDecodeError as e:
+            print(f"❌ Pixabay JSON parsing error: {e}")
+            print(f"Response content: {response.text[:200]}")
+            return []
         
         if data.get('totalHits', 0) == 0:
             return []
@@ -1098,184 +1376,89 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
         
         return images
         
+    except requests.exceptions.Timeout:
+        print("Pixabay API Timeout")
+        return []
     except requests.exceptions.RequestException as e:
-        print(f"Pixabay API Error: {e}")
-        raise Exception(f"Failed to fetch images from Pixabay: {str(e)}")
-
-def fetch_wordpress_posts(site_url, username, app_password):
-    """Fetch all posts from WordPress site for internal links"""
-    posts = []
-    page = 1
-    per_page = 100
-    
-    while True:
-        try:
-            url = f"{site_url}/wp-json/wp/v2/posts"
-            params = {
-                'per_page': per_page,
-                'page': page,
-                'status': 'publish'
-            }
-            
-            response = requests.get(
-                url,
-                params=params,
-                auth=(username, app_password),
-                timeout=30
-            )
-            
-            if response.status_code != 200:
-                break
-            
-            batch = response.json()
-            if not batch:
-                break
-            
-            for post in batch:
-                posts.append({
-                    'id': post['id'],
-                    'title': post['title']['rendered'],
-                    'url': post['link']
-                })
-            
-            page += 1
-            
-            # Check if there are more pages
-            total_pages = int(response.headers.get('X-WP-TotalPages', 1))
-            if page > total_pages:
-                break
-                
-        except Exception as e:
-            print(f"Error fetching WordPress posts: {e}")
-            break
-    
-    return posts
-
-def check_originality(content):
-    """Check content with Originality.AI"""
-    if not ORIGINALITY_API_KEY:
-        print("⚠️ Originality.AI API key not configured")
-        return {
-            "success": False,
-            "ai_score": None,
-            "human_score": None,
-            "error": "API key not configured"
-        }
-    
-    try:
-        url = "https://api.originality.ai/api/v1/scan/ai"
-        headers = {
-            "X-OAI-API-KEY": ORIGINALITY_API_KEY,
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
-        
-        # Remove HTML tags for scanning
-        text_content = re.sub(r'<[^>]+>', '', content)
-        text_content = text_content.replace('\n', ' ').strip()
-        
-        # Limit content length (Originality.AI has limits)
-        if len(text_content) > 25000:
-            text_content = text_content[:25000]
-        
-        payload = {
-            "content": text_content,
-            "title": "Article Scan",
-            "aiModelVersion": "1"
-        }
-        
-        print(f"📊 Checking originality with Originality.AI...")
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        
-        if response.status_code == 200:
-            data = response.json()
-            ai_score = round(data.get('score', {}).get('ai', 0) * 100, 1)
-            human_score = round(data.get('score', {}).get('original', 0) * 100, 1)
-            print(f"✅ Originality check complete: AI={ai_score}%, Human={human_score}%")
-            return {
-                "success": True,
-                "ai_score": ai_score,
-                "human_score": human_score
-            }
-        else:
-            error_msg = f"API Error: {response.status_code}"
-            print(f"⚠️ Originality.AI error: {error_msg}")
-            try:
-                error_data = response.json()
-                error_msg += f" - {error_data.get('message', '')}"
-            except:
-                pass
-            return {
-                "success": False,
-                "ai_score": None,
-                "human_score": None,
-                "error": error_msg
-            }
-            
+        print(f"Pixabay API Request Error: {e}")
+        return []
     except Exception as e:
-        print(f"⚠️ Originality.AI exception: {str(e)}")
-        return {
-            "success": False,
-            "ai_score": None,
-            "human_score": None,
-            "error": str(e)
-        }
+        print(f"Pixabay API Exception: {e}")
+        return []
 
 def search_pixabay_videos(query, per_page=10):
-    """Search for videos on Pixabay (query will be automatically translated to English)"""
+    """Search for videos on Pixabay"""
     if not PIXABAY_API_KEY:
         return {"error": "Pixabay API key not configured"}
     
-    # Translate query to English for maximum results
+    # Translate query to English
     query = translate_to_english(query)
     
     try:
         url = "https://pixabay.com/api/videos/"
         params = {
-            "key": PIXABAY_API_KEY,
-            "q": query,
-            "per_page": max(3, min(per_page, 200))  # Min 3, Max 200
+            'key': PIXABAY_API_KEY,
+            'q': query,
+            'per_page': min(per_page, 200)
         }
         
         response = requests.get(url, params=params, timeout=10)
         
         if response.status_code != 200:
-            print(f"Pixabay Video API Error: {response.status_code} - {response.text}")
             return {"error": f"API Error: {response.status_code}"}
         
-        data = response.json()
+        # Check if response is valid JSON
+        try:
+            data = response.json()
+        except json.JSONDecodeError as e:
+            print(f"❌ Pixabay Videos JSON parsing error: {e}")
+            return {"error": "Invalid JSON response"}
         
         if data.get('totalHits', 0) == 0:
-            return {"success": True, "videos": []}
+            return {"videos": [], "total": 0}
         
+        # Format results
         videos = []
         for hit in data.get('hits', []):
-            # Get medium quality video
-            video_files = hit.get('videos', {})
-            medium_video = video_files.get('medium', {})
-            
             videos.append({
                 'id': hit.get('id'),
-                'url': medium_video.get('url', ''),
-                'thumbnail': medium_video.get('thumbnail', ''),
-                'width': medium_video.get('width', 0),
-                'height': medium_video.get('height', 0),
-                'duration': hit.get('duration', 0),
-                'tags': hit.get('tags', '')
+                'preview': hit.get('picture_id'),
+                'url': hit.get('videos', {}).get('large', {}).get('url'),
+                'width': hit.get('videos', {}).get('large', {}).get('width'),
+                'height': hit.get('videos', {}).get('large', {}).get('height'),
+                'tags': hit.get('tags'),
+                'user': hit.get('user')
             })
         
-        return {"success": True, "videos": videos}
-            
+        return {
+            "videos": videos,
+            "total": data.get('totalHits', 0)
+        }
+        
+    except requests.exceptions.Timeout:
+        return {"error": "Request timeout"}
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
     except Exception as e:
         print(f"Pixabay Video API Exception: {e}")
         return {"error": str(e)}
 
 def generate_dalle_image(prompt):
-    """Generate image using DALL-E 3"""
+    """
+    Generate image using DALL-E 3
+    
+    Args:
+        prompt: Image description prompt
+    
+    Returns:
+        Dict with success status and image_url or error
+    """
     if not client:
-        raise Exception("OpenAI API key not configured")
+        return {"success": False, "error": "OpenAI API key not configured"}
     
     try:
+        print(f"🎨 Generating DALL-E image: {prompt[:50]}...")
+        
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -1284,11 +1467,28 @@ def generate_dalle_image(prompt):
             n=1
         )
         
-        image_url = response.data[0].url
-        return {"success": True, "image_url": image_url}
+        # Extract image URL from response
+        if response.data and len(response.data) > 0:
+            image_url = response.data[0].url
+            print(f"✅ DALL-E image generated successfully")
+            return {
+                "success": True,
+                "image_url": image_url
+            }
+        else:
+            print(f"❌ DALL-E response has no data")
+            return {
+                "success": False,
+                "error": "No image data in response"
+            }
         
     except Exception as e:
-        return {"error": str(e)}
+        error_msg = str(e)
+        print(f"❌ DALL-E generation error: {error_msg}")
+        return {
+            "success": False,
+            "error": error_msg
+        }
 
 # ============================================================================
 # API ENDPOINTS
@@ -1318,30 +1518,6 @@ def api_generate_topic():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/suggest-topic', methods=['POST'])
-def api_suggest_topic():
-    """Suggest topic based on URLs and anchors"""
-    try:
-        data = request.json
-        anchor1 = data.get('anchor1', '').strip()
-        url1 = data.get('url1', '').strip()
-        anchor2 = data.get('anchor2', '').strip()
-        url2 = data.get('url2', '').strip()
-        context = data.get('context', '').strip()
-        
-        if not all([anchor1, url1, anchor2, url2]):
-            return jsonify({"error": "All anchors and URLs are required"}), 400
-        
-        topic = extract_topic_from_urls(anchor1, url1, anchor2, url2, context)
-        
-        if topic:
-            return jsonify({"success": True, "topic": topic})
-        else:
-            return jsonify({"error": "Could not generate topic"}), 500
-            
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route('/api/generate-article', methods=['POST'])
 def api_generate_article():
     """Generate linkbuilding article"""
@@ -1354,13 +1530,6 @@ def api_generate_article():
         url2 = data.get('url2', '').strip()
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
-        placement_domain = data.get('placement_domain', '').strip()
-        
-        # Add domain analysis to extra context if provided
-        if placement_domain:
-            domain_analysis = analyze_placement_domain(placement_domain)
-            if domain_analysis:
-                extra += domain_analysis
         
         if not all([onderwerp, anchor1, url1, anchor2, url2]):
             return jsonify({"error": "All fields are required"}), 400
@@ -1389,6 +1558,8 @@ def api_generate_general_article():
         word_count = int(data.get('word_count', 500))
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
+        use_research = data.get('use_research', False)
+        wordpress_site_url = data.get('wordpress_site_url', '').strip()
         
         # Extract extra elements
         elements = {
@@ -1404,7 +1575,15 @@ def api_generate_general_article():
         if not onderwerp:
             return jsonify({"error": "Topic is required"}), 400
         
-        article = generate_general_article(onderwerp, word_count, extra, model, elements)
+        article = generate_general_article(
+            onderwerp, 
+            word_count, 
+            extra, 
+            model, 
+            elements,
+            use_research=use_research,
+            wordpress_site_url=wordpress_site_url if wordpress_site_url else None
+        )
         
         # Count words
         text_content = re.sub(r'<[^>]+>', '', article)
@@ -1448,61 +1627,41 @@ def api_refine_article():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/check-originality', methods=['POST'])
-def api_check_originality():
-    """Check content originality"""
-    try:
-        data = request.json
-        content = data.get('content', '').strip()
-        
-        if not content:
-            return jsonify({"error": "Content is required"}), 400
-        
-        result = check_originality(content)
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/search-images', methods=['POST'])
-def api_search_images():
-    """Search for images on Pixabay"""
+@app.route('/api/search-pixabay-images', methods=['POST'])
+def api_search_pixabay_images():
+    """Search Pixabay for images"""
     try:
         data = request.json
         query = data.get('query', '').strip()
-        per_page = data.get('per_page', 10)
-        image_type = data.get('image_type', 'photo')
-        orientation = data.get('orientation', 'horizontal')
+        per_page = int(data.get('per_page', 10))
         
         if not query:
-            return jsonify({"error": "Search query is required"}), 400
+            return jsonify({"error": "Query is required"}), 400
         
         images = search_pixabay_images(
             query=query,
-            per_page=per_page,
-            image_type=image_type,
-            orientation=orientation
+            per_page=per_page
         )
         
         return jsonify({
             "success": True,
-            "total": len(images),
-            "images": images
+            "images": images,
+            "total": len(images)
         })
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/search-videos', methods=['POST'])
-def api_search_videos():
-    """Search for videos on Pixabay"""
+@app.route('/api/search-pixabay-videos', methods=['POST'])
+def api_search_pixabay_videos():
+    """Search Pixabay for videos"""
     try:
         data = request.json
         query = data.get('query', '').strip()
-        per_page = data.get('per_page', 10)
+        per_page = int(data.get('per_page', 10))
         
         if not query:
-            return jsonify({"error": "Search query is required"}), 400
+            return jsonify({"error": "Query is required"}), 400
         
         result = search_pixabay_videos(query=query, per_page=per_page)
         
@@ -1511,8 +1670,8 @@ def api_search_videos():
         
         return jsonify({
             "success": True,
-            "total": len(result.get('videos', [])),
-            "videos": result.get('videos', [])
+            "videos": result.get("videos", []),
+            "total": result.get("total", 0)
         })
         
     except Exception as e:
@@ -1529,372 +1688,56 @@ def api_generate_dalle_image():
             return jsonify({"error": "Prompt is required"}), 400
         
         result = generate_dalle_image(prompt)
-        return jsonify(result)
         
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ============================================================================
-# ARTICLE STORAGE ENDPOINTS
-# ============================================================================
-
-@app.route('/api/articles', methods=['GET'])
-def get_articles():
-    """Get all saved articles"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT * FROM articles 
-            ORDER BY created_at DESC
-        ''')
-        
-        articles = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        
-        return jsonify({"success": True, "articles": articles})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/articles/<int:article_id>', methods=['GET'])
-def get_article(article_id):
-    """Get specific article"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM articles WHERE id = ?', (article_id,))
-        article = cursor.fetchone()
-        conn.close()
-        
-        if article:
-            return jsonify({"success": True, "article": dict(article)})
+        if result.get('success'):
+            return jsonify(result)
         else:
-            return jsonify({"error": "Article not found"}), 404
-            
+            return jsonify(result), 500
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/articles', methods=['POST'])
-def save_article():
-    """Save new article"""
+@app.route('/api/fetch-wordpress-sitemap', methods=['POST'])
+def api_fetch_wordpress_sitemap():
+    """Fetch WordPress sitemap and extract internal links"""
     try:
         data = request.json
+        site_url = data.get('site_url', '').strip()
         
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
+        if not site_url:
+            return jsonify({"error": "Site URL is required"}), 400
         
-        # Extract text content
-        content_html = data.get('content_html', '')
-        content_text = re.sub(r'<[^>]+>', '', content_html)
-        word_count = len(content_text.split())
+        internal_links = fetch_wordpress_sitemap(site_url)
         
-        cursor.execute('''
-            INSERT INTO articles (
-                title, content_html, content_text, article_type,
-                anchor1, url1, anchor2, url2,
-                word_count, human_score, ai_score
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            data.get('title', ''),
-            content_html,
-            content_text,
-            data.get('article_type', 'linkbuilding'),
-            data.get('anchor1'),
-            data.get('url1'),
-            data.get('anchor2'),
-            data.get('url2'),
-            word_count,
-            data.get('human_score'),
-            data.get('ai_score')
-        ))
-        
-        article_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True, "article_id": article_id})
+        return jsonify({
+            "success": True,
+            "links": internal_links,
+            "total": len(internal_links)
+        })
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/articles/<int:article_id>', methods=['PUT'])
-def update_article(article_id):
-    """Update existing article"""
+@app.route('/api/perplexity-research', methods=['POST'])
+def api_perplexity_research():
+    """Perform Perplexity AI research on a topic"""
     try:
         data = request.json
+        topic = data.get('topic', '').strip()
         
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
+        if not topic:
+            return jsonify({"error": "Topic is required"}), 400
         
-        # Extract text content
-        content_html = data.get('content_html', '')
-        content_text = re.sub(r'<[^>]+>', '', content_html)
-        word_count = len(content_text.split())
+        result = perplexity_research(topic)
         
-        cursor.execute('''
-            UPDATE articles SET
-                title = ?,
-                content_html = ?,
-                content_text = ?,
-                anchor1 = ?,
-                url1 = ?,
-                anchor2 = ?,
-                url2 = ?,
-                word_count = ?,
-                human_score = ?,
-                ai_score = ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ''', (
-            data.get('title', ''),
-            content_html,
-            content_text,
-            data.get('anchor1'),
-            data.get('url1'),
-            data.get('anchor2'),
-            data.get('url2'),
-            word_count,
-            data.get('human_score'),
-            data.get('ai_score'),
-            article_id
-        ))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/articles/<int:article_id>', methods=['DELETE'])
-def delete_article(article_id):
-    """Delete article"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('DELETE FROM articles WHERE id = ?', (article_id,))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ============================================================================
-# WORDPRESS SITES MANAGEMENT
-# ============================================================================
-
-@app.route('/api/wordpress-sites', methods=['GET'])
-def get_wordpress_sites():
-    """Get all WordPress sites"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT id, site_name, site_url, username FROM wordpress_sites ORDER BY site_name')
-        sites = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        
-        return jsonify({"success": True, "sites": sites})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/wordpress-sites', methods=['POST'])
-def add_wordpress_site():
-    """Add new WordPress site"""
-    try:
-        data = request.json
-        
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO wordpress_sites (site_name, site_url, username, app_password)
-            VALUES (?, ?, ?, ?)
-        ''', (
-            data.get('site_name'),
-            data.get('site_url'),
-            data.get('username'),
-            data.get('app_password')
-        ))
-        
-        site_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True, "site_id": site_id})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/wordpress-sites/<int:site_id>', methods=['DELETE'])
-def delete_wordpress_site(site_id):
-    """Delete WordPress site"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('DELETE FROM wordpress_sites WHERE id = ?', (site_id,))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/wordpress-sites/<int:site_id>/posts', methods=['GET'])
-def get_wordpress_posts(site_id):
-    """Fetch posts from WordPress site"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM wordpress_sites WHERE id = ?', (site_id,))
-        site = cursor.fetchone()
-        conn.close()
-        
-        if not site:
-            return jsonify({"error": "Site not found"}), 404
-        
-        posts = fetch_wordpress_posts(site['site_url'], site['username'], site['app_password'])
-        
-        return jsonify({"success": True, "posts": posts})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ============================================================================
-# INTERNAL & AFFILIATE LINKS MANAGEMENT
-# ============================================================================
-
-@app.route('/api/wordpress-sites/<int:site_id>/internal-links', methods=['GET'])
-def get_internal_links(site_id):
-    """Get internal links for a site"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM internal_links WHERE site_id = ? ORDER BY anchor_text', (site_id,))
-        links = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        
-        return jsonify({"success": True, "links": links})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/wordpress-sites/<int:site_id>/internal-links', methods=['POST'])
-def add_internal_link(site_id):
-    """Add internal link"""
-    try:
-        data = request.json
-        
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO internal_links (site_id, anchor_text, url)
-            VALUES (?, ?, ?)
-        ''', (site_id, data.get('anchor_text'), data.get('url')))
-        
-        link_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True, "link_id": link_id})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/internal-links/<int:link_id>', methods=['DELETE'])
-def delete_internal_link(link_id):
-    """Delete internal link"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('DELETE FROM internal_links WHERE id = ?', (link_id,))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/wordpress-sites/<int:site_id>/affiliate-links', methods=['GET'])
-def get_affiliate_links(site_id):
-    """Get affiliate links for a site"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM affiliate_links WHERE site_id = ? ORDER BY anchor_text', (site_id,))
-        links = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        
-        return jsonify({"success": True, "links": links})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/wordpress-sites/<int:site_id>/affiliate-links', methods=['POST'])
-def add_affiliate_link(site_id):
-    """Add affiliate link"""
-    try:
-        data = request.json
-        
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO affiliate_links (site_id, anchor_text, url)
-            VALUES (?, ?, ?)
-        ''', (site_id, data.get('anchor_text'), data.get('url')))
-        
-        link_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True, "link_id": link_id})
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/affiliate-links/<int:link_id>', methods=['DELETE'])
-def delete_affiliate_link(link_id):
-    """Delete affiliate link"""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        
-        cursor.execute('DELETE FROM affiliate_links WHERE id = ?', (link_id,))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True})
+        if result and result.get('success'):
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Research failed"}), 500
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
