@@ -52,23 +52,11 @@ cd writgoai_v18_modern
 pip install -r requirements.txt
 ```
 
-3. **Configureer API Keys**
+3. **Configureer OpenAI API Key**
 ```bash
 cp .env.example .env
-# Bewerk .env en voeg je API keys toe
+# Bewerk .env en voeg je OpenAI API key toe
 ```
-
-**Benodigde API Keys:**
-- `OPENAI_API_KEY` - Voor GPT models en DALL-E (verplicht)
-- `ANTHROPIC_API_KEY` - Voor Claude models (optioneel)
-- `ORIGINALITY_API_KEY` - Voor AI detectie scoring (optioneel)
-- `PIXABAY_API_KEY` - Voor stock afbeeldingen (optioneel)
-
-**⚠️ Security Best Practices:**
-- Bewaar API keys NOOIT in de code
-- Gebruik altijd environment variables
-- Commit nooit je `.env` bestand naar Git
-- Voor Render deployment: voeg keys toe als Environment Variables in de dashboard
 
 4. **Start de applicatie**
 ```bash

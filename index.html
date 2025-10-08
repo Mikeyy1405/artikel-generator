@@ -953,9 +953,9 @@
             <!-- WordPress Management Section -->
             <div id="wordpress" class="section">
                 <div class="tabs">
-                    <button class="tab active" onclick="showTab('wp-sites', event)">🌐 Websites</button>
-                    <button class="tab" onclick="showTab('wp-internal', event)">🔗 Interne Links</button>
-                    <button class="tab" onclick="showTab('wp-affiliate', event)">💰 Affiliate Links</button>
+                    <button class="tab active" onclick="showTab('wp-sites')">🌐 Websites</button>
+                    <button class="tab" onclick="showTab('wp-internal')">🔗 Interne Links</button>
+                    <button class="tab" onclick="showTab('wp-affiliate')">💰 Affiliate Links</button>
                 </div>
                 
                 <!-- Sites Tab -->
@@ -1071,32 +1071,18 @@
             <!-- Images Section -->
             <div id="images" class="section">
                 <div class="tabs">
-                    <button class="tab active" onclick="showTab('img-pixabay', event)">📷 Pixabay</button>
-                    <button class="tab" onclick="showTab('img-dalle', event)">🎨 DALL-E 3</button>
+                    <button class="tab active" onclick="showTab('img-pixabay')">📷 Pixabay</button>
+                    <button class="tab" onclick="showTab('img-dalle')">🎨 DALL-E 3</button>
                 </div>
                 
                 <!-- Pixabay Tab -->
                 <div id="img-pixabay" class="tab-content active">
                     <div class="card">
-                        <h2>📷 Zoek Media op Pixabay</h2>
-                        
-                        <div class="form-group">
-                            <label>Media Type</label>
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="radio" name="pixabay-type" value="images" checked onchange="updatePixabayPlaceholder()" style="margin-right: 5px;">
-                                    📸 Afbeeldingen
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="radio" name="pixabay-type" value="videos" onchange="updatePixabayPlaceholder()" style="margin-right: 5px;">
-                                    🎥 Video's
-                                </label>
-                            </div>
-                        </div>
+                        <h2>📷 Zoek Afbeeldingen op Pixabay</h2>
                         
                         <div class="form-group">
                             <label>Zoekterm</label>
-                            <input type="text" id="pixabay-query" placeholder="Bijv: business meeting" onkeypress="if(event.key==='Enter') searchPixabay()">
+                            <input type="text" id="pixabay-query" placeholder="Bijv: business meeting">
                         </div>
                         
                         <button onclick="searchPixabay()">🔍 Zoeken</button>
@@ -1160,13 +1146,7 @@
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             
             document.getElementById(sectionId).classList.add('active');
-            // Find and activate the corresponding menu item
-            const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => {
-                if (item.getAttribute('onclick')?.includes(sectionId)) {
-                    item.classList.add('active');
-                }
-            });
+            event.target.classList.add('active');
             
             // Load data when switching to certain sections
             if (sectionId === 'wordpress') {
@@ -1178,17 +1158,13 @@
             }
         }
         
-        function showTab(tabId, event) {
-            if (!event) return;
+        function showTab(tabId) {
             const parent = event.target.closest('.section');
-            if (!parent) return;
-            
             parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
             event.target.classList.add('active');
-            const targetTab = parent.querySelector(`#${tabId}`);
-            if (targetTab) targetTab.classList.add('active');
+            parent.querySelector(`#${tabId}`).classList.add('active');
             
             // Load data for specific tabs
             if (tabId === 'wp-sites') {
@@ -1773,33 +1749,19 @@
             }
         }
         
-        // Image/Video Generation - Pixabay
-        function updatePixabayPlaceholder() {
-            const type = document.querySelector('input[name="pixabay-type"]:checked').value;
-            const input = document.getElementById('pixabay-query');
-            if (type === 'videos') {
-                input.placeholder = 'Bijv: yoga exercises';
-            } else {
-                input.placeholder = 'Bijv: business meeting';
-            }
-        }
-        
+        // Image Generation - Pixabay
         async function searchPixabay() {
             const query = document.getElementById('pixabay-query').value;
-            const type = document.querySelector('input[name="pixabay-type"]:checked').value;
-            
             if (!query) {
                 alert('Vul een zoekterm in!');
                 return;
             }
             
             const results = document.getElementById('pixabay-results');
-            const loadingText = type === 'videos' ? "Video's zoeken..." : 'Afbeeldingen zoeken...';
-            results.innerHTML = `<div class="loading"><div class="spinner"></div><p>${loadingText}</p></div>`;
+            results.innerHTML = '<div class="loading"><div class="spinner"></div><p>Afbeeldingen zoeken...</p></div>';
             
             try {
-                const endpoint = type === 'videos' ? '/api/search-videos' : '/api/search-images';
-                const response = await fetch(`${API_URL}${endpoint}`, {
+                const response = await fetch(`${API_URL}/search-images-pixabay`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query, per_page: 20 })
@@ -1807,49 +1769,22 @@
                 
                 const data = await response.json();
                 
-                if (type === 'videos') {
-                    // Handle video results
-                    if (data.success && data.videos && data.videos.length > 0) {
-                        results.innerHTML = `
-                            <h3 style="margin-top:20px;">🎥 ${data.total} video's gevonden</h3>
-                            <div class="image-grid">
-                                ${data.videos.map(video => `
-                                    <div class="image-item" onclick="selectVideo('${video.medium_url}', '${video.duration}')">
-                                        <div style="position: relative;">
-                                            <video src="${video.medium_url}" style="width: 100%; height: auto;" muted></video>
-                                            <div style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
-                                                ⏱️ ${video.duration}s
-                                            </div>
-                                        </div>
-                                        <p style="font-size: 11px; margin: 5px 0; color: #666;">${video.tags || ''}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    } else {
-                        results.innerHTML = '<div class="alert alert-info">Geen video's gevonden.</div>';
-                    }
+                if (data.success && data.images.length > 0) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
+                        <div class="image-grid">
+                            ${data.images.map(img => `
+                                <div class="image-item" onclick="selectImage('${img.large_url}')">
+                                    <img src="${img.preview_url}" alt="${img.tags}">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
                 } else {
-                    // Handle image results
-                    if (data.success && data.images && data.images.length > 0) {
-                        results.innerHTML = `
-                            <h3 style="margin-top:20px;">📸 ${data.total} afbeeldingen gevonden</h3>
-                            <div class="image-grid">
-                                ${data.images.map(img => `
-                                    <div class="image-item" onclick="selectImage('${img.medium_url}')">
-                                        <img src="${img.preview_url}" alt="${img.tags}">
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    } else {
-                        results.innerHTML = '<div class="alert alert-info">Geen afbeeldingen gevonden.</div>';
-                    }
+                    results.innerHTML = '<div class="alert alert-info">Geen afbeeldingen gevonden.</div>';
                 }
             } catch (error) {
-                console.error('Pixabay search error:', error);
-                const errorType = type === 'videos' ? "video's" : 'afbeeldingen';
-                results.innerHTML = `<div class="alert alert-error">❌ Fout bij zoeken naar ${errorType}: ${error.message}</div>`;
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
             }
         }
         
@@ -1858,25 +1793,6 @@
             navigator.clipboard.writeText(url).then(() => {
                 alert('Afbeelding URL gekopieerd naar klembord!\n\n' + url);
             });
-        }
-        
-        function selectVideo(url, duration) {
-            // Copy URL to clipboard
-            navigator.clipboard.writeText(url).then(() => {
-                alert(`Video URL gekopieerd naar klembord!\nDuur: ${duration}s\n\n${url}`);
-            }
-        
-        function togglePixabayImages() {
-            const checkbox = document.getElementById('general-pixabay-images-enable');
-            const config = document.getElementById('pixabay-images-config');
-            config.style.display = checkbox.checked ? 'block' : 'none';
-        }
-        
-        function togglePixabayVideos() {
-            const checkbox = document.getElementById('general-pixabay-videos-enable');
-            const config = document.getElementById('pixabay-videos-config');
-            config.style.display = checkbox.checked ? 'block' : 'none';
-        });
         }
         
         // Image Generation - DALL-E
