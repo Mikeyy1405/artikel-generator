@@ -259,17 +259,21 @@ def detect_affiliate_links(html_content):
         }
 
 
-def fetch_sitemap_urls(sitemap_url, max_urls=100):
+def fetch_sitemap_urls(sitemap_url, max_urls=None, timeout_seconds=300):
     """
     Fetch URLs from a sitemap.xml or sitemap_index.xml
     
     Args:
         sitemap_url: URL of the sitemap
-        max_urls: Maximum number of URLs to fetch
+        max_urls: Maximum number of URLs to fetch (None = unlimited)
+        timeout_seconds: Maximum time to spend fetching (default 5 minutes)
     
     Returns:
         list: List of URL dictionaries with 'url' and 'title' keys, or empty list on error
     """
+    import time
+    start_time = time.time()
+    
     try:
         print(f"🔍 Fetching sitemap: {sitemap_url}")
         response = requests.get(sitemap_url, timeout=15, headers={
@@ -290,21 +294,35 @@ def fetch_sitemap_urls(sitemap_url, max_urls=100):
         sitemaps = soup.find_all('sitemap')
         if sitemaps:
             print(f"📑 Found sitemap index with {len(sitemaps)} sub-sitemaps")
-            # It's a sitemap index, fetch all sub-sitemaps
-            for sitemap in sitemaps[:5]:  # Limit to first 5 sub-sitemaps
+            # It's a sitemap index, fetch ALL sub-sitemaps (no limit)
+            for idx, sitemap in enumerate(sitemaps, 1):
+                # Check timeout
+                if time.time() - start_time > timeout_seconds:
+                    print(f"⏱️  Timeout reached after {timeout_seconds}s, stopping at {len(urls)} URLs")
+                    break
+                
+                # Check max_urls limit
+                if max_urls and len(urls) >= max_urls:
+                    print(f"📊 Reached max_urls limit of {max_urls}")
+                    break
+                
                 loc = sitemap.find('loc')
                 if loc and loc.text:
                     sub_sitemap_url = loc.text
                     try:
-                        print(f"  📄 Fetching sub-sitemap: {sub_sitemap_url}")
+                        print(f"  📄 [{idx}/{len(sitemaps)}] Fetching sub-sitemap: {sub_sitemap_url}")
                         sub_response = requests.get(sub_sitemap_url, timeout=15, headers={
                             'User-Agent': 'Mozilla/5.0 (compatible; WritgoAI/1.0)'
                         })
                         if sub_response.status_code == 200:
                             sub_soup = BeautifulSoup(sub_response.content, 'xml')
                             sub_locs = sub_soup.find_all('loc')
+                            
                             for loc_elem in sub_locs:
-                                if loc_elem.text and len(urls) < max_urls:
+                                if max_urls and len(urls) >= max_urls:
+                                    break
+                                    
+                                if loc_elem.text:
                                     # Extract title from URL
                                     from urllib.parse import urlparse
                                     path = urlparse(loc_elem.text).path
@@ -313,7 +331,7 @@ def fetch_sitemap_urls(sitemap_url, max_urls=100):
                                         'url': loc_elem.text,
                                         'title': title
                                     })
-                            print(f"    ✅ Found {len(sub_locs)} URLs")
+                            print(f"    ✅ Found {len(sub_locs)} URLs (total: {len(urls)})")
                     except Exception as e:
                         print(f"    ⚠️  Error fetching sub-sitemap: {str(e)}")
                         continue
@@ -321,7 +339,9 @@ def fetch_sitemap_urls(sitemap_url, max_urls=100):
             # It's a regular sitemap
             locs = soup.find_all('loc')
             print(f"📄 Found regular sitemap with {len(locs)} URLs")
-            for loc_elem in locs[:max_urls]:
+            
+            limit = len(locs) if not max_urls else min(len(locs), max_urls)
+            for loc_elem in locs[:limit]:
                 if loc_elem.text:
                     # Extract title from URL
                     from urllib.parse import urlparse
@@ -332,7 +352,8 @@ def fetch_sitemap_urls(sitemap_url, max_urls=100):
                         'title': title
                     })
         
-        print(f"✅ Successfully fetched {len(urls)} URLs from sitemap")
+        elapsed = time.time() - start_time
+        print(f"✅ Successfully fetched {len(urls)} URLs from sitemap in {elapsed:.1f}s")
         return urls
         
     except Exception as e:

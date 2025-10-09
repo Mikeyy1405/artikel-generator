@@ -181,6 +181,19 @@ def init_db():
         )
     ''')
     
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS websites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            url TEXT NOT NULL UNIQUE,
+            sitemap_url TEXT,
+            sitemap_urls TEXT,
+            urls_count INTEGER DEFAULT 0,
+            last_updated TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     try:
         cursor.execute('ALTER TABLE wordpress_sites ADD COLUMN sitemap_url TEXT')
     except sqlite3.OperationalError:
@@ -2407,6 +2420,290 @@ Make sure all keywords are relevant to {niche} and target the {country} market.
             'content_gaps': 'Error',
             'keywords': 'Error'
         }), 500
+
+# ============================================================================
+# WEBSITE MANAGEMENT & SITEMAP API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/websites', methods=['GET', 'POST'])
+def api_websites():
+    """Get all websites or add a new website"""
+    
+    if request.method == 'GET':
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT id, name, url, sitemap_url, urls_count, last_updated, created_at
+                FROM websites
+                ORDER BY created_at DESC
+            ''')
+            
+            websites = []
+            for row in cursor.fetchall():
+                websites.append({
+                    'id': row[0],
+                    'name': row[1],
+                    'url': row[2],
+                    'sitemap_url': row[3],
+                    'urls_count': row[4],
+                    'last_updated': row[5],
+                    'created_at': row[6]
+                })
+            
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'websites': websites
+            })
+            
+        except Exception as e:
+            print(f"❌ Error fetching websites: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.json
+            name = data.get('name')
+            url = data.get('url')
+            
+            if not name or not url:
+                return jsonify({
+                    'success': False,
+                    'error': 'Name en URL zijn verplicht'
+                }), 400
+            
+            # Normalize URL
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            
+            # Auto-detect sitemap
+            sitemap_result = find_sitemap(url)
+            sitemap_url = sitemap_result.get('sitemap_url') if sitemap_result.get('success') else None
+            
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO websites (name, url, sitemap_url, created_at)
+                VALUES (?, ?, ?, ?)
+            ''', (name, url, sitemap_url, datetime.now()))
+            
+            website_id = cursor.lastrowid
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'website_id': website_id,
+                'sitemap_url': sitemap_url,
+                'message': 'Website succesvol toegevoegd'
+            })
+            
+        except sqlite3.IntegrityError:
+            return jsonify({
+                'success': False,
+                'error': 'Deze URL bestaat al in de database'
+            }), 400
+        except Exception as e:
+            print(f"❌ Error adding website: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+
+
+@app.route('/api/websites/<int:website_id>', methods=['GET', 'PUT', 'DELETE'])
+def api_website_detail(website_id):
+    """Get, update or delete a specific website"""
+    
+    if request.method == 'GET':
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT id, name, url, sitemap_url, sitemap_urls, urls_count, last_updated, created_at
+                FROM websites
+                WHERE id = ?
+            ''', (website_id,))
+            
+            row = cursor.fetchone()
+            conn.close()
+            
+            if not row:
+                return jsonify({
+                    'success': False,
+                    'error': 'Website niet gevonden'
+                }), 404
+            
+            # Parse sitemap_urls JSON
+            sitemap_urls = json.loads(row[4]) if row[4] else []
+            
+            return jsonify({
+                'success': True,
+                'website': {
+                    'id': row[0],
+                    'name': row[1],
+                    'url': row[2],
+                    'sitemap_url': row[3],
+                    'sitemap_urls': sitemap_urls,
+                    'urls_count': row[5],
+                    'last_updated': row[6],
+                    'created_at': row[7]
+                }
+            })
+            
+        except Exception as e:
+            print(f"❌ Error fetching website: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    elif request.method == 'PUT':
+        try:
+            data = request.json
+            name = data.get('name')
+            url = data.get('url')
+            
+            if not name or not url:
+                return jsonify({
+                    'success': False,
+                    'error': 'Name en URL zijn verplicht'
+                }), 400
+            
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE websites
+                SET name = ?, url = ?
+                WHERE id = ?
+            ''', (name, url, website_id))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Website succesvol bijgewerkt'
+            })
+            
+        except Exception as e:
+            print(f"❌ Error updating website: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute('DELETE FROM websites WHERE id = ?', (website_id,))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Website succesvol verwijderd'
+            })
+            
+        except Exception as e:
+            print(f"❌ Error deleting website: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+
+
+@app.route('/api/websites/<int:website_id>/refresh-sitemap', methods=['POST'])
+def api_refresh_sitemap(website_id):
+    """Refresh sitemap URLs for a specific website"""
+    
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get website info
+        cursor.execute('SELECT url, sitemap_url FROM websites WHERE id = ?', (website_id,))
+        row = cursor.fetchone()
+        
+        if not row:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Website niet gevonden'
+            }), 404
+        
+        url, sitemap_url = row
+        
+        # If no sitemap_url, try to detect it
+        if not sitemap_url:
+            print(f"🔍 No sitemap URL found, detecting...")
+            sitemap_result = find_sitemap(url)
+            if sitemap_result.get('success'):
+                sitemap_url = sitemap_result.get('sitemap_url')
+                cursor.execute('UPDATE websites SET sitemap_url = ? WHERE id = ?', (sitemap_url, website_id))
+                conn.commit()
+            else:
+                conn.close()
+                return jsonify({
+                    'success': False,
+                    'error': 'Geen sitemap gevonden voor deze website'
+                }), 404
+        
+        print(f"📥 Fetching sitemap URLs from: {sitemap_url}")
+        
+        # Fetch ALL sitemap URLs (no limit)
+        sitemap_urls = fetch_sitemap_urls(sitemap_url, max_urls=None, timeout_seconds=300)
+        
+        if not sitemap_urls:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Geen URLs gevonden in sitemap'
+            }), 404
+        
+        # Store in database
+        sitemap_urls_json = json.dumps(sitemap_urls)
+        urls_count = len(sitemap_urls)
+        
+        cursor.execute('''
+            UPDATE websites
+            SET sitemap_urls = ?, urls_count = ?, last_updated = ?
+            WHERE id = ?
+        ''', (sitemap_urls_json, urls_count, datetime.now(), website_id))
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Successfully stored {urls_count} URLs")
+        
+        return jsonify({
+            'success': True,
+            'urls_count': urls_count,
+            'sitemap_urls': sitemap_urls,
+            'message': f'Sitemap succesvol vernieuwd met {urls_count} URLs'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error refreshing sitemap: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 
 if __name__ == '__main__':
     print("🚀 Starting WritgoAI Content Generator v22...")
