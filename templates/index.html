@@ -2033,13 +2033,44 @@
             }, 5000);
             
             try {
+                // Detect country and language from URL
+                const domain = extractDomain(websiteUrl);
+                const tld = domain.split('.').pop().toLowerCase();
+                
+                let country = 'International';
+                let language = 'English';
+                
+                if (tld === 'nl') {
+                    country = 'Nederland';
+                    language = 'Dutch';
+                } else if (tld === 'be') {
+                    country = 'België';
+                    language = 'Dutch';
+                } else if (tld === 'de') {
+                    country = 'Duitsland';
+                    language = 'German';
+                } else if (tld === 'fr') {
+                    country = 'Frankrijk';
+                    language = 'French';
+                } else if (tld === 'es') {
+                    country = 'Spanje';
+                    language = 'Spanish';
+                } else if (tld === 'it') {
+                    country = 'Italië';
+                    language = 'Italian';
+                }
+                
                 const response = await fetch('/api/keyword-research', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         site_data: {
                             url: websiteUrl,
-                            name: extractDomain(websiteUrl)
+                            domain: domain,
+                            name: domain,
+                            country: country,
+                            language: language,
+                            description: 'Website voor keyword onderzoek'
                         }
                     })
                 });
@@ -2061,7 +2092,67 @@
                 
                 if (data.success) {
                     // Display results
-                    displayKeywordResults(data);
+                    let html = '';
+                    
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 10px;">✅ Onderzoek Voltooid!</h3>
+                            <p><strong>${data.total_keywords} keywords</strong> gegenereerd voor <strong>${extractDomain(websiteUrl)}</strong></p>
+                            <p>Land: ${data.country} | Taal: ${data.language}</p>
+                        </div>
+                    `;
+                    
+                    // Site Analysis Section
+                    if (data.site_analysis) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--light-blue);">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">📊 Site Analyse</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.site_analysis}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Competitors Section
+                    if (data.competitors) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--orange);">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🎯 Concurrenten (${data.country})</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.competitors}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Content Gaps Section
+                    if (data.content_gaps) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #ffebee; border-radius: 8px; border-left: 4px solid #f44336;">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">💡 Content Gaps</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.content_gaps}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Keywords Section
+                    if (data.keywords) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🔑 ${data.total_keywords} Keywords (${data.language})</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.keywords}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    output.innerHTML = html;
+                    
+                    alert(`✅ ${data.total_keywords} keywords gegenereerd!`);
                 } else {
                     output.innerHTML = `
                         <div class="alert alert-danger">
