@@ -1546,6 +1546,37 @@ def api_generate_general_article():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/generate-dalle-image', methods=['POST'])
+def api_generate_dalle_image():
+    """Generate image using DALL-E 3"""
+    try:
+        data = request.json
+        prompt = data.get('prompt', '').strip()
+        
+        if not prompt:
+            return jsonify({"success": False, "error": "Prompt is required"}), 400
+        
+        print(f"🎨 API: Generating DALL-E image for prompt: {prompt[:50]}...")
+        
+        result = generate_dalle_image(prompt)
+        
+        if result.get('success'):
+            return jsonify({
+                "success": True,
+                "image_url": result.get('image_url')
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": result.get('error', 'Unknown error')
+            }), 500
+            
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in DALL-E API endpoint: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
