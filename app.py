@@ -329,6 +329,10 @@ def detect_country_from_tld(domain):
         'ch': {'country': 'Zwitserland', 'language': 'German/French/Italian', 'flag': '🇨🇭'},
     }
     
+    # Handle empty domain
+    if not domain or domain.strip() == '':
+        return 'com', tld_map['com']
+    
     # Extract TLD
     parts = domain.split('.')
     if len(parts) >= 2:
@@ -2236,7 +2240,8 @@ Provide:
 
 Be specific and actionable.
 """
-        site_analysis = perplexity_research(site_analysis_prompt)
+        site_analysis_result = perplexity_research(site_analysis_prompt)
+        site_analysis = site_analysis_result.get('summary', 'Geen data beschikbaar') if site_analysis_result else 'Geen data beschikbaar'
         
         # 2. Competitor Analysis (with localization)
         print("🎯 Step 2/4: Finding competitors...")
@@ -2256,7 +2261,8 @@ For each competitor provide:
 
 Focus on direct competitors in the same niche and market.
 """
-        competitors = perplexity_research(competitor_prompt)
+        competitors_result = perplexity_research(competitor_prompt)
+        competitors = competitors_result.get('summary', 'Geen data beschikbaar') if competitors_result else 'Geen data beschikbaar'
         
         # 3. Content Gaps
         print("💡 Step 3/4: Identifying content gaps...")
@@ -2274,7 +2280,8 @@ Identify specific content gaps:
 Provide 20-30 specific, actionable content gap opportunities.
 Be very specific with topics and keywords.
 """
-        content_gaps = perplexity_research(gap_prompt)
+        content_gaps_result = perplexity_research(gap_prompt)
+        content_gaps = content_gaps_result.get('summary', 'Geen data beschikbaar') if content_gaps_result else 'Geen data beschikbaar'
         
         # 4. AUTOMATIC KEYWORD GENERATION (150+ keywords)
         print("🔑 Step 4/4: Generating 150+ keywords...")
@@ -2319,16 +2326,17 @@ For EACH keyword provide in a table format:
 
 Make sure all keywords are relevant to {niche} and target the {country} market.
 """
-        keywords = perplexity_research(keywords_prompt)
+        keywords_result = perplexity_research(keywords_prompt)
+        keywords = keywords_result.get('summary', 'Geen data beschikbaar') if keywords_result else 'Geen data beschikbaar'
         
         print("✅ Keyword research completed successfully!")
         
         return jsonify({
             'success': True,
-            'site_analysis': site_analysis or 'Geen data beschikbaar',
-            'competitors': competitors or 'Geen data beschikbaar',
-            'content_gaps': content_gaps or 'Geen data beschikbaar',
-            'keywords': keywords or 'Geen data beschikbaar',
+            'site_analysis': site_analysis,
+            'competitors': competitors,
+            'content_gaps': content_gaps,
+            'keywords': keywords,
             'total_keywords': '150+',
             'country': country,
             'language': language
@@ -2336,11 +2344,18 @@ Make sure all keywords are relevant to {niche} and target the {country} market.
         
     except Exception as e:
         import traceback
-        print(f"❌ Error in keyword research: {str(e)}")
+        error_msg = str(e)
+        print(f"❌ Error in keyword research: {error_msg}")
         print(traceback.format_exc())
+        
+        # Return proper JSON error instead of HTML
         return jsonify({
             'success': False,
-            'error': f'Fout bij keyword research: {str(e)}'
+            'error': f'Fout bij keyword research: {error_msg}',
+            'site_analysis': 'Error',
+            'competitors': 'Error',
+            'content_gaps': 'Error',
+            'keywords': 'Error'
         }), 500
 
 if __name__ == '__main__':
