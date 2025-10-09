@@ -445,92 +445,198 @@
             border: none;
         }
         
-        /* Perplexity Checkbox Styling */
-        .perplexity-checkbox-container {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 2px solid #dee2e6;
-            border-radius: 12px;
-            padding: 16px;
-            transition: all 0.3s ease;
+        /* Perplexity Toggle Switch Styling */
+        .perplexity-toggle-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         
-        .perplexity-checkbox-container:hover {
+        .perplexity-toggle-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 174, 239, 0.05) 0%, rgba(0, 78, 146, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .perplexity-toggle-container:hover {
             border-color: var(--light-blue);
-            box-shadow: 0 4px 12px rgba(0, 174, 239, 0.15);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 174, 239, 0.15);
+            transform: translateY(-3px);
         }
         
-        .perplexity-checkbox-label {
+        .perplexity-toggle-container:hover::before {
+            opacity: 1;
+        }
+        
+        .perplexity-toggle-container.active {
+            background: linear-gradient(135deg, rgba(0, 174, 239, 0.08) 0%, rgba(0, 78, 146, 0.08) 100%);
+            border-color: var(--light-blue);
+            box-shadow: 0 8px 24px rgba(0, 174, 239, 0.2);
+        }
+        
+        .perplexity-toggle-wrapper {
             display: flex;
             align-items: center;
-            cursor: pointer;
-            gap: 12px;
-            font-weight: normal;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
         }
         
         .perplexity-checkbox {
             display: none;
         }
         
-        .perplexity-checkmark {
+        /* Modern Toggle Switch */
+        .toggle-switch {
             position: relative;
-            width: 48px;
-            height: 48px;
-            min-width: 48px;
+            width: 56px;
+            height: 32px;
+            min-width: 56px;
+            background: #cbd5e0;
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 26px;
+            height: 26px;
             background: white;
-            border: 3px solid #dee2e6;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         
-        .perplexity-icon {
-            width: 28px;
-            height: 28px;
-            color: #adb5bd;
-            transition: all 0.3s ease;
-        }
-        
-        .perplexity-checkbox:checked + .perplexity-checkmark {
+        .perplexity-checkbox:checked ~ .toggle-switch {
             background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
-            border-color: var(--light-blue);
-            box-shadow: 0 4px 12px rgba(0, 174, 239, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 174, 239, 0.4);
         }
         
-        .perplexity-checkbox:checked + .perplexity-checkmark .perplexity-icon {
+        .perplexity-checkbox:checked ~ .toggle-switch::before {
+            transform: translateX(24px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Toggle Icon */
+        .toggle-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-icon-off {
+            left: 8px;
+            color: #718096;
+        }
+        
+        .toggle-icon-on {
+            right: 8px;
             color: white;
-            transform: scale(1.1);
+            opacity: 0;
         }
         
-        .perplexity-text {
+        .perplexity-checkbox:checked ~ .toggle-switch .toggle-icon-off {
+            opacity: 0;
+        }
+        
+        .perplexity-checkbox:checked ~ .toggle-switch .toggle-icon-on {
+            opacity: 1;
+        }
+        
+        /* Text Content */
+        .perplexity-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         
-        .perplexity-text strong {
+        .perplexity-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .perplexity-title strong {
             color: var(--dark-blue);
             font-size: 16px;
             font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        
+        .optional-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            background: linear-gradient(135deg, var(--orange), var(--dark-orange));
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(255, 166, 43, 0.3);
         }
         
         .perplexity-description {
-            color: #6c757d;
-            font-size: 13px;
-            line-height: 1.4;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 400;
         }
         
-        .perplexity-tooltip {
-            margin-top: 12px;
-            padding: 12px;
-            background: rgba(0, 174, 239, 0.1);
-            border-left: 3px solid var(--light-blue);
-            border-radius: 6px;
+        .perplexity-info {
+            margin-top: 14px;
+            padding: 14px 16px;
+            background: rgba(0, 174, 239, 0.06);
+            border-left: 4px solid var(--light-blue);
+            border-radius: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .perplexity-info-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .info-icon {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            color: var(--light-blue);
+            margin-top: 1px;
+        }
+        
+        .perplexity-info-text {
             font-size: 13px;
-            color: #495057;
-            line-height: 1.5;
+            color: #475569;
+            line-height: 1.6;
+        }
+        
+        .perplexity-info-text strong {
+            color: var(--dark-blue);
+            font-weight: 600;
         }
         
         /* Responsive */
@@ -558,15 +664,44 @@
                 display: none;
             }
             
-            .perplexity-checkmark {
-                width: 40px;
-                height: 40px;
-                min-width: 40px;
+            .perplexity-toggle-container {
+                padding: 16px;
             }
             
-            .perplexity-icon {
-                width: 24px;
-                height: 24px;
+            .toggle-switch {
+                width: 48px;
+                height: 28px;
+                min-width: 48px;
+            }
+            
+            .toggle-switch::before {
+                width: 22px;
+                height: 22px;
+            }
+            
+            .perplexity-checkbox:checked ~ .toggle-switch::before {
+                transform: translateX(20px);
+            }
+            
+            .perplexity-title strong {
+                font-size: 15px;
+            }
+            
+            .optional-badge {
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+            
+            .perplexity-description {
+                font-size: 13px;
+            }
+            
+            .perplexity-info {
+                padding: 12px;
+            }
+            
+            .perplexity-info-text {
+                font-size: 12px;
             }
         }
     </style>
@@ -663,21 +798,36 @@
                         </div>
                         
                         <div class="form-group">
-                            <div class="perplexity-checkbox-container">
-                                <label class="perplexity-checkbox-label">
+                            <div class="perplexity-toggle-container" id="perplexity-container" onclick="togglePerplexity()">
+                                <div class="perplexity-toggle-wrapper">
                                     <input type="checkbox" id="perplexity-research" class="perplexity-checkbox">
-                                    <span class="perplexity-checkmark">
-                                        <svg class="perplexity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <label for="perplexity-research" class="toggle-switch" onclick="event.stopPropagation()">
+                                        <svg class="toggle-icon toggle-icon-off" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                            <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
-                                    </span>
-                                    <span class="perplexity-text">
-                                        <strong>Perplexity Onderzoek</strong>
-                                        <span class="perplexity-description">Uitgebreid AI-onderzoek voor diepgaande content</span>
-                                    </span>
-                                </label>
-                                <div class="perplexity-tooltip">
-                                    💡 Perplexity AI voert diepgaand onderzoek uit zoals een professionele copywriter, met actuele informatie en bronvermelding voor hoogwaardige content.
+                                        <svg class="toggle-icon toggle-icon-on" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </label>
+                                    <div class="perplexity-content">
+                                        <div class="perplexity-title">
+                                            <strong>Perplexity Onderzoek</strong>
+                                            <span class="optional-badge">Optioneel</span>
+                                        </div>
+                                        <span class="perplexity-description">Uitgebreid AI-onderzoek voor diepgaande, actuele content</span>
+                                    </div>
+                                </div>
+                                <div class="perplexity-info">
+                                    <div class="perplexity-info-content">
+                                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <div class="perplexity-info-text">
+                                            <strong>Wat doet dit?</strong> Perplexity AI voert professioneel onderzoek uit met actuele informatie en bronvermelding, ideaal voor hoogwaardige, feitelijk correcte content.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -952,6 +1102,20 @@
         
         function getCurrentEditor() {
             return editors[currentSection];
+        }
+        
+        // Toggle Perplexity function
+        function togglePerplexity() {
+            const checkbox = document.getElementById('perplexity-research');
+            const container = document.getElementById('perplexity-container');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                container.classList.add('active');
+            } else {
+                container.classList.remove('active');
+            }
         }
         
         // Handle content type change to show/hide relevant fields
