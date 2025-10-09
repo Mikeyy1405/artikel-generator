@@ -775,12 +775,9 @@
             let endpoint = '/api/generate-general-article';
             
             if (contentType === 'seo') {
+                requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
                 if (perplexityResearch) {
                     requestBody.perplexity_research = true;
-                    requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
-                } else {
-                    endpoint = '/api/generate-article';
-                    requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
                 }
             } else if (contentType === 'list') {
                 const items = document.getElementById('content-list-items').value;
@@ -808,6 +805,7 @@
                     requestBody.perplexity_research = true;
                 }
             } else if (contentType === 'linkbuilding') {
+                // Linkbuilding uses the OLD endpoint with required anchor/url fields
                 const url1 = document.getElementById('content-lb-url1').value;
                 const anchor1 = document.getElementById('content-lb-anchor1').value;
                 const url2 = document.getElementById('content-lb-url2').value;
