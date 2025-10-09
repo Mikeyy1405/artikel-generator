@@ -423,6 +423,42 @@
             border-left: 4px solid #2e7d32;
         }
         
+        /* Progress Steps Styling */
+        .progress-steps {
+            margin: 1rem 0;
+        }
+        
+        .progress-step {
+            padding: 10px 15px;
+            margin: 8px 0;
+            background: #f5f5f5;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step .spinner {
+            font-size: 18px;
+        }
+        
+        .progress-step.completed {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .content-box {
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+        
+        .content-box strong {
+            color: #2196F3;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .image-grid {
@@ -574,7 +610,7 @@
             <div id="keyword-research" class="section">
                 <div class="section-header">
                     <h2>🔍 Zoekwoordonderzoek</h2>
-                    <p>Intelligente analyse met concurrent & content gap detectie</p>
+                    <p>Powered by Perplexity AI - Diepgaande analyse met actuele data</p>
                 </div>
                 
                 <div class="section-content">
@@ -584,11 +620,30 @@
                             <input type="text" id="research-keyword" placeholder="Bijv: yoga voor beginners">
                         </div>
                         
-                        <button class="btn btn-primary" onclick="researchKeyword()">🚀 Onderzoek Starten</button>
+                        <button class="btn btn-primary" onclick="researchKeyword()">🔍 Onderzoek Starten (met Perplexity)</button>
                         
                         <div id="website-status-alert" style="margin-top: 15px; display: none;">
                             <div class="alert alert-warning">
-                                ⚠️ <strong>Tip:</strong> Voeg eerst een website toe in "Website Beheer" voor geavanceerde analyse met concurrent & content gap detectie
+                                ⚠️ <strong>Tip:</strong> Voeg eerst een website toe in "Website Beheer" voor volledige site analyse en content gap detectie
+                            </div>
+                        </div>
+                        
+                        <!-- Research Progress -->
+                        <div id="research-progress" style="display: none; margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
+                            <h4 style="margin-bottom: 10px;">⏳ Perplexity Onderzoek Bezig...</h4>
+                            <div class="progress-steps">
+                                <div id="step-1" class="progress-step">
+                                    <span class="spinner">⏳</span> Site analyse...
+                                </div>
+                                <div id="step-2" class="progress-step">
+                                    <span class="spinner">⏳</span> Concurrenten identificeren...
+                                </div>
+                                <div id="step-3" class="progress-step">
+                                    <span class="spinner">⏳</span> Content gaps analyseren...
+                                </div>
+                                <div id="step-4" class="progress-step">
+                                    <span class="spinner">⏳</span> Keywords genereren...
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1446,6 +1501,7 @@
         async function researchKeyword() {
             const keyword = document.getElementById('research-keyword').value.trim();
             const output = document.getElementById('keyword-output');
+            const progressDiv = document.getElementById('research-progress');
             
             if (!keyword) {
                 output.innerHTML = '<div class="alert alert-error">❌ Vul een keyword in</div>';
@@ -1454,17 +1510,29 @@
             
             // Get website context from localStorage
             const websiteContext = localStorage.getItem('website_context');
-            const websiteLinks = localStorage.getItem('scraped_links');
             
             // Show warning if no website added
             const statusAlert = document.getElementById('website-status-alert');
-            if (!websiteContext || !websiteLinks) {
+            if (!websiteContext) {
                 statusAlert.style.display = 'block';
             } else {
                 statusAlert.style.display = 'none';
             }
             
-            output.innerHTML = '<div class="alert alert-info">🔍 Intelligent keyword onderzoek aan het uitvoeren...</div>';
+            // Show progress
+            progressDiv.style.display = 'block';
+            output.innerHTML = '';
+            
+            // Animate progress steps
+            const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+            let currentStep = 0;
+            const progressInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    document.getElementById(steps[currentStep]).style.background = '#e3f2fd';
+                    document.getElementById(steps[currentStep]).querySelector('.spinner').textContent = '✅';
+                    currentStep++;
+                }
+            }, 3000);
             
             try {
                 const requestBody = {
@@ -1472,9 +1540,8 @@
                 };
                 
                 // Add website context if available
-                if (websiteContext && websiteLinks) {
+                if (websiteContext) {
                     requestBody.website_context = JSON.parse(websiteContext);
-                    requestBody.website_links = JSON.parse(websiteLinks);
                 }
                 
                 const response = await fetch('/api/keyword-research', {
@@ -1485,124 +1552,86 @@
                 
                 const data = await response.json();
                 
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
+                
+                // Reset progress steps
+                steps.forEach(step => {
+                    document.getElementById(step).style.background = '';
+                    document.getElementById(step).querySelector('.spinner').textContent = '⏳';
+                });
+                
                 if (data.success) {
                     let html = '';
                     
-                    // Show note if present
-                    if (data.note) {
-                        html += `<div class="alert alert-info">${data.note}</div>`;
-                    }
-                    
                     // Site Analysis Section
-                    if (data.site_analysis) {
-                        const analysis = data.site_analysis;
-                        html += `
-                            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">📊 Jouw Site Analyse</h3>
-                                <p><strong>Hoofdonderwerp:</strong> ${analysis.main_topic}</p>
-                                <p><strong>Domein:</strong> ${analysis.domain}</p>
-                                <div style="margin-top: 15px;">
-                                    <strong>Huidige Topics:</strong>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                                        ${analysis.current_topics.map(topic => `
-                                            <span style="padding: 6px 12px; background: white; border-radius: 4px; font-size: 13px; border: 1px solid #ddd;">
-                                                ${topic}
-                                            </span>
-                                        `).join('')}
-                                    </div>
-                                </div>
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--light-blue);">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">📊 Jouw Site Analyse</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.site_analysis)}
                             </div>
-                        `;
-                    }
+                        </div>
+                    `;
                     
                     // Competitors Section
-                    if (data.competitors && data.competitors.length > 0) {
-                        html += `
-                            <div style="margin-bottom: 30px; padding: 20px; background: #fff3e0; border-radius: 8px;">
-                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🎯 Concurrent Analyse</h3>
-                                ${data.competitors.map(comp => `
-                                    <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 6px;">
-                                        <p><strong>URL:</strong> <a href="${comp.url}" target="_blank">${comp.url}</a></p>
-                                        <p><strong>Topics:</strong> ${comp.topics.slice(0, 5).join(', ')}</p>
-                                    </div>
-                                `).join('')}
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--orange);">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🎯 Concurrent Analyse</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.competitors)}
                             </div>
-                        `;
-                    }
+                        </div>
+                    `;
                     
                     // Content Gaps Section
-                    if (data.content_gaps && data.content_gaps.length > 0) {
-                        html += `
-                            <div style="margin-bottom: 30px; padding: 20px; background: #ffebee; border-radius: 8px;">
-                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">💡 Content Gaps (Wat Missen We?)</h3>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
-                                    ${data.content_gaps.map(gap => `
-                                        <div style="padding: 12px; background: white; border-radius: 6px; border-left: 3px solid ${gap.priority === 'high' ? '#f44336' : '#ff9800'};">
-                                            <strong>${gap.value}</strong>
-                                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                                                ${gap.type === 'topic' ? '📌 Topic' : '🔑 Keyword'} • 
-                                                <span style="color: ${gap.priority === 'high' ? '#f44336' : '#ff9800'};">
-                                                    ${gap.priority === 'high' ? 'Hoge Prioriteit' : 'Medium Prioriteit'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #ffebee; border-radius: 8px; border-left: 4px solid #f44336;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">💡 Content Gaps (Wat Missen We?)</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.content_gaps)}
                             </div>
-                        `;
-                    }
+                        </div>
+                    `;
                     
                     // Keyword Suggestions Section
-                    const suggestions = data.keyword_suggestions || data.keywords || [];
-                    if (suggestions.length > 0) {
-                        html += `
-                            <div style="margin-bottom: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
-                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🔑 Keyword Suggesties</h3>
-                                <p style="margin-bottom: 15px; color: #666;">
-                                    ${data.total_suggestions || suggestions.length} suggesties gevonden
-                                    ${data.site_analysis ? ' (gebaseerd op content gaps en site analyse)' : ''}
-                                </p>
-                                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden;">
-                                    <thead>
-                                        <tr style="background: var(--dark-blue); color: white;">
-                                            <th style="padding: 12px; text-align: left;">Keyword</th>
-                                            <th style="padding: 12px; text-align: center;">Prioriteit</th>
-                                            <th style="padding: 12px; text-align: left;">Bron</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${suggestions.map((kw, index) => {
-                                            const keyword = kw.keyword || kw;
-                                            const priority = kw.priority || 'medium';
-                                            const source = kw.source || 'Pattern generation';
-                                            const priorityColor = priority === 'high' ? '#4caf50' : priority === 'medium' ? '#ff9800' : '#9e9e9e';
-                                            const priorityText = priority === 'high' ? 'Hoog' : priority === 'medium' ? 'Medium' : 'Laag';
-                                            
-                                            return `
-                                                <tr style="border-bottom: 1px solid #eee; ${index % 2 === 0 ? 'background: #f9f9f9;' : ''}">
-                                                    <td style="padding: 12px;"><strong>${keyword}</strong></td>
-                                                    <td style="padding: 12px; text-align: center;">
-                                                        <span style="padding: 4px 12px; background: ${priorityColor}; color: white; border-radius: 12px; font-size: 12px; font-weight: bold;">
-                                                            ${priorityText}
-                                                        </span>
-                                                    </td>
-                                                    <td style="padding: 12px; font-size: 13px; color: #666;">${source}</td>
-                                                </tr>
-                                            `;
-                                        }).join('')}
-                                    </tbody>
-                                </table>
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🔑 Keyword Suggesties</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.keyword_suggestions)}
                             </div>
-                        `;
-                    }
+                        </div>
+                    `;
                     
                     output.innerHTML = html;
                 } else {
                     output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error || 'Onbekende fout'}</div>`;
                 }
             } catch (error) {
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
                 output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
             }
+        }
+        
+        function formatPerplexityResponse(text) {
+            // Format Perplexity response with proper HTML
+            if (!text) return '';
+            
+            // Convert markdown-style formatting to HTML
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^### (.*$)/gim, '<h4 style="color: var(--dark-blue); margin-top: 15px; margin-bottom: 10px;">$1</h4>')
+                .replace(/^## (.*$)/gim, '<h3 style="color: var(--dark-blue); margin-top: 20px; margin-bottom: 10px;">$1</h3>')
+                .replace(/^# (.*$)/gim, '<h2 style="color: var(--dark-blue); margin-top: 20px; margin-bottom: 10px;">$1</h2>')
+                .replace(/^\d+\.\s+(.*$)/gim, '<div style="margin-left: 20px; margin-bottom: 8px;">• $1</div>')
+                .replace(/^-\s+(.*$)/gim, '<div style="margin-left: 20px; margin-bottom: 8px;">• $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin-bottom: 10px;">')
+                .replace(/\n/g, '<br>');
+            
+            return '<p style="margin-bottom: 10px;">' + formatted + '</p>';
         }
     </script>
 </body>

@@ -1850,8 +1850,8 @@ def api_generate_dalle_image():
 @app.route('/api/scrape-website', methods=['POST'])
 def api_scrape_website():
     """
-    Scrape website for internal links and context
-    Extracts sitemap links and homepage content for website analysis
+    Scrape website sitemap - FIXED VERSION
+    Properly handles sitemap.xml parsing with better error handling
     """
     try:
         print("🌐 Starting website scraping...")
@@ -1863,73 +1863,103 @@ def api_scrape_website():
         if data is None:
             return jsonify({"success": False, "error": "Invalid JSON data"}), 400
         
-        site_url = data.get('site_url', '').strip()
+        url = data.get('url', '').strip() or data.get('site_url', '').strip()
         
-        if not site_url:
-            return jsonify({"success": False, "error": "Site URL is required"}), 400
+        if not url:
+            return jsonify({"success": False, "error": "URL is required"}), 400
         
         # Ensure URL has protocol
-        if not site_url.startswith(('http://', 'https://')):
-            site_url = 'https://' + site_url
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
         
-        print(f"📍 Scraping site: {site_url}")
+        print(f"📍 Scraping site: {url}")
         
-        # Find and parse sitemap
-        sitemap_url = find_sitemap(site_url)
-        internal_links = []
+        # Try sitemap.xml first
+        sitemap_url = f"{url.rstrip('/')}/sitemap.xml"
         
-        if sitemap_url:
-            print(f"✅ Found sitemap: {sitemap_url}")
-            sitemap_links = fetch_sitemap_urls(sitemap_url)
-            internal_links = extract_internal_links(sitemap_links, site_url)
-            print(f"📊 Extracted {len(internal_links)} internal links from sitemap")
-        else:
-            print("⚠️  No sitemap found, scraping homepage only")
-        
-        # Get homepage content for context
-        context = ""
         try:
-            response = requests.get(site_url, timeout=10, headers={
+            response = requests.get(sitemap_url, timeout=30, headers={
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             })
-            if response.status_code == 200:
-                from bs4 import BeautifulSoup
-                soup = BeautifulSoup(response.text, 'html.parser')
-                
-                # Extract title
-                title = soup.find('title')
-                title_text = title.get_text().strip() if title else ""
-                
-                # Extract meta description
-                meta_desc = soup.find('meta', attrs={'name': 'description'})
-                description = meta_desc.get('content', '').strip() if meta_desc else ""
-                
-                # Extract main content (first few paragraphs)
-                paragraphs = soup.find_all('p')
-                content_snippets = [p.get_text().strip() for p in paragraphs[:3] if p.get_text().strip()]
-                
-                context = f"Website: {title_text}\n"
-                if description:
-                    context += f"Beschrijving: {description}\n"
-                if content_snippets:
-                    context += f"Content preview: {' '.join(content_snippets[:200])}"
-                
-                print(f"✅ Extracted homepage context")
+            response.raise_for_status()
+            
+            # Parse sitemap
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.content, 'xml')
+            
+            # Extract URLs
+            urls = []
+            
+            # Check for sitemap index
+            sitemaps = soup.find_all('sitemap')
+            if sitemaps:
+                print(f"📑 Found sitemap index with {len(sitemaps)} sub-sitemaps")
+                # Sitemap index - get all sub-sitemaps
+                for sitemap in sitemaps:
+                    loc = sitemap.find('loc')
+                    if loc:
+                        sub_sitemap_url = loc.text
+                        try:
+                            print(f"  📄 Fetching sub-sitemap: {sub_sitemap_url}")
+                            sub_response = requests.get(sub_sitemap_url, timeout=30, headers={
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                            })
+                            sub_soup = BeautifulSoup(sub_response.content, 'xml')
+                            sub_urls = sub_soup.find_all('loc')
+                            urls.extend([u.text for u in sub_urls])
+                            print(f"    ✅ Found {len(sub_urls)} URLs")
+                        except Exception as e:
+                            print(f"    ⚠️  Error fetching sub-sitemap: {str(e)}")
+                            continue
+            else:
+                # Regular sitemap
+                locs = soup.find_all('loc')
+                urls = [loc.text for loc in locs]
+                print(f"📄 Found regular sitemap with {len(urls)} URLs")
+            
+            # Extract domain and site name
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            domain = parsed.netloc
+            site_name = domain.replace('www.', '').split('.')[0].title()
+            
+            print(f"✅ Successfully scraped {len(urls)} URLs from sitemap")
+            
+            return jsonify({
+                'success': True,
+                'site_data': {
+                    'url': url,
+                    'domain': domain,
+                    'name': site_name,
+                    'links': urls,
+                    'links_count': len(urls)
+                }
+            })
+            
+        except requests.exceptions.Timeout:
+            print("❌ Timeout error")
+            return jsonify({
+                'success': False,
+                'error': 'Timeout: Website reageert niet binnen 30 seconden'
+            }), 400
+        except requests.exceptions.HTTPError as e:
+            print(f"❌ HTTP error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'HTTP fout: {e.response.status_code} - Sitemap niet gevonden of niet toegankelijk'
+            }), 400
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Request error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Fout bij ophalen sitemap: {str(e)}'
+            }), 400
         except Exception as e:
-            print(f"⚠️  Could not extract homepage context: {str(e)}")
-            context = f"Website: {site_url}"
-        
-        # Format links for response
-        links_data = [{"url": link, "title": link.split('/')[-1] or link} for link in internal_links[:100]]
-        
-        return jsonify({
-            "success": True,
-            "site_url": site_url,
-            "sitemap_url": sitemap_url,
-            "links": links_data,
-            "total_links": len(internal_links),
-            "context": context
-        })
+            print(f"❌ Parse error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Fout bij verwerken sitemap: {str(e)}'
+            }), 400
         
     except Exception as e:
         import traceback
@@ -1940,11 +1970,11 @@ def api_scrape_website():
 @app.route('/api/keyword-research', methods=['POST'])
 def api_keyword_research():
     """
-    Intelligent keyword research with competitor & content gap analysis
-    Analyzes your site, finds competitors, identifies content gaps, and suggests keywords
+    Intelligent keyword research with Perplexity AI - ENHANCED VERSION
+    Uses Perplexity for deep analysis: site analysis, competitor identification, content gaps, and keyword suggestions
     """
     try:
-        print("🔍 Starting intelligent keyword research...")
+        print("🔍 Starting Perplexity-powered keyword research...")
         
         if not request.is_json:
             return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
@@ -1955,126 +1985,101 @@ def api_keyword_research():
         
         keyword = data.get('keyword', '').strip()
         website_context = data.get('website_context')
-        website_links = data.get('website_links')
         
         if not keyword:
             return jsonify({"success": False, "error": "Keyword is required"}), 400
         
-        # Check if website context is provided
-        if not website_context or not website_links:
-            print("⚠️  No website context provided - using basic keyword research")
-            
-            # Fallback to basic keyword research
-            keywords_data = []
-            keywords_data.append({
-                "keyword": keyword,
-                "volume": "Hoog",
-                "difficulty": "Gemiddeld",
-                "type": "Hoofd keyword",
-                "priority": "high",
-                "source": "User input"
-            })
-            
-            related_patterns = [
-                f"{keyword} tips", f"{keyword} gids", f"beste {keyword}",
-                f"{keyword} voor beginners", f"hoe {keyword}", f"{keyword} uitleg"
-            ]
-            
-            for pattern in related_patterns[:8]:
-                word_count = len(pattern.split())
-                difficulty = "Hoog" if word_count <= 2 else "Gemiddeld" if word_count == 3 else "Laag"
-                volume = "Hoog" if word_count <= 2 else "Gemiddeld" if word_count == 3 else "Laag"
+        # 1. Site Analyse via Perplexity (if website context provided)
+        site_analysis = "Geen website toegevoegd. Voeg eerst een website toe in 'Website Beheer' voor volledige analyse."
+        site_url = ""
+        
+        if website_context:
+            site_url = website_context.get('url', '') or website_context.get('site_url', '')
+            if site_url:
+                print(f"📊 Analyzing site via Perplexity: {site_url}")
+                site_analysis_prompt = f"""Analyseer de website {site_url} in detail:
+
+1. Wat is het hoofdonderwerp en de niche?
+2. Wat zijn de primaire content topics die behandeld worden?
+3. Wat is de doelgroep?
+4. Voor welke keywords zou deze site kunnen ranken?
+
+Geef een gestructureerde analyse in het Nederlands."""
                 
-                keywords_data.append({
-                    "keyword": pattern,
-                    "volume": volume,
-                    "difficulty": difficulty,
-                    "type": "Long-tail",
-                    "priority": "medium",
-                    "source": "Pattern generation"
-                })
+                site_result = perplexity_research(site_analysis_prompt, num_results=5)
+                if site_result and site_result.get('success'):
+                    site_analysis = site_result['summary']
+                    print("✅ Site analysis via Perplexity complete")
+                else:
+                    site_analysis = f"Site: {site_url}\n(Perplexity analyse niet beschikbaar)"
+        
+        # 2. Concurrent Identificatie via Perplexity
+        print(f"🎯 Finding competitors via Perplexity for keyword: {keyword}")
+        competitor_prompt = f"""Vind de top 5 concurrent websites voor het keyword "{keyword}".
+
+Voor elke concurrent, geef:
+1. Website URL
+2. Belangrijkste topics die ze behandelen
+3. Hun unique selling points
+4. Keywords waarvoor ze ranken
+
+Formatteer als een gestructureerde lijst in het Nederlands."""
+        
+        competitors_result = perplexity_research(competitor_prompt, num_results=5)
+        competitors_data = "Concurrent analyse wordt uitgevoerd..."
+        if competitors_result and competitors_result.get('success'):
+            competitors_data = competitors_result['summary']
+            print("✅ Competitor analysis via Perplexity complete")
+        
+        # 3. Content Gap Analyse via Perplexity (if website provided)
+        content_gaps = "Voeg eerst een website toe voor content gap analyse."
+        
+        if site_url:
+            print(f"💡 Analyzing content gaps via Perplexity")
+            gap_prompt = f"""Vergelijk {site_url} met de top concurrenten voor "{keyword}".
+
+Identificeer:
+1. Topics die concurrenten behandelen maar {site_url} niet
+2. Keywords waarvoor concurrenten ranken maar {site_url} niet
+3. Content types die concurrenten gebruiken (gidsen, tutorials, etc.)
+4. Prioriteitsniveau voor elke gap (Hoog/Gemiddeld/Laag)
+
+Formatteer als een gestructureerde lijst met prioriteiten in het Nederlands."""
             
-            return jsonify({
-                "success": True,
-                "keyword": keyword,
-                "keywords": keywords_data,
-                "total": len(keywords_data),
-                "note": "⚠️ Voeg eerst een website toe in 'Website Beheer' voor geavanceerde analyse met concurrent & content gap detectie"
-            })
+            gaps_result = perplexity_research(gap_prompt, num_results=5)
+            if gaps_result and gaps_result.get('success'):
+                content_gaps = gaps_result['summary']
+                print("✅ Content gap analysis via Perplexity complete")
         
-        # 1. Analyze current site
-        print("📊 Analyzing current site content...")
-        site_analysis = analyze_site_content(website_context, website_links)
-        print(f"✅ Site analysis complete: {site_analysis['main_topic']}")
+        # 4. Keyword Suggesties via Perplexity
+        print(f"🔑 Generating keyword suggestions via Perplexity")
+        keywords_prompt = f"""Genereer 25 SEO keyword suggesties voor "{keyword}":
+
+1. Primaire keywords (hoog volume, hoge concurrentie)
+2. Long-tail keywords (lager volume, lagere concurrentie)
+3. Vraag-gebaseerde keywords (hoe, wat is, etc.)
+4. Lokale keywords indien relevant
+5. Voor elk keyword, geef:
+   - Zoekintentie (informationeel/commercieel/transactioneel)
+   - Geschatte moeilijkheid (Makkelijk/Gemiddeld/Moeilijk)
+   - Prioriteit (Hoog/Gemiddeld/Laag)
+
+Formatteer als een gestructureerde tabel in het Nederlands."""
         
-        # 2. Find competitors (placeholder - will use web search in production)
-        print("🎯 Finding competitors...")
-        # Note: This would use web_search tool in production
-        # For now, we'll return a structure that can be populated
-        competitors_data = []
-        
-        # Placeholder competitor URLs (in production, these come from web search)
-        competitor_urls = []
-        
-        # 3. Analyze competitors (if URLs provided)
-        print("🔍 Analyzing competitors...")
-        for comp_url in competitor_urls[:5]:
-            try:
-                content = scrape_competitor(comp_url)
-                if content:
-                    topics = extract_topics(content)
-                    keywords = extract_keywords(content)
-                    
-                    competitors_data.append({
-                        'url': comp_url,
-                        'topics': topics,
-                        'keywords': keywords
-                    })
-                    print(f"✅ Analyzed competitor: {comp_url}")
-            except Exception as e:
-                print(f"⚠️  Error analyzing competitor {comp_url}: {e}")
-                continue
-        
-        # 4. Identify content gaps
-        print("💡 Identifying content gaps...")
-        content_gaps = identify_gaps(site_analysis, competitors_data)
-        print(f"✅ Found {len(content_gaps)} content gaps")
-        
-        # 5. Generate keyword suggestions
-        print("🔑 Generating keyword suggestions...")
-        keyword_suggestions = generate_keywords_from_gaps(content_gaps, keyword)
-        
-        # Add basic keyword patterns as well
-        basic_patterns = [
-            f"{keyword} tips", f"{keyword} gids", f"beste {keyword}",
-            f"{keyword} voor beginners", f"hoe {keyword}"
-        ]
-        
-        for pattern in basic_patterns:
-            keyword_suggestions.append({
-                "keyword": pattern,
-                "priority": "medium",
-                "source": "Pattern generation",
-                "type": "keyword",
-                "search_volume": "Unknown",
-                "difficulty": "Unknown"
-            })
-        
-        print(f"✅ Generated {len(keyword_suggestions)} keyword suggestions")
+        keywords_result = perplexity_research(keywords_prompt, num_results=5)
+        keyword_suggestions = "Keyword suggesties worden gegenereerd..."
+        if keywords_result and keywords_result.get('success'):
+            keyword_suggestions = keywords_result['summary']
+            print("✅ Keyword suggestions via Perplexity complete")
         
         return jsonify({
-            "success": True,
-            "site_analysis": {
-                "main_topic": site_analysis['main_topic'],
-                "current_topics": site_analysis['subtopics'][:10],
-                "current_keywords": site_analysis['keywords'][:15],
-                "domain": site_analysis['domain']
-            },
-            "competitors": competitors_data,
-            "content_gaps": content_gaps[:20],
-            "keyword_suggestions": keyword_suggestions[:30],
-            "total_suggestions": len(keyword_suggestions),
-            "note": "Concurrent analyse vereist web search integratie. Dit is een basis analyse op basis van jouw site content."
+            'success': True,
+            'site_analysis': site_analysis,
+            'competitors': competitors_data,
+            'content_gaps': content_gaps,
+            'keyword_suggestions': keyword_suggestions,
+            'keyword': keyword,
+            'site_url': site_url
         })
         
     except Exception as e:
