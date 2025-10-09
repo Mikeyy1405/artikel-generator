@@ -2,7 +2,7 @@ services:
   - type: web
     name: artikel-generator
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true; find . -name "*.pyc" -delete 2>/dev/null || true; pip install -r requirements.txt
     startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 300 --keep-alive 5 --log-level info app:app
     envVars:
       - key: PYTHON_VERSION
