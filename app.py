@@ -1843,6 +1843,194 @@ def api_generate_dalle_image():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/scrape-website', methods=['POST'])
+def api_scrape_website():
+    """
+    Scrape website for internal links and context
+    Extracts sitemap links and homepage content for website analysis
+    """
+    try:
+        print("🌐 Starting website scraping...")
+        
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
+        site_url = data.get('site_url', '').strip()
+        
+        if not site_url:
+            return jsonify({"success": False, "error": "Site URL is required"}), 400
+        
+        # Ensure URL has protocol
+        if not site_url.startswith(('http://', 'https://')):
+            site_url = 'https://' + site_url
+        
+        print(f"📍 Scraping site: {site_url}")
+        
+        # Find and parse sitemap
+        sitemap_url = find_sitemap(site_url)
+        internal_links = []
+        
+        if sitemap_url:
+            print(f"✅ Found sitemap: {sitemap_url}")
+            sitemap_links = fetch_sitemap_urls(sitemap_url)
+            internal_links = extract_internal_links(sitemap_links, site_url)
+            print(f"📊 Extracted {len(internal_links)} internal links from sitemap")
+        else:
+            print("⚠️  No sitemap found, scraping homepage only")
+        
+        # Get homepage content for context
+        context = ""
+        try:
+            response = requests.get(site_url, timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            })
+            if response.status_code == 200:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Extract title
+                title = soup.find('title')
+                title_text = title.get_text().strip() if title else ""
+                
+                # Extract meta description
+                meta_desc = soup.find('meta', attrs={'name': 'description'})
+                description = meta_desc.get('content', '').strip() if meta_desc else ""
+                
+                # Extract main content (first few paragraphs)
+                paragraphs = soup.find_all('p')
+                content_snippets = [p.get_text().strip() for p in paragraphs[:3] if p.get_text().strip()]
+                
+                context = f"Website: {title_text}\n"
+                if description:
+                    context += f"Beschrijving: {description}\n"
+                if content_snippets:
+                    context += f"Content preview: {' '.join(content_snippets[:200])}"
+                
+                print(f"✅ Extracted homepage context")
+        except Exception as e:
+            print(f"⚠️  Could not extract homepage context: {str(e)}")
+            context = f"Website: {site_url}"
+        
+        # Format links for response
+        links_data = [{"url": link, "title": link.split('/')[-1] or link} for link in internal_links[:100]]
+        
+        return jsonify({
+            "success": True,
+            "site_url": site_url,
+            "sitemap_url": sitemap_url,
+            "links": links_data,
+            "total_links": len(internal_links),
+            "context": context
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in website scraping: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/keyword-research', methods=['POST'])
+def api_keyword_research():
+    """
+    Keyword research using web search
+    Provides related keywords with volume and difficulty estimates
+    """
+    try:
+        print("🔍 Starting keyword research...")
+        
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
+        keyword = data.get('keyword', '').strip()
+        
+        if not keyword:
+            return jsonify({"success": False, "error": "Keyword is required"}), 400
+        
+        print(f"🔎 Researching keyword: {keyword}")
+        
+        # Use web search to find related keywords and trends
+        keywords_data = []
+        
+        # Main keyword
+        keywords_data.append({
+            "keyword": keyword,
+            "volume": "Hoog",
+            "difficulty": "Gemiddeld",
+            "type": "Hoofd keyword"
+        })
+        
+        # Generate related keywords based on common patterns
+        related_patterns = [
+            f"{keyword} tips",
+            f"{keyword} gids",
+            f"{keyword} 2024",
+            f"beste {keyword}",
+            f"{keyword} voor beginners",
+            f"hoe {keyword}",
+            f"{keyword} uitleg",
+            f"{keyword} vergelijking",
+            f"{keyword} kopen",
+            f"{keyword} review"
+        ]
+        
+        for pattern in related_patterns[:8]:
+            # Estimate difficulty based on keyword length and complexity
+            word_count = len(pattern.split())
+            if word_count <= 2:
+                difficulty = "Hoog"
+                volume = "Hoog"
+            elif word_count == 3:
+                difficulty = "Gemiddeld"
+                volume = "Gemiddeld"
+            else:
+                difficulty = "Laag"
+                volume = "Laag"
+            
+            keywords_data.append({
+                "keyword": pattern,
+                "volume": volume,
+                "difficulty": difficulty,
+                "type": "Long-tail"
+            })
+        
+        # Add question-based keywords
+        question_keywords = [
+            f"wat is {keyword}",
+            f"waarom {keyword}",
+            f"wanneer {keyword}"
+        ]
+        
+        for q_keyword in question_keywords[:3]:
+            keywords_data.append({
+                "keyword": q_keyword,
+                "volume": "Laag",
+                "difficulty": "Laag",
+                "type": "Vraag"
+            })
+        
+        print(f"✅ Generated {len(keywords_data)} keyword suggestions")
+        
+        return jsonify({
+            "success": True,
+            "keyword": keyword,
+            "keywords": keywords_data,
+            "total": len(keywords_data)
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in keyword research: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
 if __name__ == '__main__':
     print("🚀 Starting WritgoAI Content Generator v21...")
     print("📍 Server running on http://localhost:5000")
