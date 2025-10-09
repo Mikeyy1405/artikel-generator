@@ -219,6 +219,16 @@
             transform: none;
         }
         
+        .btn-secondary {
+            background: var(--orange);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+        }
+        
         /* Editor Panel */
         .editor-panel {
             flex: 1;
@@ -479,10 +489,6 @@
                 <span>📝 Content Schrijver</span>
             </div>
             
-            <div class="menu-item" onclick="showSection('linkbuilding')">
-                <span>🔗 Linkbuilding Schrijver</span>
-            </div>
-            
             <div class="menu-item" onclick="showSection('wordpress-sites')">
                 <span>⚙️ WordPress Sites</span>
             </div>
@@ -605,6 +611,38 @@
                             </div>
                         </div>
                         
+                        <!-- Linkbuilding specific fields -->
+                        <div id="linkbuilding-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Target URL 1 (waar de link naartoe moet)</label>
+                                <input type="text" id="content-lb-url1" placeholder="https://example.com/pagina-1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Anchor Text 1 (linktekst)</label>
+                                <input type="text" id="content-lb-anchor1" placeholder="Bijv: beste yoga oefeningen">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Target URL 2</label>
+                                <input type="text" id="content-lb-url2" placeholder="https://example.com/pagina-2">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Anchor Text 2</label>
+                                <input type="text" id="content-lb-anchor2" placeholder="Bijv: yoga voor beginners">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Context/Beschrijving (optioneel)</label>
+                                <textarea id="content-lb-context" placeholder="Extra context over de links en hoe ze in het artikel moeten worden verwerkt..." rows="3"></textarea>
+                            </div>
+                            
+                            <button class="btn btn-secondary" onclick="autoGenerateTopicInline()" style="margin-bottom: 10px;">
+                                🤖 Auto-genereer Onderwerp
+                            </button>
+                        </div>
+                        
                         <div class="form-group">
                             <label>Aantal woorden</label>
                             <input type="number" id="content-words" value="800" min="100" max="5000">
@@ -671,68 +709,6 @@
                         <div class="chat-input-area">
                             <textarea id="chat-input" placeholder="Vraag de AI om aanpassingen..."></textarea>
                             <button onclick="sendChatMessage()">Verstuur</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Linkbuilding Writer Section -->
-            <div id="linkbuilding" class="section">
-                <div class="section-header">
-                    <h2>Linkbuilding Schrijver</h2>
-                    <p>Genereer artikelen met interne en externe links</p>
-                </div>
-                
-                <div class="section-content">
-                    <div class="input-panel">
-                        <div class="form-group">
-                            <label>Anchor Text 1</label>
-                            <input type="text" id="lb-anchor1" placeholder="Eerste anchor text">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>URL 1</label>
-                            <input type="text" id="lb-url1" placeholder="https://...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Anchor Text 2</label>
-                            <input type="text" id="lb-anchor2" placeholder="Tweede anchor text">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>URL 2</label>
-                            <input type="text" id="lb-url2" placeholder="https://...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Onderwerp (optioneel)</label>
-                            <input type="text" id="lb-topic" placeholder="Laat leeg voor auto-genereren">
-                        </div>
-                        
-                        <button class="btn btn-secondary" onclick="autoGenerateTopic()" style="margin-bottom: 10px;">
-                            🤖 Auto-genereer Onderwerp
-                        </button>
-                        
-                        <button class="btn btn-primary" onclick="generateLinkbuildingArticle()">
-                            Genereer Artikel
-                        </button>
-                        
-                        <div class="loading" id="lb-loading">
-                            <div class="spinner"></div>
-                            <p>Artikel wordt gegenereerd...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="editor-panel">
-                        <div class="editor-toolbar">
-                            <button onclick="copyToClipboard()">📋 Kopieer</button>
-                            <button onclick="downloadHTML()">💾 Download HTML</button>
-                            <button onclick="clearEditor()">🗑️ Wissen</button>
-                        </div>
-                        
-                        <div class="editor-container">
-                            <div id="editor-lb"></div>
                         </div>
                     </div>
                 </div>
@@ -840,19 +816,6 @@
                 }
             });
             
-            editors['linkbuilding'] = new Quill('#editor-lb', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
-                    ]
-                }
-            });
-            
             // Character counters for content writer
             setupCharCounter('content-seo-title', 'content-title-counter', 55);
             setupCharCounter('content-meta', 'content-meta-counter', 130);
@@ -911,6 +874,7 @@
             document.getElementById('seo-fields').style.display = 'none';
             document.getElementById('list-fields').style.display = 'none';
             document.getElementById('youtube-fields').style.display = 'none';
+            document.getElementById('linkbuilding-fields').style.display = 'none';
             
             // Show relevant fields based on content type
             if (contentType === 'seo') {
@@ -919,6 +883,42 @@
                 document.getElementById('list-fields').style.display = 'block';
             } else if (contentType === 'youtube') {
                 document.getElementById('youtube-fields').style.display = 'block';
+            } else if (contentType === 'linkbuilding') {
+                document.getElementById('linkbuilding-fields').style.display = 'block';
+            }
+        }
+        
+        // Auto-generate topic for linkbuilding (inline version)
+        async function autoGenerateTopicInline() {
+            const anchor1 = document.getElementById('content-lb-anchor1').value;
+            const anchor2 = document.getElementById('content-lb-anchor2').value;
+            
+            if (!anchor1 || !anchor2) {
+                alert('Vul beide anchor texts in');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/generate-topic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        anchor1: anchor1,
+                        anchor2: anchor2,
+                        model: 'gpt-4o'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('content-topic').value = data.topic;
+                    alert('Onderwerp automatisch gegenereerd!');
+                } else {
+                    alert('Fout bij genereren onderwerp: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
             }
         }
         
@@ -994,9 +994,31 @@
                     requestBody.perplexity_research = true;
                 }
             } else if (contentType === 'linkbuilding') {
-                alert('Voor linkbuilding artikelen, gebruik de aparte Linkbuilding Schrijver sectie');
-                loading.classList.remove('active');
-                return;
+                const url1 = document.getElementById('content-lb-url1').value;
+                const anchor1 = document.getElementById('content-lb-anchor1').value;
+                const url2 = document.getElementById('content-lb-url2').value;
+                const anchor2 = document.getElementById('content-lb-anchor2').value;
+                const context = document.getElementById('content-lb-context').value;
+                
+                if (!url1 || !anchor1 || !url2 || !anchor2) {
+                    alert('Vul alle linkbuilding velden in (URL 1, Anchor 1, URL 2, Anchor 2)');
+                    loading.classList.remove('active');
+                    return;
+                }
+                
+                // Use the original linkbuilding endpoint
+                endpoint = '/api/generate-article';
+                requestBody.anchor1 = anchor1;
+                requestBody.url1 = url1;
+                requestBody.anchor2 = anchor2;
+                requestBody.url2 = url2;
+                requestBody.model = 'gpt-4o';
+                
+                if (context) {
+                    requestBody.extra = context;
+                }
+                
+                // Note: Perplexity research not typically used for linkbuilding
             }
             
             try {
@@ -1105,7 +1127,7 @@
         }
         
         // ============================================================================
-        // NEW FUNCTIONS FOR BACKEND FEATURES
+        // BACKEND FEATURES
         // ============================================================================
         
         // Keyword Research
@@ -1131,88 +1153,6 @@
                     <p style="color: #666; margin-top: 10px;">Zoekwoordonderzoek functionaliteit komt binnenkort...</p>
                 `;
             }, 1000);
-        }
-        
-        // Auto-generate topic for linkbuilding
-        async function autoGenerateTopic() {
-            const anchor1 = document.getElementById('lb-anchor1').value;
-            const anchor2 = document.getElementById('lb-anchor2').value;
-            
-            if (!anchor1 || !anchor2) {
-                alert('Vul beide anchor texts in');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/generate-topic', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        anchor1: anchor1,
-                        anchor2: anchor2,
-                        model: 'gpt-4o'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('lb-topic').value = data.topic;
-                } else {
-                    alert('Fout bij genereren onderwerp: ' + (data.error || 'Onbekende fout'));
-                }
-            } catch (error) {
-                alert('Fout: ' + error.message);
-            }
-        }
-        
-        // Generate linkbuilding article
-        async function generateLinkbuildingArticle() {
-            const anchor1 = document.getElementById('lb-anchor1').value;
-            const url1 = document.getElementById('lb-url1').value;
-            const anchor2 = document.getElementById('lb-anchor2').value;
-            const url2 = document.getElementById('lb-url2').value;
-            let topic = document.getElementById('lb-topic').value;
-            
-            if (!anchor1 || !url1 || !anchor2 || !url2) {
-                alert('Vul alle verplichte velden in');
-                return;
-            }
-            
-            // Auto-generate topic if empty
-            if (!topic) {
-                await autoGenerateTopic();
-                topic = document.getElementById('lb-topic').value;
-            }
-            
-            document.getElementById('lb-loading').style.display = 'block';
-            
-            try {
-                const response = await fetch('/api/generate-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        onderwerp: topic,
-                        anchor1: anchor1,
-                        url1: url1,
-                        anchor2: anchor2,
-                        url2: url2,
-                        model: 'gpt-4o'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    editors['linkbuilding'].root.innerHTML = data.article;
-                } else {
-                    alert('Fout: ' + (data.error || 'Onbekende fout'));
-                }
-            } catch (error) {
-                alert('Fout: ' + error.message);
-            } finally {
-                document.getElementById('lb-loading').style.display = 'none';
-            }
         }
         
         // WordPress Sites Management
