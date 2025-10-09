@@ -38,6 +38,10 @@ except ImportError:
 
 # Import backend utilities
 from backend_utils import find_sitemap, extract_internal_links, detect_affiliate_links, fetch_sitemap_urls
+from keyword_research_utils import (
+    analyze_site_content, find_competitors, scrape_competitor,
+    extract_topics, extract_keywords, identify_gaps, generate_keywords_from_gaps
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -1936,11 +1940,11 @@ def api_scrape_website():
 @app.route('/api/keyword-research', methods=['POST'])
 def api_keyword_research():
     """
-    Keyword research using web search
-    Provides related keywords with volume and difficulty estimates
+    Intelligent keyword research with competitor & content gap analysis
+    Analyzes your site, finds competitors, identifies content gaps, and suggests keywords
     """
     try:
-        print("🔍 Starting keyword research...")
+        print("🔍 Starting intelligent keyword research...")
         
         if not request.is_json:
             return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
@@ -1950,79 +1954,127 @@ def api_keyword_research():
             return jsonify({"success": False, "error": "Invalid JSON data"}), 400
         
         keyword = data.get('keyword', '').strip()
+        website_context = data.get('website_context')
+        website_links = data.get('website_links')
         
         if not keyword:
             return jsonify({"success": False, "error": "Keyword is required"}), 400
         
-        print(f"🔎 Researching keyword: {keyword}")
-        
-        # Use web search to find related keywords and trends
-        keywords_data = []
-        
-        # Main keyword
-        keywords_data.append({
-            "keyword": keyword,
-            "volume": "Hoog",
-            "difficulty": "Gemiddeld",
-            "type": "Hoofd keyword"
-        })
-        
-        # Generate related keywords based on common patterns
-        related_patterns = [
-            f"{keyword} tips",
-            f"{keyword} gids",
-            f"{keyword} 2024",
-            f"beste {keyword}",
-            f"{keyword} voor beginners",
-            f"hoe {keyword}",
-            f"{keyword} uitleg",
-            f"{keyword} vergelijking",
-            f"{keyword} kopen",
-            f"{keyword} review"
-        ]
-        
-        for pattern in related_patterns[:8]:
-            # Estimate difficulty based on keyword length and complexity
-            word_count = len(pattern.split())
-            if word_count <= 2:
-                difficulty = "Hoog"
-                volume = "Hoog"
-            elif word_count == 3:
-                difficulty = "Gemiddeld"
-                volume = "Gemiddeld"
-            else:
-                difficulty = "Laag"
-                volume = "Laag"
+        # Check if website context is provided
+        if not website_context or not website_links:
+            print("⚠️  No website context provided - using basic keyword research")
             
+            # Fallback to basic keyword research
+            keywords_data = []
             keywords_data.append({
-                "keyword": pattern,
-                "volume": volume,
-                "difficulty": difficulty,
-                "type": "Long-tail"
+                "keyword": keyword,
+                "volume": "Hoog",
+                "difficulty": "Gemiddeld",
+                "type": "Hoofd keyword",
+                "priority": "high",
+                "source": "User input"
+            })
+            
+            related_patterns = [
+                f"{keyword} tips", f"{keyword} gids", f"beste {keyword}",
+                f"{keyword} voor beginners", f"hoe {keyword}", f"{keyword} uitleg"
+            ]
+            
+            for pattern in related_patterns[:8]:
+                word_count = len(pattern.split())
+                difficulty = "Hoog" if word_count <= 2 else "Gemiddeld" if word_count == 3 else "Laag"
+                volume = "Hoog" if word_count <= 2 else "Gemiddeld" if word_count == 3 else "Laag"
+                
+                keywords_data.append({
+                    "keyword": pattern,
+                    "volume": volume,
+                    "difficulty": difficulty,
+                    "type": "Long-tail",
+                    "priority": "medium",
+                    "source": "Pattern generation"
+                })
+            
+            return jsonify({
+                "success": True,
+                "keyword": keyword,
+                "keywords": keywords_data,
+                "total": len(keywords_data),
+                "note": "⚠️ Voeg eerst een website toe in 'Website Beheer' voor geavanceerde analyse met concurrent & content gap detectie"
             })
         
-        # Add question-based keywords
-        question_keywords = [
-            f"wat is {keyword}",
-            f"waarom {keyword}",
-            f"wanneer {keyword}"
+        # 1. Analyze current site
+        print("📊 Analyzing current site content...")
+        site_analysis = analyze_site_content(website_context, website_links)
+        print(f"✅ Site analysis complete: {site_analysis['main_topic']}")
+        
+        # 2. Find competitors (placeholder - will use web search in production)
+        print("🎯 Finding competitors...")
+        # Note: This would use web_search tool in production
+        # For now, we'll return a structure that can be populated
+        competitors_data = []
+        
+        # Placeholder competitor URLs (in production, these come from web search)
+        competitor_urls = []
+        
+        # 3. Analyze competitors (if URLs provided)
+        print("🔍 Analyzing competitors...")
+        for comp_url in competitor_urls[:5]:
+            try:
+                content = scrape_competitor(comp_url)
+                if content:
+                    topics = extract_topics(content)
+                    keywords = extract_keywords(content)
+                    
+                    competitors_data.append({
+                        'url': comp_url,
+                        'topics': topics,
+                        'keywords': keywords
+                    })
+                    print(f"✅ Analyzed competitor: {comp_url}")
+            except Exception as e:
+                print(f"⚠️  Error analyzing competitor {comp_url}: {e}")
+                continue
+        
+        # 4. Identify content gaps
+        print("💡 Identifying content gaps...")
+        content_gaps = identify_gaps(site_analysis, competitors_data)
+        print(f"✅ Found {len(content_gaps)} content gaps")
+        
+        # 5. Generate keyword suggestions
+        print("🔑 Generating keyword suggestions...")
+        keyword_suggestions = generate_keywords_from_gaps(content_gaps, keyword)
+        
+        # Add basic keyword patterns as well
+        basic_patterns = [
+            f"{keyword} tips", f"{keyword} gids", f"beste {keyword}",
+            f"{keyword} voor beginners", f"hoe {keyword}"
         ]
         
-        for q_keyword in question_keywords[:3]:
-            keywords_data.append({
-                "keyword": q_keyword,
-                "volume": "Laag",
-                "difficulty": "Laag",
-                "type": "Vraag"
+        for pattern in basic_patterns:
+            keyword_suggestions.append({
+                "keyword": pattern,
+                "priority": "medium",
+                "source": "Pattern generation",
+                "type": "keyword",
+                "search_volume": "Unknown",
+                "difficulty": "Unknown"
             })
         
-        print(f"✅ Generated {len(keywords_data)} keyword suggestions")
+        print(f"✅ Generated {len(keyword_suggestions)} keyword suggestions")
         
         return jsonify({
             "success": True,
-            "keyword": keyword,
-            "keywords": keywords_data,
-            "total": len(keywords_data)
+            "site_analysis": {
+                "main_topic": site_analysis['main_topic'],
+                "current_topics": site_analysis['subtopics'][:10],
+                "current_keywords": site_analysis['keywords'][:15],
+                "domain": site_analysis['domain']
+            },
+            "competitors": competitors_data,
+            "content_gaps": content_gaps[:20],
+            "keyword_suggestions": keyword_suggestions[:30],
+            "total_suggestions": len(keyword_suggestions),
+            "note": "Concurrent analyse vereist web search integratie. Dit is een basis analyse op basis van jouw site content."
         })
         
     except Exception as e:
