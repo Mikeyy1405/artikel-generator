@@ -1,11 +1,18 @@
 
 #!/usr/bin/env python3
 """
-WritgoAI Content Generator v21
+WritgoAI Content Generator v22
 Multi-feature content creation platform with WordPress integration
-Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
+Enhanced with Dashboard, Multi-Site Support, Automatic Keyword Research, and Localization
 
-NEW IN V21:
+NEW IN V22:
+- Dashboard with stats sidebar (right panel)
+- Multi-site support (add multiple WordPress sites)
+- Automatic keyword research (100-200 keywords, no manual input)
+- Country/language detection from TLD (.nl → Dutch, .de → German, etc.)
+- Localized competitor analysis and keyword generation
+
+PREVIOUS (V21):
 - FIXED: Enforced word count with retry mechanism (minimum 90% of target)
 - FIXED: Strip markdown code blocks (```html, ```markdown, etc.)
 - FIXED: Stricter whitespace cleaning (max 1 blank line)
@@ -31,6 +38,7 @@ import sqlite3
 from deep_translator import GoogleTranslator
 from urllib.parse import urljoin, urlparse
 import xml.etree.ElementTree as ET
+import uuid
 try:
     import anthropic
 except ImportError:
@@ -297,6 +305,44 @@ def check_forbidden_words(text):
             found_phrases.append(phrase)
     
     return (len(found_phrases) > 0, found_phrases)
+
+# TLD to Country Mapping
+def detect_country_from_tld(domain):
+    """Detect country and language from TLD"""
+    tld_map = {
+        'nl': {'country': 'Nederland', 'language': 'Dutch', 'flag': '🇳🇱'},
+        'be': {'country': 'België', 'language': 'Dutch/French', 'flag': '🇧🇪'},
+        'de': {'country': 'Duitsland', 'language': 'German', 'flag': '🇩🇪'},
+        'fr': {'country': 'Frankrijk', 'language': 'French', 'flag': '🇫🇷'},
+        'com': {'country': 'International', 'language': 'English', 'flag': '🌍'},
+        'co.uk': {'country': 'United Kingdom', 'language': 'English', 'flag': '🇬🇧'},
+        'uk': {'country': 'United Kingdom', 'language': 'English', 'flag': '🇬🇧'},
+        'es': {'country': 'Spanje', 'language': 'Spanish', 'flag': '🇪🇸'},
+        'it': {'country': 'Italië', 'language': 'Italian', 'flag': '🇮🇹'},
+        'pt': {'country': 'Portugal', 'language': 'Portuguese', 'flag': '🇵🇹'},
+        'pl': {'country': 'Polen', 'language': 'Polish', 'flag': '🇵🇱'},
+        'se': {'country': 'Zweden', 'language': 'Swedish', 'flag': '🇸🇪'},
+        'no': {'country': 'Noorwegen', 'language': 'Norwegian', 'flag': '🇳🇴'},
+        'dk': {'country': 'Denemarken', 'language': 'Danish', 'flag': '🇩🇰'},
+        'fi': {'country': 'Finland', 'language': 'Finnish', 'flag': '🇫🇮'},
+        'at': {'country': 'Oostenrijk', 'language': 'German', 'flag': '🇦🇹'},
+        'ch': {'country': 'Zwitserland', 'language': 'German/French/Italian', 'flag': '🇨🇭'},
+    }
+    
+    # Extract TLD
+    parts = domain.split('.')
+    if len(parts) >= 2:
+        # Check for .co.uk style TLDs
+        if len(parts) >= 3 and parts[-2] == 'co':
+            tld = f"{parts[-2]}.{parts[-1]}"
+        else:
+            tld = parts[-1]
+        
+        if tld in tld_map:
+            return tld, tld_map[tld]
+    
+    # Default to .com
+    return 'com', tld_map['com']
 
 def to_sentence_case(text):
     """Convert text to sentence case"""
@@ -2158,11 +2204,23 @@ def api_add_wordpress_site():
         tags = tags_response.json() if tags_response.status_code == 200 else []
         print(f"✅ Found {len(tags)} tags")
         
+        # 6. Detect country from domain
+        parsed = urlparse(wp_url)
+        domain = parsed.netloc.replace('www.', '')
+        tld, country_info = detect_country_from_tld(domain)
+        print(f"🌍 Detected country: {country_info['country']} ({country_info['language']})")
+        
         # Extract data
         site_data = {
+            'id': str(uuid.uuid4()),  # Unique ID for multi-site
             'url': wp_url,
+            'domain': domain,
             'name': site_info.get('name', 'Unknown'),
             'description': site_info.get('description', ''),
+            'tld': tld,
+            'country': country_info['country'],
+            'language': country_info['language'],
+            'flag': country_info['flag'],
             'posts_count': len(posts),
             'pages_count': len(pages),
             'categories': [
@@ -2205,7 +2263,10 @@ def api_add_wordpress_site():
                     'link': p.get('link', '')
                 }
                 for p in pages if isinstance(p, dict)
-            ]
+            ],
+            'last_sync': datetime.now().strftime('%d %b %Y'),
+            'keywords': [],  # Will be populated by keyword research
+            'keyword_count': 0
         }
         
         print(f"✅ WordPress site data collected successfully")
@@ -2239,7 +2300,171 @@ def api_add_wordpress_site():
             'error': f'Onverwachte fout: {str(e)}'
         }), 500
 
+# NEW ENDPOINT: Automatic Keyword Research (100-200 keywords)
+@app.route('/api/keyword-research', methods=['POST'])
+def api_keyword_research():
+    """Automatic keyword research (100-200 keywords) with localization"""
+    
+    site_data = request.json.get('site_data')
+    
+    if not site_data:
+        return jsonify({
+            'success': False,
+            'error': 'Voeg eerst een website toe'
+        }), 400
+    
+    # Extract site info
+    domain = site_data.get('domain', '')
+    country = site_data.get('country', 'International')
+    language = site_data.get('language', 'English')
+    niche = site_data.get('name', '')
+    description = site_data.get('description', '')
+    
+    print(f"🔍 Starting automatic keyword research for {domain}")
+    print(f"🌍 Country: {country}, Language: {language}")
+    
+    # Determine language context for queries
+    lang_context = ""
+    if country == 'Nederland':
+        lang_context = "Dutch language, targeting the Netherlands market"
+    elif country == 'België':
+        lang_context = "Dutch/French language, targeting the Belgium market"
+    elif country == 'Duitsland':
+        lang_context = "German language, targeting the German market"
+    elif country == 'Frankrijk':
+        lang_context = "French language, targeting the French market"
+    elif country == 'Spanje':
+        lang_context = "Spanish language, targeting the Spanish market"
+    elif country == 'Italië':
+        lang_context = "Italian language, targeting the Italian market"
+    else:
+        lang_context = "English language, targeting international market"
+    
+    try:
+        # 1. Site Analysis
+        print("📊 Step 1/4: Analyzing site...")
+        site_analysis_prompt = f"""
+Analyze the website {domain} ({niche}) in detail.
+Language/Market: {lang_context}
+Description: {description}
+
+Provide:
+1. Main topic and niche
+2. Target audience
+3. Current content focus
+4. Strengths and weaknesses
+5. Content opportunities
+
+Be specific and actionable.
+"""
+        site_analysis = perplexity_research(site_analysis_prompt)
+        
+        # 2. Competitor Analysis (with localization)
+        print("🎯 Step 2/4: Finding competitors...")
+        competitor_prompt = f"""
+Find the top 10 competitor websites for {domain} ({niche}).
+Language/Market: {lang_context}
+Country: {country}
+
+IMPORTANT: Only include competitors from {country} or targeting {country} market.
+
+For each competitor provide:
+1. Website URL
+2. Main topics they cover
+3. Their unique selling points
+4. Estimated traffic/authority
+5. What makes them successful
+
+Focus on direct competitors in the same niche and market.
+"""
+        competitors = perplexity_research(competitor_prompt)
+        
+        # 3. Content Gaps
+        print("💡 Step 3/4: Identifying content gaps...")
+        gap_prompt = f"""
+Compare {domain} with its top competitors in {country}.
+Language/Market: {lang_context}
+
+Identify specific content gaps:
+1. Topics competitors cover that {domain} doesn't (High priority)
+2. Keywords competitors rank for that {domain} doesn't (Medium priority)
+3. Content formats missing (guides, videos, tools, comparisons, etc.)
+4. User questions not being answered
+5. Trending topics in the niche
+
+Provide 20-30 specific, actionable content gap opportunities.
+Be very specific with topics and keywords.
+"""
+        content_gaps = perplexity_research(gap_prompt)
+        
+        # 4. AUTOMATIC KEYWORD GENERATION (150+ keywords)
+        print("🔑 Step 4/4: Generating 150+ keywords...")
+        keywords_prompt = f"""
+Generate 150 SEO keywords for {domain} ({niche}).
+Language/Market: {lang_context}
+Country: {country}
+
+IMPORTANT: All keywords MUST be in {language} language.
+
+Include these categories:
+
+**Primary Keywords (20 keywords):**
+- High search volume (1000+ monthly searches)
+- High competition
+- Core business terms
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Secondary Keywords (40 keywords):**
+- Medium search volume (500-1000 monthly searches)
+- Medium competition
+- Supporting topics
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Long-tail Keywords (60 keywords):**
+- Low search volume (100-500 monthly searches)
+- Low competition
+- Specific, detailed phrases
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Question Keywords (30 keywords):**
+- "how to", "what is", "why", "when", "where" questions
+- User intent focused
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+For EACH keyword provide in a table format:
+- Keyword phrase (in {language})
+- Search intent (Informational/Commercial/Transactional/Navigational)
+- Difficulty (Easy/Medium/Hard)
+- Priority (High/Medium/Low)
+- Estimated monthly search volume
+
+Make sure all keywords are relevant to {niche} and target the {country} market.
+"""
+        keywords = perplexity_research(keywords_prompt)
+        
+        print("✅ Keyword research completed successfully!")
+        
+        return jsonify({
+            'success': True,
+            'site_analysis': site_analysis or 'Geen data beschikbaar',
+            'competitors': competitors or 'Geen data beschikbaar',
+            'content_gaps': content_gaps or 'Geen data beschikbaar',
+            'keywords': keywords or 'Geen data beschikbaar',
+            'total_keywords': '150+',
+            'country': country,
+            'language': language
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in keyword research: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': f'Fout bij keyword research: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
-    print("🚀 Starting WritgoAI Content Generator v21...")
+    print("🚀 Starting WritgoAI Content Generator v22...")
     print("📍 Server running on http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
