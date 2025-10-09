@@ -1566,7 +1566,7 @@ def generate_dalle_image(prompt):
 @app.route('/')
 def index():
     """Serve the main HTML page"""
-    return send_file('index.html')
+    return send_file('templates/index.html')
 
 @app.route('/api/generate-topic', methods=['POST'])
 def api_generate_topic():
