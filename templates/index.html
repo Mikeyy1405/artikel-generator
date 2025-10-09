@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WritgoAI - Modern Editor v18</title>
+    <title>WritgoAI - Modern Editor v20</title>
     
     <!-- Quill Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -176,19 +177,28 @@
             min-height: 80px;
         }
         
-        .char-counter {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-            text-align: right;
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
         }
         
-        .char-counter.warning {
-            color: var(--orange);
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .char-counter.error {
-            color: #e74c3c;
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+        
+        .checkbox-item label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
         }
         
         .btn {
@@ -200,7 +210,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 10px;
         }
         
         .btn-primary {
@@ -210,13 +219,7 @@
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,174,239,0.3);
-        }
-        
-        .btn-primary:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
+            box-shadow: 0 5px 15px rgba(0, 174, 239, 0.3);
         }
         
         .btn-secondary {
@@ -227,176 +230,6 @@
         .btn-secondary:hover {
             background: var(--dark-orange);
             transform: translateY(-2px);
-        }
-        
-        /* Editor Panel */
-        .editor-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            overflow: hidden;
-        }
-        
-        .editor-toolbar {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 2px solid #e0e0e0;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .editor-toolbar button {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        
-        .editor-toolbar button:hover {
-            background: var(--light-blue);
-            color: white;
-            border-color: var(--light-blue);
-        }
-        
-        .editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        #editor {
-            flex: 1;
-            overflow-y: auto;
-        }
-        
-        .ql-container {
-            font-size: 16px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .ql-editor {
-            min-height: 100%;
-            padding: 30px;
-        }
-        
-        .ql-editor h1 {
-            color: var(--dark-blue);
-            margin-top: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .ql-editor h2 {
-            color: var(--deep-blue);
-            margin-top: 18px;
-            margin-bottom: 12px;
-        }
-        
-        .ql-editor p {
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
-        
-        .ql-editor ul, .ql-editor ol {
-            margin-left: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .ql-editor li {
-            margin-bottom: 8px;
-            line-height: 1.6;
-        }
-        
-        /* AI Chat Panel */
-        .ai-chat-panel {
-            width: 350px;
-            background: white;
-            border-left: 2px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-header {
-            background: var(--dark-blue);
-            color: white;
-            padding: 15px 20px;
-            font-weight: 600;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-        
-        .chat-message {
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            border-radius: 8px;
-            max-width: 85%;
-            line-height: 1.5;
-            font-size: 14px;
-        }
-        
-        .chat-message.user {
-            background: var(--light-blue);
-            color: white;
-            margin-left: auto;
-        }
-        
-        .chat-message.ai {
-            background: white;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .chat-input-area {
-            padding: 15px;
-            border-top: 2px solid #e0e0e0;
-            background: white;
-        }
-        
-        .chat-input-area textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            resize: none;
-            font-size: 14px;
-            font-family: inherit;
-            min-height: 60px;
-        }
-        
-        .chat-input-area textarea:focus {
-            outline: none;
-            border-color: var(--light-blue);
-        }
-        
-        .chat-input-area button {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            background: var(--light-blue);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        
-        .chat-input-area button:hover {
-            background: var(--deep-blue);
-        }
-        
-        .chat-input-area button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
         }
         
         /* Loading */
@@ -426,26 +259,46 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* YouTube Embed */
-        .youtube-embed {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            margin: 20px 0;
+        /* Editor Panel */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
         }
         
-        .youtube-embed iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .editor-toolbar {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .editor-toolbar button {
+            padding: 8px 16px;
             border: none;
+            background: var(--light-blue);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
         }
         
-        /* Perplexity Toggle Switch Styling */
+        .editor-toolbar button:hover {
+            background: var(--deep-blue);
+        }
+        
+        .editor-container {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        #editor {
+            height: 100%;
+        }
+        
+        /* Perplexity Toggle */
         .perplexity-toggle-container {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border: 2px solid #e0e0e0;
@@ -497,7 +350,6 @@
             display: none;
         }
         
-        /* Modern Toggle Switch */
         .toggle-switch {
             position: relative;
             width: 56px;
@@ -532,36 +384,6 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
         }
         
-        /* Toggle Icon */
-        .toggle-icon {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-icon-off {
-            left: 8px;
-            color: #718096;
-        }
-        
-        .toggle-icon-on {
-            right: 8px;
-            color: white;
-            opacity: 0;
-        }
-        
-        .perplexity-checkbox:checked ~ .toggle-switch .toggle-icon-off {
-            opacity: 0;
-        }
-        
-        .perplexity-checkbox:checked ~ .toggle-switch .toggle-icon-on {
-            opacity: 1;
-        }
-        
-        /* Text Content */
         .perplexity-content {
             flex: 1;
             display: flex;
@@ -580,7 +402,6 @@
             color: var(--dark-blue);
             font-size: 16px;
             font-weight: 600;
-            letter-spacing: -0.01em;
         }
         
         .optional-badge {
@@ -598,111 +419,9 @@
         }
         
         .perplexity-description {
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.5;
-            font-weight: 400;
-        }
-        
-        .perplexity-info {
-            margin-top: 14px;
-            padding: 14px 16px;
-            background: rgba(0, 174, 239, 0.06);
-            border-left: 4px solid var(--light-blue);
-            border-radius: 8px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .perplexity-info-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        
-        .info-icon {
-            width: 20px;
-            height: 20px;
-            min-width: 20px;
-            color: var(--light-blue);
-            margin-top: 1px;
-        }
-        
-        .perplexity-info-text {
+            color: #666;
             font-size: 13px;
-            color: #475569;
-            line-height: 1.6;
-        }
-        
-        .perplexity-info-text strong {
-            color: var(--dark-blue);
-            font-weight: 600;
-        }
-        
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .input-panel, .ai-chat-panel {
-                width: 300px;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 60px;
-            }
-            
-            .sidebar .logo h1,
-            .sidebar .menu-item span {
-                display: none;
-            }
-            
-            .input-panel {
-                width: 250px;
-            }
-            
-            .ai-chat-panel {
-                display: none;
-            }
-            
-            .perplexity-toggle-container {
-                padding: 16px;
-            }
-            
-            .toggle-switch {
-                width: 48px;
-                height: 28px;
-                min-width: 48px;
-            }
-            
-            .toggle-switch::before {
-                width: 22px;
-                height: 22px;
-            }
-            
-            .perplexity-checkbox:checked ~ .toggle-switch::before {
-                transform: translateX(20px);
-            }
-            
-            .perplexity-title strong {
-                font-size: 15px;
-            }
-            
-            .optional-badge {
-                font-size: 10px;
-                padding: 2px 8px;
-            }
-            
-            .perplexity-description {
-                font-size: 13px;
-            }
-            
-            .perplexity-info {
-                padding: 12px;
-            }
-            
-            .perplexity-info-text {
-                font-size: 12px;
-            }
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -712,70 +431,24 @@
         <div class="sidebar">
             <div class="logo">
                 <h1>WritgoAI</h1>
-                <p>Modern Editor v18</p>
+                <p>v20 - HTML Output Edition</p>
             </div>
             
-            <div class="menu-item" onclick="showSection('keyword-research')">
-                <span>🔍 Zoekwoordonderzoek</span>
+            <div class="menu-item active" onclick="switchSection('content-writer')">
+                ✍️ SEO Schrijver
             </div>
-            
-            <div class="menu-item active" onclick="showSection('content-writer')">
-                <span>📝 Content Schrijver</span>
-            </div>
-            
-            <div class="menu-item" onclick="showSection('wordpress-sites')">
-                <span>⚙️ WordPress Sites</span>
+            <div class="menu-item" onclick="switchSection('wordpress')">
+                🌐 WordPress
             </div>
         </div>
         
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Keyword Research Section -->
-            <div id="keyword-research" class="section">
-                <div class="section-header">
-                    <h2>Zoekwoordonderzoek</h2>
-                    <p>Onderzoek zoekwoorden en analyseer concurrentie</p>
-                </div>
-                
-                <div class="section-content">
-                    <div class="input-panel">
-                        <div class="form-group">
-                            <label>Hoofd zoekwoord</label>
-                            <input type="text" id="keyword-main" placeholder="Bijv: yoga voor beginners">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Taal</label>
-                            <select id="keyword-language">
-                                <option value="nl">Nederlands</option>
-                                <option value="en">Engels</option>
-                                <option value="de">Duits</option>
-                                <option value="fr">Frans</option>
-                            </select>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="performKeywordResearch()">
-                            Start Onderzoek
-                        </button>
-                        
-                        <div class="loading" id="keyword-loading">
-                            <div class="spinner"></div>
-                            <p>Zoekwoorden worden geanalyseerd...</p>
-                        </div>
-                        
-                        <div id="keyword-results" style="margin-top: 20px; display: none;">
-                            <h3>Resultaten</h3>
-                            <div id="keyword-results-content"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Content Writer Section (Universal) -->
+            <!-- Content Writer Section -->
             <div id="content-writer" class="section active">
                 <div class="section-header">
-                    <h2>Content Schrijver</h2>
-                    <p>Genereer verschillende soorten content met AI</p>
+                    <h2>✍️ SEO Content Schrijver</h2>
+                    <p>Genereer hoogwaardige SEO content met HTML output voor WordPress</p>
                 </div>
                 
                 <div class="section-content">
@@ -801,32 +474,13 @@
                             <div class="perplexity-toggle-container" id="perplexity-container" onclick="togglePerplexity()">
                                 <div class="perplexity-toggle-wrapper">
                                     <input type="checkbox" id="perplexity-research" class="perplexity-checkbox">
-                                    <label for="perplexity-research" class="toggle-switch" onclick="event.stopPropagation()">
-                                        <svg class="toggle-icon toggle-icon-off" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-                                            <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                        <svg class="toggle-icon toggle-icon-on" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </label>
+                                    <label for="perplexity-research" class="toggle-switch" onclick="event.stopPropagation()"></label>
                                     <div class="perplexity-content">
                                         <div class="perplexity-title">
                                             <strong>Perplexity Onderzoek</strong>
                                             <span class="optional-badge">Optioneel</span>
                                         </div>
                                         <span class="perplexity-description">Uitgebreid AI-onderzoek voor diepgaande, actuele content</span>
-                                    </div>
-                                </div>
-                                <div class="perplexity-info">
-                                    <div class="perplexity-info-content">
-                                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                        <div class="perplexity-info-text">
-                                            <strong>Wat doet dit?</strong> Perplexity AI voert professioneel onderzoek uit met actuele informatie en bronvermelding, ideaal voor hoogwaardige, feitelijk correcte content.
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -891,15 +545,43 @@
                         </div>
                         
                         <div class="form-group">
+                            <label>Extra opties</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-lists" checked>
+                                    <label for="include-lists">Voeg lijsten toe</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-tables">
+                                    <label for="include-tables">Voeg tabel toe</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-faq">
+                                    <label for="include-faq">Voeg FAQ sectie toe</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-conclusion" checked>
+                                    <label for="include-conclusion">Voeg conclusie toe</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>WordPress Sitemap URL (optioneel)</label>
+                            <input type="text" id="sitemap-url" placeholder="https://example.com/sitemap.xml">
+                            <small style="color: #666; display: block; margin-top: 5px;">Voor automatische interne links vanuit je WordPress sitemap</small>
+                        </div>
+                        
+                        <div class="form-group">
                             <label>Afbeeldingen</label>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="content-image-source" value="none" checked style="margin-right: 8px;">
+                                    <input type="radio" name="content-image-source" value="none" style="margin-right: 8px;">
                                     Geen afbeeldingen
                                 </label>
                                 <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="content-image-source" value="pixabay" style="margin-right: 8px;">
-                                    Pixabay (stock foto's)
+                                    <input type="radio" name="content-image-source" value="pixabay" checked style="margin-right: 8px;">
+                                    Pixabay (1 per 500 woorden)
                                 </label>
                                 <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
                                     <input type="radio" name="content-image-source" value="dalle" style="margin-right: 8px;">
@@ -930,172 +612,59 @@
                             <div id="editor"></div>
                         </div>
                     </div>
-                    
-                    <!-- AI Chat Panel -->
-                    <div class="ai-chat-panel">
-                        <div class="chat-header">
-                            💬 AI Assistent
-                        </div>
-                        
-                        <div class="chat-messages" id="chat-messages">
-                            <div class="chat-message ai">
-                                Hallo! Ik kan je helpen het artikel aan te passen. Vraag me bijvoorbeeld:
-                                <br><br>
-                                • "Maak de inleiding korter"<br>
-                                • "Voeg een paragraaf toe over..."<br>
-                                • "Herschrijf de conclusie"<br>
-                                • "Maak het informeler"
-                            </div>
-                        </div>
-                        
-                        <div class="chat-input-area">
-                            <textarea id="chat-input" placeholder="Vraag de AI om aanpassingen..."></textarea>
-                            <button onclick="sendChatMessage()">Verstuur</button>
-                        </div>
-                    </div>
                 </div>
             </div>
             
-            <!-- WordPress Sites Management Section -->
-            <div id="wordpress-sites" class="section">
+            <!-- WordPress Section (placeholder) -->
+            <div id="wordpress" class="section">
                 <div class="section-header">
-                    <h2>WordPress Sites Beheer</h2>
-                    <p>Beheer je WordPress sites en hun instellingen</p>
-                </div>
-                
-                <div class="section-content">
-                    <div class="input-panel">
-                        <h3>Nieuwe Site Toevoegen</h3>
-                        
-                        <div class="form-group">
-                            <label>Site Naam</label>
-                            <input type="text" id="wp-site-name" placeholder="Bijv: Mijn Blog">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Site URL</label>
-                            <input type="text" id="wp-site-url" placeholder="https://example.com">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" id="wp-username" placeholder="WordPress username">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>App Password</label>
-                            <input type="password" id="wp-app-password" placeholder="WordPress app password">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Context (optioneel)</label>
-                            <textarea id="wp-context" placeholder="Beschrijf de site, doelgroep, tone of voice, etc..." rows="4"></textarea>
-                            <small style="color: #666;">Deze context wordt gebruikt bij het genereren van artikelen voor deze site.</small>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="addWordPressSite()">
-                            Site Toevoegen
-                        </button>
-                        
-                        <div class="loading" id="wp-loading">
-                            <div class="spinner"></div>
-                            <p>Site wordt toegevoegd...</p>
-                        </div>
-                        
-                        <div style="margin-top: 30px;">
-                            <h3>Bestaande Sites</h3>
-                            <div id="wp-sites-list" style="margin-top: 15px;">
-                                <p style="color: #666;">Laden...</p>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 30px;">
-                            <h3>Knowledge Base</h3>
-                            <p style="color: #666; font-size: 14px;">Upload documenten per site voor betere context bij artikel generatie.</p>
-                            
-                            <div class="form-group">
-                                <label>Selecteer Site</label>
-                                <select id="kb-site-select">
-                                    <option value="">-- Selecteer een site --</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Upload Document</label>
-                                <input type="file" id="kb-file-upload" accept=".txt,.md,.html,.json">
-                            </div>
-                            
-                            <button class="btn btn-secondary" onclick="uploadKnowledgeBase()">
-                                Upload Document
-                            </button>
-                            
-                            <div id="kb-documents-list" style="margin-top: 15px;">
-                            </div>
-                        </div>
-                    </div>
+                    <h2>🌐 WordPress Integratie</h2>
+                    <p>WordPress functionaliteit (niet geïmplementeerd in deze versie)</p>
                 </div>
             </div>
         </div>
     </div>
-
+    
     <script>
-        // Initialize Quill editors
-        let editors = {};
-        let currentSection = 'content-writer';
+        // Initialize Quill editor
+        const editors = {};
         
-        // Initialize editors for each section
-        document.addEventListener('DOMContentLoaded', function() {
-            editors['content-writer'] = new Quill('#editor', {
+        function initEditor(containerId) {
+            const editor = new Quill(`#${containerId}`, {
                 theme: 'snow',
                 modules: {
                     toolbar: [
                         [{ 'header': [1, 2, 3, false] }],
                         ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                         ['link'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                         ['clean']
                     ]
                 }
             });
-            
-            // Content type change handler
-            document.getElementById('content-type').addEventListener('change', handleContentTypeChange);
-            handleContentTypeChange(); // Initialize on load
-            
-            // Load WordPress sites
-            loadWordPressSites();
-        });
-        
-        function setupCharCounter(inputId, counterId, maxChars) {
-            const input = document.getElementById(inputId);
-            const counter = document.getElementById(counterId);
-            
-            input.addEventListener('input', function() {
-                const length = this.value.length;
-                counter.textContent = `${length} / ${maxChars}`;
-                
-                if (length > maxChars * 0.9) {
-                    counter.classList.add('warning');
-                } else {
-                    counter.classList.remove('warning');
-                }
-                
-                if (length >= maxChars) {
-                    counter.classList.add('error');
-                } else {
-                    counter.classList.remove('error');
-                }
-            });
+            return editor;
         }
         
-        function showSection(sectionId) {
+        editors['content-writer'] = initEditor('editor');
+        
+        let currentSection = 'content-writer';
+        
+        function switchSection(sectionId) {
             // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from all menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
             
             // Show selected section
             document.getElementById(sectionId).classList.add('active');
-            event.target.closest('.menu-item').classList.add('active');
+            
+            // Add active to clicked menu item
+            event.target.classList.add('active');
             
             currentSection = sectionId;
         }
@@ -1104,7 +673,6 @@
             return editors[currentSection];
         }
         
-        // Toggle Perplexity function
         function togglePerplexity() {
             const checkbox = document.getElementById('perplexity-research');
             const container = document.getElementById('perplexity-container');
@@ -1118,16 +686,13 @@
             }
         }
         
-        // Handle content type change to show/hide relevant fields
         function handleContentTypeChange() {
             const contentType = document.getElementById('content-type').value;
             
-            // Hide all specific fields
             document.getElementById('list-fields').style.display = 'none';
             document.getElementById('youtube-fields').style.display = 'none';
             document.getElementById('linkbuilding-fields').style.display = 'none';
             
-            // Show relevant fields based on content type
             if (contentType === 'list') {
                 document.getElementById('list-fields').style.display = 'block';
             } else if (contentType === 'youtube') {
@@ -1135,10 +700,8 @@
             } else if (contentType === 'linkbuilding') {
                 document.getElementById('linkbuilding-fields').style.display = 'block';
             }
-            // Note: SEO type no longer has specific fields - AI auto-optimizes
         }
         
-        // Auto-generate topic for linkbuilding (inline version)
         async function autoGenerateTopicInline() {
             const anchor1 = document.getElementById('content-lb-anchor1').value;
             const anchor2 = document.getElementById('content-lb-anchor2').value;
@@ -1172,13 +735,19 @@
             }
         }
         
-        // Universal Content Generation
         async function generateContent() {
             const contentType = document.getElementById('content-type').value;
             const topic = document.getElementById('content-topic').value;
             const words = document.getElementById('content-words').value;
             const perplexityResearch = document.getElementById('perplexity-research').checked;
             const imageSource = document.querySelector('input[name="content-image-source"]:checked').value;
+            const sitemapUrl = document.getElementById('sitemap-url').value.trim();
+            
+            // Get checkbox values
+            const includeLists = document.getElementById('include-lists').checked;
+            const includeTables = document.getElementById('include-tables').checked;
+            const includeFaq = document.getElementById('include-faq').checked;
+            const includeConclusion = document.getElementById('include-conclusion').checked;
             
             if (!topic) {
                 alert('Vul het onderwerp in');
@@ -1191,21 +760,25 @@
             let requestBody = {
                 onderwerp: topic,
                 word_count: parseInt(words),
-                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
+                include_lists: includeLists,
+                include_tables: includeTables,
+                include_faq: includeFaq,
+                include_conclusion: includeConclusion,
+                pixabay_images: imageSource === 'pixabay' ? 1 : 0,  // Will be calculated as 1 per 500 words in backend
                 dalle_images: imageSource === 'dalle' ? 2 : 0
             };
             
+            if (sitemapUrl) {
+                requestBody.sitemap_url = sitemapUrl;
+            }
+            
             let endpoint = '/api/generate-general-article';
             
-            // Handle different content types
             if (contentType === 'seo') {
-                // SEO artikel - AI optimaliseert automatisch titel en meta beschrijving
                 if (perplexityResearch) {
-                    // Use general article endpoint with perplexity research
                     requestBody.perplexity_research = true;
                     requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
                 } else {
-                    // Use original SEO endpoint
                     endpoint = '/api/generate-article';
                     requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
                 }
@@ -1247,7 +820,6 @@
                     return;
                 }
                 
-                // Use the original linkbuilding endpoint
                 endpoint = '/api/generate-article';
                 requestBody.anchor1 = anchor1;
                 requestBody.url1 = url1;
@@ -1258,8 +830,6 @@
                 if (context) {
                     requestBody.extra = context;
                 }
-                
-                // Note: Perplexity research not typically used for linkbuilding
             }
             
             try {
@@ -1273,6 +843,7 @@
                 
                 if (data.success) {
                     editors['content-writer'].root.innerHTML = data.article;
+                    alert(`✅ Artikel gegenereerd! (${data.word_count} woorden)`);
                 } else {
                     alert('Fout: ' + data.error);
                 }
@@ -1283,69 +854,14 @@
             }
         }
         
-        // AI Chat Functions
-        async function sendChatMessage() {
-            await sendChat('chat-input', 'chat-messages', 'content-writer');
-        }
-        
-        async function sendChat(inputId, messagesId, editorKey) {
-            const input = document.getElementById(inputId);
-            const messages = document.getElementById(messagesId);
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message
-            const userMsg = document.createElement('div');
-            userMsg.className = 'chat-message user';
-            userMsg.textContent = message;
-            messages.appendChild(userMsg);
-            
-            input.value = '';
-            messages.scrollTop = messages.scrollHeight;
-            
-            // Get current article content
-            const currentContent = editors[editorKey].root.innerHTML;
-            
-            try {
-                const response = await fetch('/api/modify-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        content: currentContent,
-                        instruction: message
-                    })
-                });
-                
-                const data = await response.json();
-                
-                // Add AI response
-                const aiMsg = document.createElement('div');
-                aiMsg.className = 'chat-message ai';
-                aiMsg.textContent = data.response || 'Artikel is aangepast!';
-                messages.appendChild(aiMsg);
-                
-                // Update editor if content was modified
-                if (data.modified_content) {
-                    editors[editorKey].root.innerHTML = data.modified_content;
-                }
-                
-                messages.scrollTop = messages.scrollHeight;
-            } catch (error) {
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'chat-message ai';
-                errorMsg.textContent = 'Sorry, er is een fout opgetreden.';
-                messages.appendChild(errorMsg);
-            }
-        }
-        
-        // Toolbar Functions
         function copyToClipboard() {
             const editor = getCurrentEditor();
             const html = editor.root.innerHTML;
             
             navigator.clipboard.writeText(html).then(() => {
-                alert('Gekopieerd naar klembord!');
+                alert('✅ HTML gekopieerd naar klembord!');
+            }).catch(err => {
+                alert('❌ Fout bij kopiëren: ' + err);
             });
         }
         
@@ -1359,289 +875,18 @@
             a.href = url;
             a.download = 'artikel.html';
             a.click();
+            URL.revokeObjectURL(url);
         }
         
         function clearEditor() {
             if (confirm('Weet je zeker dat je de editor wilt wissen?')) {
-                getCurrentEditor().root.innerHTML = '';
+                const editor = getCurrentEditor();
+                editor.root.innerHTML = '';
             }
         }
         
-        // ============================================================================
-        // BACKEND FEATURES
-        // ============================================================================
-        
-        // Keyword Research
-        function performKeywordResearch() {
-            const keyword = document.getElementById('keyword-main').value;
-            const language = document.getElementById('keyword-language').value;
-            
-            if (!keyword) {
-                alert('Voer een zoekwoord in');
-                return;
-            }
-            
-            document.getElementById('keyword-loading').style.display = 'block';
-            document.getElementById('keyword-results').style.display = 'none';
-            
-            // Placeholder - implement actual keyword research API call
-            setTimeout(() => {
-                document.getElementById('keyword-loading').style.display = 'none';
-                document.getElementById('keyword-results').style.display = 'block';
-                document.getElementById('keyword-results-content').innerHTML = `
-                    <p><strong>Hoofd zoekwoord:</strong> ${keyword}</p>
-                    <p><strong>Taal:</strong> ${language}</p>
-                    <p style="color: #666; margin-top: 10px;">Zoekwoordonderzoek functionaliteit komt binnenkort...</p>
-                `;
-            }, 1000);
-        }
-        
-        // WordPress Sites Management
-        async function loadWordPressSites() {
-            try {
-                const response = await fetch('/api/wordpress-sites');
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayWordPressSites(data.sites);
-                    updateKnowledgeBaseSiteSelect(data.sites);
-                }
-            } catch (error) {
-                console.error('Error loading WordPress sites:', error);
-            }
-        }
-        
-        function displayWordPressSites(sites) {
-            const listDiv = document.getElementById('wp-sites-list');
-            
-            if (sites.length === 0) {
-                listDiv.innerHTML = '<p style="color: #666;">Geen sites gevonden</p>';
-                return;
-            }
-            
-            let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
-            
-            sites.forEach(site => {
-                html += `
-                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid var(--light-blue);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${site.site_name}</strong><br>
-                                <small style="color: #666;">${site.site_url}</small>
-                            </div>
-                            <button onclick="deleteWordPressSite(${site.id})" style="background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
-                                Verwijder
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            listDiv.innerHTML = html;
-        }
-        
-        function updateKnowledgeBaseSiteSelect(sites) {
-            const select = document.getElementById('kb-site-select');
-            select.innerHTML = '<option value="">-- Selecteer een site --</option>';
-            
-            sites.forEach(site => {
-                const option = document.createElement('option');
-                option.value = site.id;
-                option.textContent = site.site_name;
-                select.appendChild(option);
-            });
-        }
-        
-        async function addWordPressSite() {
-            const siteName = document.getElementById('wp-site-name').value;
-            const siteUrl = document.getElementById('wp-site-url').value;
-            const username = document.getElementById('wp-username').value;
-            const appPassword = document.getElementById('wp-app-password').value;
-            const context = document.getElementById('wp-context').value;
-            
-            if (!siteName || !siteUrl || !username || !appPassword) {
-                alert('Vul alle verplichte velden in');
-                return;
-            }
-            
-            document.getElementById('wp-loading').style.display = 'block';
-            
-            try {
-                const response = await fetch('/api/wordpress-sites', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        site_name: siteName,
-                        site_url: siteUrl,
-                        username: username,
-                        app_password: appPassword,
-                        context: context
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert(`Site toegevoegd!\n\nSitemap: ${data.sitemap_url || 'Niet gevonden'}\nInterne links: ${data.internal_links_count || 0}`);
-                    
-                    // Clear form
-                    document.getElementById('wp-site-name').value = '';
-                    document.getElementById('wp-site-url').value = '';
-                    document.getElementById('wp-username').value = '';
-                    document.getElementById('wp-app-password').value = '';
-                    document.getElementById('wp-context').value = '';
-                    
-                    // Reload sites list
-                    loadWordPressSites();
-                } else {
-                    alert('Fout: ' + (data.error || 'Onbekende fout'));
-                }
-            } catch (error) {
-                alert('Fout: ' + error.message);
-            } finally {
-                document.getElementById('wp-loading').style.display = 'none';
-            }
-        }
-        
-        async function deleteWordPressSite(siteId) {
-            if (!confirm('Weet je zeker dat je deze site wilt verwijderen?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/wordpress-sites/${siteId}`, {
-                    method: 'DELETE'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Site verwijderd');
-                    loadWordPressSites();
-                } else {
-                    alert('Fout: ' + (data.error || 'Onbekende fout'));
-                }
-            } catch (error) {
-                alert('Fout: ' + error.message);
-            }
-        }
-        
-        // Knowledge Base Management
-        async function uploadKnowledgeBase() {
-            const siteId = document.getElementById('kb-site-select').value;
-            const fileInput = document.getElementById('kb-file-upload');
-            
-            if (!siteId) {
-                alert('Selecteer eerst een site');
-                return;
-            }
-            
-            if (!fileInput.files || fileInput.files.length === 0) {
-                alert('Selecteer een bestand');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            
-            try {
-                const response = await fetch(`/api/wordpress-sites/${siteId}/knowledge-base`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Document geüpload!');
-                    fileInput.value = '';
-                    loadKnowledgeBaseDocuments(siteId);
-                } else {
-                    alert('Fout: ' + (data.error || 'Onbekende fout'));
-                }
-            } catch (error) {
-                alert('Fout: ' + error.message);
-            }
-        }
-        
-        async function loadKnowledgeBaseDocuments(siteId) {
-            if (!siteId) return;
-            
-            try {
-                const response = await fetch(`/api/wordpress-sites/${siteId}/knowledge-base`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayKnowledgeBaseDocuments(data.documents, siteId);
-                }
-            } catch (error) {
-                console.error('Error loading knowledge base:', error);
-            }
-        }
-        
-        function displayKnowledgeBaseDocuments(documents, siteId) {
-            const listDiv = document.getElementById('kb-documents-list');
-            
-            if (documents.length === 0) {
-                listDiv.innerHTML = '<p style="color: #666;">Geen documenten gevonden</p>';
-                return;
-            }
-            
-            let html = '<h4>Documenten:</h4><div style="display: flex; flex-direction: column; gap: 8px;">';
-            
-            documents.forEach(doc => {
-                html += `
-                    <div style="padding: 10px; background: #f8f9fa; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>${doc.filename} <small style="color: #666;">(${doc.file_type})</small></span>
-                        <button onclick="deleteKnowledgeBaseDocument(${siteId}, ${doc.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">
-                            Verwijder
-                        </button>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            listDiv.innerHTML = html;
-        }
-        
-        async function deleteKnowledgeBaseDocument(siteId, docId) {
-            if (!confirm('Weet je zeker dat je dit document wilt verwijderen?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/wordpress-sites/${siteId}/knowledge-base/${docId}`, {
-                    method: 'DELETE'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Document verwijderd');
-                    loadKnowledgeBaseDocuments(siteId);
-                } else {
-                    alert('Fout: ' + (data.error || 'Onbekende fout'));
-                }
-            } catch (error) {
-                alert('Fout: ' + error.message);
-            }
-        }
-        
-        // Event listener for site selection change
-        document.addEventListener('DOMContentLoaded', function() {
-            const siteSelect = document.getElementById('kb-site-select');
-            if (siteSelect) {
-                siteSelect.addEventListener('change', function() {
-                    const siteId = this.value;
-                    if (siteId) {
-                        loadKnowledgeBaseDocuments(siteId);
-                    } else {
-                        document.getElementById('kb-documents-list').innerHTML = '';
-                    }
-                });
-            }
-        });
+        // Event listeners
+        document.getElementById('content-type').addEventListener('change', handleContentTypeChange);
     </script>
 </body>
 </html>
