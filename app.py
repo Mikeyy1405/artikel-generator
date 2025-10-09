@@ -2720,7 +2720,7 @@ def api_website_detail(website_id):
 
 
 @app.route('/api/websites/<int:website_id>/refresh-sitemap', methods=['POST'])
-def api_refresh_sitemap(website_id):
+def api_refresh_website_sitemap(website_id):
     """Refresh sitemap URLs for a specific website"""
     
     try:
