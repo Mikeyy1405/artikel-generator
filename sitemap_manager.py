@@ -32,7 +32,7 @@ def save_storage(data):
         print(f"Error saving storage: {e}")
         return False
 
-def save_sitemap(website_url, sitemap_url, urls):
+def save_sitemap(website_url, sitemap_url, urls, wp_credentials=None):
     """
     Save or update sitemap data for a website
     
@@ -40,6 +40,7 @@ def save_sitemap(website_url, sitemap_url, urls):
         website_url: Base URL of the website
         sitemap_url: URL of the sitemap
         urls: List of URL dictionaries
+        wp_credentials: Optional dict with WordPress credentials {"username": str, "app_password": str}
     
     Returns:
         dict: {"success": bool, "id": str, "message": str}
@@ -61,6 +62,13 @@ def save_sitemap(website_url, sitemap_url, urls):
             existing["total_count"] = len(urls)
             existing["last_updated"] = datetime.now().isoformat()
             existing["status"] = "success"
+            
+            # Update WordPress credentials if provided
+            if wp_credentials:
+                existing["wp_username"] = wp_credentials.get("username")
+                existing["wp_app_password"] = wp_credentials.get("app_password")
+                existing["has_wp_access"] = True
+            
             site_id = existing["id"]
             message = "Sitemap updated successfully"
         else:
@@ -73,8 +81,16 @@ def save_sitemap(website_url, sitemap_url, urls):
                 "urls": urls,
                 "total_count": len(urls),
                 "last_updated": datetime.now().isoformat(),
-                "status": "success"
+                "status": "success",
+                "has_wp_access": False
             }
+            
+            # Add WordPress credentials if provided
+            if wp_credentials:
+                new_site["wp_username"] = wp_credentials.get("username")
+                new_site["wp_app_password"] = wp_credentials.get("app_password")
+                new_site["has_wp_access"] = True
+            
             storage["websites"].append(new_site)
             message = "Sitemap saved successfully"
         
@@ -95,6 +111,72 @@ def save_sitemap(website_url, sitemap_url, urls):
         return {
             "success": False,
             "error": f"Error saving sitemap: {str(e)}"
+        }
+
+def save_website_with_credentials(website_url, username, app_password):
+    """
+    Save a website with WordPress credentials (without sitemap initially)
+    
+    Args:
+        website_url: Base URL of the website
+        username: WordPress username
+        app_password: WordPress application password
+    
+    Returns:
+        dict: {"success": bool, "id": str, "message": str}
+    """
+    try:
+        storage = load_storage()
+        
+        # Check if website already exists
+        existing = None
+        for site in storage["websites"]:
+            if site["website_url"] == website_url:
+                existing = site
+                break
+        
+        if existing:
+            # Update existing
+            existing["wp_username"] = username
+            existing["wp_app_password"] = app_password
+            existing["has_wp_access"] = True
+            existing["last_updated"] = datetime.now().isoformat()
+            site_id = existing["id"]
+            message = "WordPress credentials updated successfully"
+        else:
+            # Create new
+            site_id = str(uuid.uuid4())
+            new_site = {
+                "id": site_id,
+                "website_url": website_url,
+                "sitemap_url": "",
+                "urls": [],
+                "total_count": 0,
+                "last_updated": datetime.now().isoformat(),
+                "status": "pending",
+                "wp_username": username,
+                "wp_app_password": app_password,
+                "has_wp_access": True
+            }
+            storage["websites"].append(new_site)
+            message = "Website with WordPress credentials saved successfully"
+        
+        if save_storage(storage):
+            return {
+                "success": True,
+                "id": site_id,
+                "message": message
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to save storage"
+            }
+    
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Error saving website: {str(e)}"
         }
 
 def get_all_sitemaps():

@@ -2233,6 +2233,35 @@ def api_refresh_all_sitemaps():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route('/api/add-website-credentials', methods=['POST'])
+def api_add_website_credentials():
+    """Add website with WordPress application password"""
+    try:
+        from sitemap_manager import save_website_with_credentials
+        
+        data = request.get_json()
+        website_url = data.get('website_url', '').strip()
+        username = data.get('username', '').strip()
+        app_password = data.get('app_password', '').strip()
+        
+        if not website_url or not username or not app_password:
+            return jsonify({
+                'success': False,
+                'error': 'Website URL, gebruikersnaam en applicatie wachtwoord zijn verplicht'
+            }), 400
+        
+        # Ensure URL has protocol
+        if not website_url.startswith(('http://', 'https://')):
+            website_url = 'https://' + website_url
+        
+        result = save_website_with_credentials(website_url, username, app_password)
+        return jsonify(result)
+    
+    except Exception as e:
+        print(f"❌ Error adding website credentials: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # NEW: WordPress REST API Integration Endpoint
 @app.route('/api/add-wordpress-site', methods=['POST'])
 def api_add_wordpress_site():
