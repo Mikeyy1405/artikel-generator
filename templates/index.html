@@ -745,7 +745,7 @@
             <div id="sitemap-management" class="section">
                 <div class="section-header">
                     <h2>🗺️ Sitemap Management</h2>
-                    <p>Beheer websites en hun sitemap URLs - Laad ALLE URLs uit sitemaps</p>
+                    <p>Beheer websites en hun sitemap URLs - Alleen posts, categorieën en producten</p>
                 </div>
                 
                 <div class="section-content">
@@ -781,17 +781,29 @@
                     <div id="website-details" style="display: none;">
                         <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                <h3 style="color: #2d3748; margin: 0; font-size: 22px;">
-                                    <span id="detail-website-name"></span>
-                                </h3>
+                                <div>
+                                    <h3 style="color: #2d3748; margin: 0 0 10px 0; font-size: 22px;">
+                                        <span id="detail-website-name"></span>
+                                    </h3>
+                                    <div id="url-stats" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                        <!-- Stats will be inserted here -->
+                                    </div>
+                                </div>
                                 <button onclick="closeWebsiteDetails()" style="background: #f7fafc; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #4a5568;">
                                     ✕ Sluiten
                                 </button>
                             </div>
 
                             <!-- Search & Filter -->
-                            <div style="margin-bottom: 20px;">
-                                <input type="text" id="url-search" placeholder="🔍 Zoek URLs..." onkeyup="filterUrls()" style="width: 100%; padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                            <div style="margin-bottom: 20px; display: flex; gap: 12px;">
+                                <input type="text" id="url-search" placeholder="🔍 Zoek URLs..." onkeyup="filterUrls()" style="flex: 1; padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                                <select id="type-filter" onchange="filterUrls()" style="padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                                    <option value="">🔽 Alle types</option>
+                                    <option value="post">📝 Posts</option>
+                                    <option value="category">📁 Categorieën</option>
+                                    <option value="product">🛍️ Producten</option>
+                                    <option value="product-category">🏷️ Product Categorieën</option>
+                                </select>
                             </div>
 
                             <!-- URLs Table -->
@@ -800,6 +812,7 @@
                                     <thead>
                                         <tr style="background: #f7fafc;">
                                             <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">#</th>
+                                            <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">Type</th>
                                             <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">URL</th>
                                             <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">Titel</th>
                                             <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">Acties</th>
@@ -2606,6 +2619,39 @@
                     currentPage = 1;
                     
                     document.getElementById('detail-website-name').textContent = currentWebsite.name;
+                    
+                    // Bereken statistieken per type
+                    const stats = {
+                        post: 0,
+                        category: 0,
+                        product: 0,
+                        'product-category': 0
+                    };
+                    
+                    allUrls.forEach(item => {
+                        const type = item.type || 'post';
+                        if (stats.hasOwnProperty(type)) {
+                            stats[type]++;
+                        }
+                    });
+                    
+                    // Toon statistieken
+                    const statsHtml = `
+                        <span style="background: #3b82f6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            📝 ${stats.post} Posts
+                        </span>
+                        <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            📁 ${stats.category} Categorieën
+                        </span>
+                        <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            🛍️ ${stats.product} Producten
+                        </span>
+                        <span style="background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            🏷️ ${stats['product-category']} Product Cat.
+                        </span>
+                    `;
+                    document.getElementById('url-stats').innerHTML = statsHtml;
+                    
                     document.getElementById('websites-grid').style.display = 'none';
                     document.getElementById('website-details').style.display = 'block';
                     
@@ -2624,21 +2670,26 @@
             document.getElementById('websites-grid').style.display = 'grid';
             document.getElementById('website-details').style.display = 'none';
             document.getElementById('url-search').value = '';
+            document.getElementById('type-filter').value = '';
             currentWebsite = null;
         }
         
         // Filter URLs
         function filterUrls() {
             const searchTerm = document.getElementById('url-search').value.toLowerCase();
+            const typeFilter = document.getElementById('type-filter').value;
             
-            if (searchTerm === '') {
-                filteredUrls = [...allUrls];
-            } else {
-                filteredUrls = allUrls.filter(item => 
+            filteredUrls = allUrls.filter(item => {
+                // Filter op zoekterm
+                const matchesSearch = searchTerm === '' || 
                     item.url.toLowerCase().includes(searchTerm) || 
-                    item.title.toLowerCase().includes(searchTerm)
-                );
-            }
+                    item.title.toLowerCase().includes(searchTerm);
+                
+                // Filter op type
+                const matchesType = typeFilter === '' || (item.type || 'post') === typeFilter;
+                
+                return matchesSearch && matchesType;
+            });
             
             currentPage = 1;
             renderUrlsTable();
@@ -2655,7 +2706,7 @@
             if (filteredUrls.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 40px; color: #718096;">
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #718096;">
                             ${allUrls.length === 0 
                                 ? '📭 Geen URLs gevonden. Klik op "Refresh" om sitemap te laden.' 
                                 : '🔍 Geen resultaten gevonden voor je zoekopdracht.'}
@@ -2663,25 +2714,58 @@
                     </tr>
                 `;
             } else {
-                tbody.innerHTML = pageUrls.map((item, idx) => `
-                    <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;" 
-                        onmouseover="this.style.background='#f7fafc'" 
-                        onmouseout="this.style.background='white'">
-                        <td style="padding: 12px 16px; color: #718096; font-weight: 500;">${startIdx + idx + 1}</td>
-                        <td style="padding: 12px 16px;">
-                            <a href="${item.url}" target="_blank" style="color: #4299e1; text-decoration: none; word-break: break-all;">
-                                ${item.url}
-                            </a>
-                        </td>
-                        <td style="padding: 12px 16px; color: #4a5568;">${item.title}</td>
-                        <td style="padding: 12px 16px;">
-                            <button onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}', event)" 
-                                    style="background: #edf2f7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #4a5568; font-size: 12px;">
-                                📋 Kopieer
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = pageUrls.map((item, idx) => {
+                    // Bepaal badge kleur en emoji op basis van type
+                    let badgeColor, badgeText, emoji;
+                    const urlType = item.type || 'post';
+                    
+                    switch(urlType) {
+                        case 'category':
+                            badgeColor = '#10b981';
+                            badgeText = 'Categorie';
+                            emoji = '📁';
+                            break;
+                        case 'product':
+                            badgeColor = '#f59e0b';
+                            badgeText = 'Product';
+                            emoji = '🛍️';
+                            break;
+                        case 'product-category':
+                            badgeColor = '#8b5cf6';
+                            badgeText = 'Product Cat.';
+                            emoji = '🏷️';
+                            break;
+                        default:
+                            badgeColor = '#3b82f6';
+                            badgeText = 'Post';
+                            emoji = '📝';
+                    }
+                    
+                    return `
+                        <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;" 
+                            onmouseover="this.style.background='#f7fafc'" 
+                            onmouseout="this.style.background='white'">
+                            <td style="padding: 12px 16px; color: #718096; font-weight: 500;">${startIdx + idx + 1}</td>
+                            <td style="padding: 12px 16px;">
+                                <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                                    ${emoji} ${badgeText}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 16px;">
+                                <a href="${item.url}" target="_blank" style="color: #4299e1; text-decoration: none; word-break: break-all;">
+                                    ${item.url}
+                                </a>
+                            </td>
+                            <td style="padding: 12px 16px; color: #4a5568;">${item.title}</td>
+                            <td style="padding: 12px 16px;">
+                                <button onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}', event)" 
+                                        style="background: #edf2f7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #4a5568; font-size: 12px;">
+                                    📋 Kopieer
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
             
             // Update pagination

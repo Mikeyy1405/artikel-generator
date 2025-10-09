@@ -754,8 +754,29 @@ def fetch_wordpress_sitemap(site_url):
         return []
 
 def parse_sitemap_urls(root, base_url):
-    """Parse URLs from sitemap XML"""
+    """Parse URLs from sitemap XML - alleen posts, categorieën en producten"""
     links = []
+    
+    # Exclusie patronen voor URLs die we NIET willen
+    exclude_patterns = [
+        '/tag/',           # Tags
+        '/author/',        # Auteurs
+        '/page/',          # Pagina's (niet posts)
+        '/wp-content/',    # Media/bestanden
+        '/wp-admin/',      # Admin
+        '/feed/',          # RSS feeds
+        '/comments/',      # Comments
+        '/attachment/',    # Bijlagen
+        '?',               # Query parameters
+        '#',               # Anchors
+    ]
+    
+    # Inclusie patronen - alleen deze types
+    include_patterns = [
+        '/category/',      # Categorieën
+        '/product/',       # WooCommerce producten
+        '/product-category/', # Product categorieën
+    ]
     
     for url_elem in root.findall('.//{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
         loc = url_elem.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
@@ -764,14 +785,52 @@ def parse_sitemap_urls(root, base_url):
             url = loc.text
             
             if url.startswith(base_url):
-                path = urlparse(url).path
-                title = path.strip('/').split('/')[-1].replace('-', ' ').title()
+                # Check of URL moet worden uitgesloten
+                should_exclude = any(pattern in url for pattern in exclude_patterns)
                 
-                links.append({
-                    'url': url,
-                    'title': title
-                })
+                if should_exclude:
+                    continue
+                
+                # Check of het een specifiek include pattern is (category/product)
+                is_special_type = any(pattern in url for pattern in include_patterns)
+                
+                # Als het geen special type is, check of het een post is
+                # Posts hebben meestal een datum in de URL of zijn direct onder de root
+                path = urlparse(url).path.strip('/')
+                path_parts = path.split('/')
+                
+                # Accepteer als:
+                # 1. Het een special type is (category/product)
+                # 2. Het een post is (heeft datum patroon of is 1-2 levels diep zonder speciale keywords)
+                is_post = False
+                if not is_special_type:
+                    # Check voor datum patroon (bijv. /2024/01/post-name/)
+                    has_date_pattern = len(path_parts) >= 3 and path_parts[0].isdigit() and len(path_parts[0]) == 4
+                    
+                    # Of het is een simpele post URL (bijv. /post-name/)
+                    is_simple_post = len(path_parts) <= 2 and path_parts[-1] != ''
+                    
+                    is_post = has_date_pattern or is_simple_post
+                
+                if is_special_type or is_post:
+                    title = path_parts[-1].replace('-', ' ').title() if path_parts else 'Onbekend'
+                    
+                    # Bepaal het type
+                    url_type = 'post'
+                    if '/category/' in url:
+                        url_type = 'category'
+                    elif '/product-category/' in url:
+                        url_type = 'product-category'
+                    elif '/product/' in url:
+                        url_type = 'product'
+                    
+                    links.append({
+                        'url': url,
+                        'title': title,
+                        'type': url_type
+                    })
     
+    print(f"✅ Gefilterd: {len(links)} URLs (posts, categorieën, producten)")
     return links
 
 def add_internal_links_to_article(article, internal_links, num_links=3):
