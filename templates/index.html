@@ -475,24 +475,12 @@
                 <span>🔍 Zoekwoordonderzoek</span>
             </div>
             
-            <div class="menu-item active" onclick="showSection('seo-writer')">
-                <span>📝 SEO Schrijver</span>
+            <div class="menu-item active" onclick="showSection('content-writer')">
+                <span>📝 Content Schrijver</span>
             </div>
             
             <div class="menu-item" onclick="showSection('linkbuilding')">
                 <span>🔗 Linkbuilding Schrijver</span>
-            </div>
-            
-            <div class="menu-item" onclick="showSection('perplexity')">
-                <span>🔍 Perplexity Artikel</span>
-            </div>
-            
-            <div class="menu-item" onclick="showSection('youtube')">
-                <span>🎥 YouTube Post</span>
-            </div>
-            
-            <div class="menu-item" onclick="showSection('list')">
-                <span>📋 Lijst Artikel</span>
             </div>
             
             <div class="menu-item" onclick="showSection('wordpress-sites')">
@@ -543,68 +531,110 @@
                 </div>
             </div>
             
-            <!-- SEO Writer Section -->
-            <div id="seo-writer" class="section active">
+            <!-- Content Writer Section (Universal) -->
+            <div id="content-writer" class="section active">
                 <div class="section-header">
-                    <h2>SEO Schrijver</h2>
-                    <p>Genereer SEO-geoptimaliseerde artikelen met AI</p>
+                    <h2>Content Schrijver</h2>
+                    <p>Genereer verschillende soorten content met AI</p>
                 </div>
                 
                 <div class="section-content">
                     <!-- Input Panel -->
                     <div class="input-panel">
                         <div class="form-group">
+                            <label>Content Type</label>
+                            <select id="content-type">
+                                <option value="seo">SEO Artikel</option>
+                                <option value="list">Lijst Artikel</option>
+                                <option value="youtube">YouTube Post</option>
+                                <option value="linkbuilding">Linkbuilding Artikel</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" id="perplexity-research" style="margin-right: 8px;">
+                                <span style="font-weight: 600;">Perplexity Onderzoek (uitgebreid onderzoek)</span>
+                            </label>
+                            <small style="color: #666;">Gebruikt Perplexity AI voor diepgaand onderzoek zoals een copywriter</small>
+                        </div>
+                        
+                        <div class="form-group">
                             <label>Onderwerp</label>
-                            <input type="text" id="seo-topic" placeholder="Bijv: Yoga voor beginners">
+                            <input type="text" id="content-topic" placeholder="Bijv: Yoga voor beginners">
+                        </div>
+                        
+                        <!-- SEO specific fields -->
+                        <div id="seo-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Hoofd keyword</label>
+                                <input type="text" id="content-keyword" placeholder="Bijv: yoga beginners">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>SEO Titel (max 55 tekens)</label>
+                                <input type="text" id="content-seo-title" placeholder="Optimale titel voor zoekmachines" maxlength="55">
+                                <div class="char-counter" id="content-title-counter">0 / 55</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Meta Beschrijving (max 130 tekens)</label>
+                                <textarea id="content-meta" placeholder="Korte beschrijving voor zoekmachines" maxlength="130"></textarea>
+                                <div class="char-counter" id="content-meta-counter">0 / 130</div>
+                            </div>
+                        </div>
+                        
+                        <!-- List specific fields -->
+                        <div id="list-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Aantal items</label>
+                                <input type="number" id="content-list-items" value="10" min="3" max="50">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Woorden per item</label>
+                                <input type="number" id="content-list-words" value="100" min="50" max="500">
+                            </div>
+                        </div>
+                        
+                        <!-- YouTube specific fields -->
+                        <div id="youtube-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>YouTube URL</label>
+                                <input type="text" id="content-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label>Aantal woorden</label>
-                            <input type="number" id="seo-words" value="800" min="100" max="5000">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Hoofd keyword</label>
-                            <input type="text" id="seo-keyword" placeholder="Bijv: yoga beginners">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>SEO Titel (max 55 tekens)</label>
-                            <input type="text" id="seo-title" placeholder="Optimale titel voor zoekmachines" maxlength="55">
-                            <div class="char-counter" id="seo-title-counter">0 / 55</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Meta Beschrijving (max 130 tekens)</label>
-                            <textarea id="seo-meta" placeholder="Korte beschrijving voor zoekmachines" maxlength="130"></textarea>
-                            <div class="char-counter" id="seo-meta-counter">0 / 130</div>
+                            <input type="number" id="content-words" value="800" min="100" max="5000">
                         </div>
                         
                         <div class="form-group">
                             <label>Afbeeldingen</label>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="seo-image-source" value="none" checked style="margin-right: 8px;">
+                                    <input type="radio" name="content-image-source" value="none" checked style="margin-right: 8px;">
                                     Geen afbeeldingen
                                 </label>
                                 <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="seo-image-source" value="pixabay" style="margin-right: 8px;">
+                                    <input type="radio" name="content-image-source" value="pixabay" style="margin-right: 8px;">
                                     Pixabay (stock foto's)
                                 </label>
                                 <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="seo-image-source" value="dalle" style="margin-right: 8px;">
+                                    <input type="radio" name="content-image-source" value="dalle" style="margin-right: 8px;">
                                     DALL-E (AI gegenereerd)
                                 </label>
                             </div>
                         </div>
                         
-                        <button class="btn btn-primary" onclick="generateSEOArticle()">
-                            Genereer Artikel
+                        <button class="btn btn-primary" onclick="generateContent()">
+                            Genereer Content
                         </button>
                         
-                        <div class="loading" id="seo-loading">
+                        <div class="loading" id="content-loading">
                             <div class="spinner"></div>
-                            <p>Artikel wordt gegenereerd...</p>
+                            <p>Content wordt gegenereerd...</p>
                         </div>
                     </div>
                     
@@ -641,250 +671,6 @@
                         <div class="chat-input-area">
                             <textarea id="chat-input" placeholder="Vraag de AI om aanpassingen..."></textarea>
                             <button onclick="sendChatMessage()">Verstuur</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Perplexity Section -->
-            <div id="perplexity" class="section">
-                <div class="section-header">
-                    <h2>Perplexity Artikel</h2>
-                    <p>Genereer artikelen met Perplexity AI research</p>
-                </div>
-                
-                <div class="section-content">
-                    <div class="input-panel">
-                        <div class="form-group">
-                            <label>Onderwerp</label>
-                            <input type="text" id="perp-topic" placeholder="Onderwerp voor research">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Aantal woorden</label>
-                            <input type="number" id="perp-words" value="800" min="100" max="5000">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Afbeeldingen</label>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="perp-image-source" value="none" checked style="margin-right: 8px;">
-                                    Geen afbeeldingen
-                                </label>
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="perp-image-source" value="pixabay" style="margin-right: 8px;">
-                                    Pixabay (stock foto's)
-                                </label>
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="perp-image-source" value="dalle" style="margin-right: 8px;">
-                                    DALL-E (AI gegenereerd)
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="generatePerplexityArticle()">
-                            Genereer Artikel
-                        </button>
-                        
-                        <div class="loading" id="perp-loading">
-                            <div class="spinner"></div>
-                            <p>Artikel wordt gegenereerd...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="editor-panel">
-                        <div class="editor-toolbar">
-                            <button onclick="copyToClipboard()">📋 Kopieer</button>
-                            <button onclick="downloadHTML()">💾 Download HTML</button>
-                            <button onclick="clearEditor()">🗑️ Wissen</button>
-                        </div>
-                        
-                        <div class="editor-container">
-                            <div id="editor-perp"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="ai-chat-panel">
-                        <div class="chat-header">
-                            💬 AI Assistent
-                        </div>
-                        
-                        <div class="chat-messages" id="chat-messages-perp">
-                            <div class="chat-message ai">
-                                Ik kan je helpen het artikel aan te passen. Stel je vraag!
-                            </div>
-                        </div>
-                        
-                        <div class="chat-input-area">
-                            <textarea id="chat-input-perp" placeholder="Vraag de AI om aanpassingen..."></textarea>
-                            <button onclick="sendChatMessagePerp()">Verstuur</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- YouTube Section -->
-            <div id="youtube" class="section">
-                <div class="section-header">
-                    <h2>YouTube Post</h2>
-                    <p>Genereer een post met embedded YouTube video</p>
-                </div>
-                
-                <div class="section-content">
-                    <div class="input-panel">
-                        <div class="form-group">
-                            <label>YouTube URL</label>
-                            <input type="text" id="yt-url" placeholder="https://www.youtube.com/watch?v=...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Onderwerp</label>
-                            <input type="text" id="yt-topic" placeholder="Onderwerp van de post">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Aantal woorden</label>
-                            <input type="number" id="yt-words" value="500" min="100" max="3000">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Afbeeldingen</label>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="yt-image-source" value="none" checked style="margin-right: 8px;">
-                                    Geen afbeeldingen
-                                </label>
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="yt-image-source" value="pixabay" style="margin-right: 8px;">
-                                    Pixabay (stock foto's)
-                                </label>
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="yt-image-source" value="dalle" style="margin-right: 8px;">
-                                    DALL-E (AI gegenereerd)
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="generateYouTubePost()">
-                            Genereer Post
-                        </button>
-                        
-                        <div class="loading" id="yt-loading">
-                            <div class="spinner"></div>
-                            <p>Post wordt gegenereerd...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="editor-panel">
-                        <div class="editor-toolbar">
-                            <button onclick="copyToClipboard()">📋 Kopieer</button>
-                            <button onclick="downloadHTML()">💾 Download HTML</button>
-                            <button onclick="clearEditor()">🗑️ Wissen</button>
-                        </div>
-                        
-                        <div class="editor-container">
-                            <div id="editor-yt"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="ai-chat-panel">
-                        <div class="chat-header">
-                            💬 AI Assistent
-                        </div>
-                        
-                        <div class="chat-messages" id="chat-messages-yt">
-                            <div class="chat-message ai">
-                                Ik kan je helpen de post aan te passen. Stel je vraag!
-                            </div>
-                        </div>
-                        
-                        <div class="chat-input-area">
-                            <textarea id="chat-input-yt" placeholder="Vraag de AI om aanpassingen..."></textarea>
-                            <button onclick="sendChatMessageYT()">Verstuur</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- List Section -->
-            <div id="list" class="section">
-                <div class="section-header">
-                    <h2>Lijst Artikel</h2>
-                    <p>Genereer een artikel in lijstvorm</p>
-                </div>
-                
-                <div class="section-content">
-                    <div class="input-panel">
-                        <div class="form-group">
-                            <label>Onderwerp</label>
-                            <input type="text" id="list-topic" placeholder="Bijv: 10 tips voor...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Aantal items</label>
-                            <input type="number" id="list-items" value="10" min="3" max="50">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Woorden per item</label>
-                            <input type="number" id="list-words" value="100" min="50" max="500">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Afbeeldingen</label>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="list-image-source" value="none" checked style="margin-right: 8px;">
-                                    Geen afbeeldingen
-                                </label>
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="list-image-source" value="pixabay" style="margin-right: 8px;">
-                                    Pixabay (stock foto's)
-                                </label>
-                                <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                    <input type="radio" name="list-image-source" value="dalle" style="margin-right: 8px;">
-                                    DALL-E (AI gegenereerd)
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="generateListArticle()">
-                            Genereer Lijst
-                        </button>
-                        
-                        <div class="loading" id="list-loading">
-                            <div class="spinner"></div>
-                            <p>Lijst wordt gegenereerd...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="editor-panel">
-                        <div class="editor-toolbar">
-                            <button onclick="copyToClipboard()">📋 Kopieer</button>
-                            <button onclick="downloadHTML()">💾 Download HTML</button>
-                            <button onclick="clearEditor()">🗑️ Wissen</button>
-                        </div>
-                        
-                        <div class="editor-container">
-                            <div id="editor-list"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="ai-chat-panel">
-                        <div class="chat-header">
-                            💬 AI Assistent
-                        </div>
-                        
-                        <div class="chat-messages" id="chat-messages-list">
-                            <div class="chat-message ai">
-                                Ik kan je helpen de lijst aan te passen. Stel je vraag!
-                            </div>
-                        </div>
-                        
-                        <div class="chat-input-area">
-                            <textarea id="chat-input-list" placeholder="Vraag de AI om aanpassingen..."></textarea>
-                            <button onclick="sendChatMessageList()">Verstuur</button>
                         </div>
                     </div>
                 </div>
@@ -1037,50 +823,11 @@
     <script>
         // Initialize Quill editors
         let editors = {};
-        let currentSection = 'seo-writer';
+        let currentSection = 'content-writer';
         
         // Initialize editors for each section
         document.addEventListener('DOMContentLoaded', function() {
-            editors['seo-writer'] = new Quill('#editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
-                    ]
-                }
-            });
-            
-            editors['perplexity'] = new Quill('#editor-perp', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
-                    ]
-                }
-            });
-            
-            editors['youtube'] = new Quill('#editor-yt', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
-                    ]
-                }
-            });
-            
-            editors['list'] = new Quill('#editor-list', {
+            editors['content-writer'] = new Quill('#editor', {
                 theme: 'snow',
                 modules: {
                     toolbar: [
@@ -1106,9 +853,13 @@
                 }
             });
             
-            // Character counters
-            setupCharCounter('seo-title', 'seo-title-counter', 55);
-            setupCharCounter('seo-meta', 'seo-meta-counter', 130);
+            // Character counters for content writer
+            setupCharCounter('content-seo-title', 'content-title-counter', 55);
+            setupCharCounter('content-meta', 'content-meta-counter', 130);
+            
+            // Content type change handler
+            document.getElementById('content-type').addEventListener('change', handleContentTypeChange);
+            handleContentTypeChange(); // Initialize on load
             
             // Load WordPress sites
             loadWordPressSites();
@@ -1152,130 +903,104 @@
             return editors[currentSection];
         }
         
-        // SEO Article Generation
-        async function generateSEOArticle() {
-            const topic = document.getElementById('seo-topic').value;
-            const words = document.getElementById('seo-words').value;
-            const keyword = document.getElementById('seo-keyword').value;
-            const title = document.getElementById('seo-title').value;
-            const meta = document.getElementById('seo-meta').value;
+        // Handle content type change to show/hide relevant fields
+        function handleContentTypeChange() {
+            const contentType = document.getElementById('content-type').value;
             
-            // Get selected image source from radio buttons
-            const imageSource = document.querySelector('input[name="seo-image-source"]:checked').value;
+            // Hide all specific fields
+            document.getElementById('seo-fields').style.display = 'none';
+            document.getElementById('list-fields').style.display = 'none';
+            document.getElementById('youtube-fields').style.display = 'none';
             
-            if (!topic || !keyword || !title || !meta) {
-                alert('Vul alle velden in');
-                return;
-            }
-            
-            const loading = document.getElementById('seo-loading');
-            loading.classList.add('active');
-            
-            // Prepare request body with image options
-            const requestBody = { 
-                onderwerp: topic,
-                word_count: words,
-                extra: `SEO Keyword: ${keyword}\nSEO Titel: ${title}\nMeta Beschrijving: ${meta}`,
-                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
-                dalle_images: imageSource === 'dalle' ? 2 : 0
-            };
-            
-            try {
-                const response = await fetch('/api/generate-general-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    editors['seo-writer'].root.innerHTML = data.article;
-                } else {
-                    alert('Fout: ' + data.error);
-                }
-            } catch (error) {
-                alert('Er is een fout opgetreden: ' + error.message);
-            } finally {
-                loading.classList.remove('active');
+            // Show relevant fields based on content type
+            if (contentType === 'seo') {
+                document.getElementById('seo-fields').style.display = 'block';
+            } else if (contentType === 'list') {
+                document.getElementById('list-fields').style.display = 'block';
+            } else if (contentType === 'youtube') {
+                document.getElementById('youtube-fields').style.display = 'block';
             }
         }
         
-        // Perplexity Article Generation
-        async function generatePerplexityArticle() {
-            const topic = document.getElementById('perp-topic').value;
-            const words = document.getElementById('perp-words').value;
-            
-            // Get selected image source from radio buttons
-            const imageSource = document.querySelector('input[name="perp-image-source"]:checked').value;
+        // Universal Content Generation
+        async function generateContent() {
+            const contentType = document.getElementById('content-type').value;
+            const topic = document.getElementById('content-topic').value;
+            const words = document.getElementById('content-words').value;
+            const perplexityResearch = document.getElementById('perplexity-research').checked;
+            const imageSource = document.querySelector('input[name="content-image-source"]:checked').value;
             
             if (!topic) {
                 alert('Vul het onderwerp in');
                 return;
             }
             
-            const loading = document.getElementById('perp-loading');
+            const loading = document.getElementById('content-loading');
             loading.classList.add('active');
             
-            // Prepare request body with image options
-            const requestBody = {
+            let requestBody = {
                 onderwerp: topic,
-                word_count: words,
-                use_research: true,
+                word_count: parseInt(words),
                 pixabay_images: imageSource === 'pixabay' ? 2 : 0,
                 dalle_images: imageSource === 'dalle' ? 2 : 0
             };
             
-            try {
-                const response = await fetch('/api/generate-general-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
+            let endpoint = '/api/generate-general-article';
+            
+            // Handle different content types
+            if (contentType === 'seo') {
+                const keyword = document.getElementById('content-keyword').value;
+                const title = document.getElementById('content-seo-title').value;
+                const meta = document.getElementById('content-meta').value;
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    editors['perplexity'].root.innerHTML = data.article;
-                } else {
-                    alert('Fout: ' + data.error);
+                if (!keyword || !title || !meta) {
+                    alert('Vul alle SEO velden in');
+                    loading.classList.remove('active');
+                    return;
                 }
-            } catch (error) {
-                alert('Er is een fout opgetreden: ' + error.message);
-            } finally {
+                
+                if (perplexityResearch) {
+                    // Use general article endpoint with perplexity research
+                    requestBody.perplexity_research = true;
+                    requestBody.extra = `SEO Keyword: ${keyword}\nSEO Titel: ${title}\nMeta Beschrijving: ${meta}`;
+                } else {
+                    // Use original SEO endpoint
+                    endpoint = '/api/generate-article';
+                    requestBody.extra = `SEO Keyword: ${keyword}\nSEO Titel: ${title}\nMeta Beschrijving: ${meta}`;
+                }
+            } else if (contentType === 'list') {
+                const items = document.getElementById('content-list-items').value;
+                const wordsPerItem = document.getElementById('content-list-words').value;
+                
+                requestBody.word_count = parseInt(items) * parseInt(wordsPerItem);
+                requestBody.extra = `Lijst artikel met ${items} items van elk ${wordsPerItem} woorden`;
+                
+                if (perplexityResearch) {
+                    requestBody.perplexity_research = true;
+                }
+            } else if (contentType === 'youtube') {
+                const youtubeUrl = document.getElementById('content-youtube-url').value;
+                
+                if (!youtubeUrl) {
+                    alert('Vul de YouTube URL in');
+                    loading.classList.remove('active');
+                    return;
+                }
+                
+                requestBody.extra = `YouTube URL: ${youtubeUrl}`;
+                requestBody.youtube_video = true;
+                
+                if (perplexityResearch) {
+                    requestBody.perplexity_research = true;
+                }
+            } else if (contentType === 'linkbuilding') {
+                alert('Voor linkbuilding artikelen, gebruik de aparte Linkbuilding Schrijver sectie');
                 loading.classList.remove('active');
-            }
-        }
-        
-        // YouTube Post Generation
-        async function generateYouTubePost() {
-            const url = document.getElementById('yt-url').value;
-            const topic = document.getElementById('yt-topic').value;
-            const words = document.getElementById('yt-words').value;
-            
-            // Get selected image source from radio buttons
-            const imageSource = document.querySelector('input[name="yt-image-source"]:checked').value;
-            
-            if (!url || !topic) {
-                alert('Vul alle velden in');
                 return;
             }
             
-            const loading = document.getElementById('yt-loading');
-            loading.classList.add('active');
-            
-            // Prepare request body with image options
-            const requestBody = {
-                onderwerp: topic,
-                word_count: words,
-                extra: `YouTube URL: ${url}`,
-                youtube_video: true,
-                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
-                dalle_images: imageSource === 'dalle' ? 2 : 0
-            };
-            
             try {
-                const response = await fetch('/api/generate-general-article', {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
@@ -1284,54 +1009,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    editors['youtube'].root.innerHTML = data.article;
-                } else {
-                    alert('Fout: ' + data.error);
-                }
-            } catch (error) {
-                alert('Er is een fout opgetreden: ' + error.message);
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
-        
-        // List Article Generation
-        async function generateListArticle() {
-            const topic = document.getElementById('list-topic').value;
-            const items = document.getElementById('list-items').value;
-            const words = document.getElementById('list-words').value;
-            
-            // Get selected image source from radio buttons
-            const imageSource = document.querySelector('input[name="list-image-source"]:checked').value;
-            
-            if (!topic) {
-                alert('Vul het onderwerp in');
-                return;
-            }
-            
-            const loading = document.getElementById('list-loading');
-            loading.classList.add('active');
-            
-            // Prepare request body with image options
-            const requestBody = {
-                onderwerp: topic,
-                word_count: parseInt(items) * parseInt(words),
-                extra: `Lijst artikel met ${items} items van elk ${words} woorden`,
-                pixabay_images: imageSource === 'pixabay' ? 2 : 0,
-                dalle_images: imageSource === 'dalle' ? 2 : 0
-            };
-            
-            try {
-                const response = await fetch('/api/generate-general-article', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    editors['list'].root.innerHTML = data.article;
+                    editors['content-writer'].root.innerHTML = data.article;
                 } else {
                     alert('Fout: ' + data.error);
                 }
@@ -1344,19 +1022,7 @@
         
         // AI Chat Functions
         async function sendChatMessage() {
-            await sendChat('chat-input', 'chat-messages', 'seo-writer');
-        }
-        
-        async function sendChatMessagePerp() {
-            await sendChat('chat-input-perp', 'chat-messages-perp', 'perplexity');
-        }
-        
-        async function sendChatMessageYT() {
-            await sendChat('chat-input-yt', 'chat-messages-yt', 'youtube');
-        }
-        
-        async function sendChatMessageList() {
-            await sendChat('chat-input-list', 'chat-messages-list', 'list');
+            await sendChat('chat-input', 'chat-messages', 'content-writer');
         }
         
         async function sendChat(inputId, messagesId, editorKey) {
