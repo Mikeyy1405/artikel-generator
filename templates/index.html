@@ -829,91 +829,52 @@
             <!-- Website Beheer Section -->
             <div id="website-beheer" class="section">
                 <div class="section-header">
-                    <h2>🌐 Website Beheer</h2>
-                    <p>Voeg je WordPress website toe met REST API authenticatie</p>
+                    <h2>🌐 Sitemap Beheer</h2>
+                    <p>Beheer je website sitemaps - automatisch dagelijks geüpdatet</p>
                 </div>
                 
-                <div class="section-content">
-                    <div class="input-panel">
-                        <!-- WordPress Site Toevoegen -->
-                        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <h3 style="margin-bottom: 15px; color: var(--dark-blue);">WordPress Site Toevoegen</h3>
-                            
-                            <div class="form-group">
-                                <label>WordPress URL</label>
-                                <input type="text" id="wp-url" placeholder="https://jouwwebsite.nl">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Username</label>
-                                <input type="text" id="wp-username" placeholder="admin">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Application Password</label>
-                                <input type="password" id="wp-app-password" placeholder="xxxx xxxx xxxx xxxx">
-                                <small style="color: #666; display: block; margin-top: 5px;">
-                                    💡 Genereer een application password in WordPress: Gebruikers → Profiel → Application Passwords
+                <div class="section-content" style="display: block; max-width: 1200px; margin: 0 auto;">
+                    
+                    <!-- Add New Sitemap -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: white; margin-bottom: 20px; font-size: 24px;">➕ Nieuwe Website Toevoegen</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: end;">
+                            <div>
+                                <label style="color: white; display: block; margin-bottom: 8px; font-weight: 500;">Website URL</label>
+                                <input type="text" id="new-sitemap-url" placeholder="https://jouwwebsite.nl" 
+                                       style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 16px;">
+                                <small style="color: rgba(255,255,255,0.8); display: block; margin-top: 5px;">
+                                    💡 De tool zoekt automatisch naar sitemap.xml, wp-sitemap.xml, etc.
                                 </small>
                             </div>
-                            
-                            <button class="btn btn-primary" onclick="addWordPressSite()">
-                                🔗 Website Toevoegen
+                            <button class="btn btn-primary" onclick="fetchAndSaveSitemap()" 
+                                    style="background: white; color: #667eea; padding: 12px 30px; font-weight: 600; border: none; height: fit-content;">
+                                🔍 Sitemap Ophalen & Opslaan
                             </button>
-                        </div>
-                        
-                        <!-- Site Info (na toevoegen) -->
-                        <div id="site-info" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <h3 style="margin-bottom: 15px; color: var(--dark-blue);">✅ Site Toegevoegd</h3>
-                            
-                            <p><strong>Site:</strong> <span id="site-name"></span></p>
-                            <p><strong>URL:</strong> <span id="site-url"></span></p>
-                            <p><strong>Beschrijving:</strong> <span id="site-description"></span></p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0;">
-                                <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                    <div style="font-size: 28px; font-weight: bold; color: var(--light-blue);" id="posts-count">0</div>
-                                    <div style="font-size: 14px; color: #666;">Posts</div>
-                                </div>
-                                <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                    <div style="font-size: 28px; font-weight: bold; color: var(--light-blue);" id="pages-count">0</div>
-                                    <div style="font-size: 14px; color: #666;">Pages</div>
-                                </div>
-                                <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                    <div style="font-size: 28px; font-weight: bold; color: var(--light-blue);" id="categories-count">0</div>
-                                    <div style="font-size: 14px; color: #666;">Categorieën</div>
-                                </div>
-                                <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                    <div style="font-size: 28px; font-weight: bold; color: var(--light-blue);" id="tags-count">0</div>
-                                    <div style="font-size: 14px; color: #666;">Tags</div>
-                                </div>
-                            </div>
-                            
-                            <h4 style="margin-top: 20px; margin-bottom: 10px;">📂 Categorieën</h4>
-                            <div id="categories-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                            
-                            <h4 style="margin-top: 20px; margin-bottom: 10px;">🏷️ Tags</h4>
-                            <div id="tags-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                            
-                            <h4 style="margin-top: 20px; margin-bottom: 10px;">📝 Recente Posts</h4>
-                            <div id="recent-posts-list"></div>
-                        </div>
-                        
-                        <!-- Oude sitemap scraper (optioneel behouden) -->
-                        <div style="background: white; padding: 20px; border-radius: 8px;">
-                            <h3 style="margin-bottom: 15px; color: var(--dark-blue);">Of: Sitemap Scrapen (Zonder Authenticatie)</h3>
-                            <div class="form-group">
-                                <label>WordPress Site URL</label>
-                                <input type="text" id="scraper-site-url" placeholder="https://jouwwebsite.nl">
-                                <small style="color: #666; display: block; margin-top: 5px;">De tool zoekt automatisch naar sitemap.xml</small>
-                            </div>
-                            <button class="btn btn-primary" onclick="scrapeWebsite()">🔍 Sitemap Scrapen</button>
                         </div>
                     </div>
                     
-                    <div class="editor-area">
-                        <div id="scraper-output" style="padding: 20px;"></div>
+                    <!-- Saved Sitemaps Grid -->
+                    <div id="saved-sitemaps-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="color: var(--dark-blue); margin: 0;">📚 Opgeslagen Sitemaps</h3>
+                            <button class="btn btn-secondary" onclick="refreshAllSitemaps()" style="padding: 8px 20px;">
+                                🔄 Alles Verversen
+                            </button>
+                        </div>
+                        
+                        <div id="sitemaps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+                            <!-- Sitemap cards will be inserted here -->
+                        </div>
+                        
+                        <div id="no-sitemaps-message" style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 12px; display: none;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+                            <h3 style="color: #666; margin-bottom: 10px;">Geen sitemaps opgeslagen</h3>
+                            <p style="color: #999;">Voeg je eerste website toe om te beginnen!</p>
+                        </div>
                     </div>
+                    
                 </div>
             </div>
             
@@ -1880,6 +1841,282 @@
                 output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
             }
         }
+
+        // ============================================================================
+        // SITEMAP MANAGEMENT FUNCTIONS
+        // ============================================================================
+        
+        // Load all saved sitemaps on page load
+        async function loadSavedSitemaps() {
+            try {
+                const response = await fetch('/api/get-sitemaps');
+                const data = await response.json();
+                
+                if (data.success && data.websites) {
+                    displaySitemaps(data.websites);
+                }
+            } catch (error) {
+                console.error('Error loading sitemaps:', error);
+            }
+        }
+        
+        // Display sitemaps in grid
+        function displaySitemaps(websites) {
+            const grid = document.getElementById('sitemaps-grid');
+            const noMessage = document.getElementById('no-sitemaps-message');
+            
+            if (!websites || websites.length === 0) {
+                grid.innerHTML = '';
+                noMessage.style.display = 'block';
+                return;
+            }
+            
+            noMessage.style.display = 'none';
+            
+            grid.innerHTML = websites.map(site => {
+                const lastUpdated = new Date(site.last_updated).toLocaleString('nl-NL', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const statusColor = site.status === 'success' ? '#10b981' : '#ef4444';
+                const statusIcon = site.status === 'success' ? '✅' : '❌';
+                
+                return `
+                    <div class="sitemap-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 5px 0; color: var(--dark-blue); font-size: 18px;">
+                                    🌐 ${extractDomain(site.website_url)}
+                                </h4>
+                                <a href="${site.website_url}" target="_blank" style="color: #666; font-size: 14px; text-decoration: none;">
+                                    ${site.website_url}
+                                </a>
+                            </div>
+                            <div style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                ${statusIcon} ${site.status}
+                            </div>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                            <div style="font-size: 36px; font-weight: bold; color: white;">${site.total_count}</div>
+                            <div style="color: rgba(255,255,255,0.9); font-size: 14px;">URLs in sitemap</div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; font-size: 13px; color: #666;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 3px;">Laatste Update</div>
+                                <div>🕐 ${lastUpdated}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="border-top: 1px solid #e0e0e0; padding-top: 15px; margin-top: 15px;">
+                            <button onclick="toggleUrlList('${site.id}')" class="btn btn-secondary" style="width: 100%; margin-bottom: 8px; padding: 8px;">
+                                📋 Bekijk URLs (${site.total_count})
+                            </button>
+                            <div id="url-list-${site.id}" style="display: none; max-height: 200px; overflow-y: auto; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                                ${site.urls.slice(0, 50).map(url => `
+                                    <div style="padding: 5px 0; border-bottom: 1px solid #e0e0e0; font-size: 13px;">
+                                        <a href="${url.url}" target="_blank" style="color: var(--light-blue); text-decoration: none;">
+                                            ${url.title || url.url}
+                                        </a>
+                                    </div>
+                                `).join('')}
+                                ${site.total_count > 50 ? `<div style="padding: 10px 0; text-align: center; color: #666;">... en ${site.total_count - 50} meer</div>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                            <button onclick="refreshSingleSitemap('${site.id}')" class="btn btn-primary" style="padding: 8px; font-size: 13px;">
+                                🔄 Verversen
+                            </button>
+                            <button onclick="deleteSitemap('${site.id}')" class="btn btn-danger" style="padding: 8px; font-size: 13px; background: #ef4444;">
+                                🗑️ Verwijderen
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add hover effect
+            document.querySelectorAll('.sitemap-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                });
+            });
+        }
+        
+        // Extract domain from URL
+        function extractDomain(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.hostname.replace('www.', '');
+            } catch {
+                return url;
+            }
+        }
+        
+        // Toggle URL list visibility
+        function toggleUrlList(siteId) {
+            const urlList = document.getElementById(`url-list-${siteId}`);
+            if (urlList.style.display === 'none') {
+                urlList.style.display = 'block';
+            } else {
+                urlList.style.display = 'none';
+            }
+        }
+        
+        // Fetch and save new sitemap
+        async function fetchAndSaveSitemap() {
+            const urlInput = document.getElementById('new-sitemap-url');
+            const websiteUrl = urlInput.value.trim();
+            
+            if (!websiteUrl) {
+                alert('❌ Vul een website URL in');
+                return;
+            }
+            
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Bezig...';
+            button.disabled = true;
+            
+            try {
+                // First, fetch the sitemap
+                const scrapeResponse = await fetch('/api/scrape-website', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_url: websiteUrl })
+                });
+                
+                const scrapeData = await scrapeResponse.json();
+                
+                if (!scrapeData.success) {
+                    alert('❌ Fout bij ophalen sitemap: ' + (scrapeData.error || 'Onbekende fout'));
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    return;
+                }
+                
+                // Now save it
+                const saveResponse = await fetch('/api/save-sitemap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        website_url: websiteUrl,
+                        sitemap_url: scrapeData.site_data.url,
+                        urls: scrapeData.pages
+                    })
+                });
+                
+                const saveData = await saveResponse.json();
+                
+                if (saveData.success) {
+                    alert(`✅ Sitemap opgeslagen! ${saveData.total_count} URLs gevonden.`);
+                    urlInput.value = '';
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout bij opslaan: ' + (saveData.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Refresh single sitemap
+        async function refreshSingleSitemap(siteId) {
+            if (!confirm('Sitemap verversen? Dit kan even duren.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/refresh-sitemap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_id: siteId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}\n${data.total_count} URLs gevonden.`);
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            }
+        }
+        
+        // Refresh all sitemaps
+        async function refreshAllSitemaps() {
+            if (!confirm('Alle sitemaps verversen? Dit kan even duren.')) {
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Bezig...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/refresh-all-sitemaps', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.total_refreshed} sitemaps succesvol ververst!`);
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout bij verversen');
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Delete sitemap
+        async function deleteSitemap(siteId) {
+            if (!confirm('Weet je zeker dat je deze sitemap wilt verwijderen?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete-sitemap/${siteId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Sitemap verwijderd');
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            }
+        }
         
         // Automatic Keyword Research
         async function startAutomaticResearch() {
@@ -2170,6 +2407,9 @@
             switchSection('dashboard');
             loadDashboardData();
             
+            // Load saved sitemaps
+            loadSavedSitemaps();
+            
             // Refresh dashboard every 5 minutes
             setInterval(loadDashboardData, 5 * 60 * 1000);
         });
@@ -2180,6 +2420,8 @@
             originalSwitchSection(sectionId, event);
             if (sectionId === 'dashboard') {
                 setTimeout(loadDashboardData, 100);
+            } else if (sectionId === 'website-beheer') {
+                setTimeout(loadSavedSitemaps, 100);
             }
         };
 

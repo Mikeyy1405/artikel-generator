@@ -46,6 +46,7 @@ except ImportError:
 
 # Import backend utilities
 from backend_utils import find_sitemap, extract_internal_links, detect_affiliate_links, fetch_sitemap_urls
+from sitemap_manager import save_sitemap, get_all_sitemaps, get_sitemap_by_id, refresh_sitemap, delete_sitemap, refresh_all_sitemaps
 from keyword_research_utils import (
     analyze_site_content, find_competitors, scrape_competitor,
     extract_topics, extract_keywords, identify_gaps, generate_keywords_from_gaps
@@ -2079,6 +2080,99 @@ def api_scrape_website():
         print(f"❌ Error in website scraping: {str(e)}")
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ============================================================================
+# SITEMAP MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.route('/api/save-sitemap', methods=['POST'])
+def api_save_sitemap():
+    """Save sitemap data to storage"""
+    try:
+        data = request.get_json()
+        website_url = data.get('website_url', '').strip()
+        sitemap_url = data.get('sitemap_url', '').strip()
+        urls = data.get('urls', [])
+        
+        if not website_url or not sitemap_url or not urls:
+            return jsonify({
+                'success': False,
+                'error': 'Website URL, sitemap URL en URLs zijn verplicht'
+            }), 400
+        
+        result = save_sitemap(website_url, sitemap_url, urls)
+        return jsonify(result)
+    
+    except Exception as e:
+        print(f"❌ Error saving sitemap: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/get-sitemaps', methods=['GET'])
+def api_get_sitemaps():
+    """Get all saved sitemaps"""
+    try:
+        result = get_all_sitemaps()
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error getting sitemaps: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/get-sitemap/<site_id>', methods=['GET'])
+def api_get_sitemap(site_id):
+    """Get a specific sitemap by ID"""
+    try:
+        result = get_sitemap_by_id(site_id)
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error getting sitemap: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/refresh-sitemap', methods=['POST'])
+def api_refresh_sitemap():
+    """Refresh a sitemap by fetching new URLs"""
+    try:
+        data = request.get_json()
+        site_id = data.get('site_id', '').strip()
+        
+        if not site_id:
+            return jsonify({
+                'success': False,
+                'error': 'Site ID is verplicht'
+            }), 400
+        
+        result = refresh_sitemap(site_id)
+        return jsonify(result)
+    
+    except Exception as e:
+        print(f"❌ Error refreshing sitemap: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/delete-sitemap/<site_id>', methods=['DELETE'])
+def api_delete_sitemap(site_id):
+    """Delete a sitemap"""
+    try:
+        result = delete_sitemap(site_id)
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error deleting sitemap: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/refresh-all-sitemaps', methods=['POST'])
+def api_refresh_all_sitemaps():
+    """Refresh all saved sitemaps (used by scheduled task)"""
+    try:
+        result = refresh_all_sitemaps()
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error refreshing all sitemaps: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 # NEW: WordPress REST API Integration Endpoint
 @app.route('/api/add-wordpress-site', methods=['POST'])
