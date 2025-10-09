@@ -1,10 +1,19 @@
 
 #!/usr/bin/env python3
 """
-WritgoAI Content Generator v18
+WritgoAI Content Generator v19
 Multi-feature content creation platform with WordPress integration
 Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
 NEW: Perplexity research, WordPress sitemap integration, improved word count accuracy
+
+RECENT FIXES (v19):
+- Removed overly restrictive "voordelen" forbidden phrases check
+- Increased Perplexity API timeout from 30s to 60s
+- Increased Gunicorn worker timeout from 300s to 600s
+- Added comprehensive error handling with JSON responses (no more HTML errors)
+- Added detailed logging for all API endpoints
+- Added global exception handler to ensure JSON responses
+- Improved error messages with traceback details
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -51,9 +60,27 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Handle internal server errors"""
+    import traceback
+    error_details = str(error)
+    print(f"❌ Internal Server Error: {error_details}")
+    print(traceback.format_exc())
     return jsonify({
         "success": False,
-        "error": "Internal server error"
+        "error": "Internal server error",
+        "details": error_details
+    }), 500
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    """Handle all unhandled exceptions"""
+    import traceback
+    error_details = str(error)
+    print(f"❌ Unhandled Exception: {error_details}")
+    print(traceback.format_exc())
+    return jsonify({
+        "success": False,
+        "error": "An unexpected error occurred",
+        "details": error_details
     }), 500
 
 # Ensure all responses have correct Content-Type
@@ -262,12 +289,8 @@ if PERPLEXITY_API_KEY:
 else:
     print("⚠️  Perplexity API key not found")
 
-# FORBIDDEN PHRASES - Comprehensive list with variations
+# FORBIDDEN PHRASES - Relaxed list (removed "voordelen" as it's too restrictive)
 FORBIDDEN_PHRASES = [
-    "voordelen van",
-    "voordelen",
-    "voordeel van",
-    "voordeel",
     "dat is best een opluchting, toch?",
     "dat is best een opluchting toch",
     "dat is best een opluchting"
@@ -385,10 +408,6 @@ HEADINGS - ZEER BELANGRIJK (SENTENCE CASE):
 ✅ Laatste H2 moet zijn: "H2: Conclusie" (met hoofdletter C)
 
 ⚠️ VERBODEN WOORDEN EN ZINNEN - ZEER STRENG:
-❌ ABSOLUUT VERBODEN: "voordelen" in ELKE vorm
-❌ ABSOLUUT VERBODEN: "voordeel" in ELKE vorm
-❌ ABSOLUUT VERBODEN: "voordelen van"
-❌ ABSOLUUT VERBODEN: "voordeel van"
 ❌ ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
 ❌ ABSOLUUT VERBODEN: "Dat is best een opluchting"
 
@@ -450,7 +469,6 @@ TECHNISCHE EISEN:
 {extra_context}
 
 Schrijf nu het artikel. Begin direct met de H1 titel: "H1: {onderwerp}".
-ONTHOUD: ABSOLUUT GEEN "voordelen" of "voordeel" gebruiken!
 ONTHOUD: Headings in Sentence case (alleen eerste letter hoofdletter)!"""
 
 # General AI writer prompt - ENHANCED with extra elements and word count enforcement
@@ -482,10 +500,6 @@ SCHRIJFSTIJL:
 ✅ Concrete voorbeelden
 
 ⚠️ VERBODEN WOORDEN EN ZINNEN - ZEER STRENG:
-❌ ABSOLUUT VERBODEN: "voordelen" in ELKE vorm
-❌ ABSOLUUT VERBODEN: "voordeel" in ELKE vorm
-❌ ABSOLUUT VERBODEN: "voordelen van"
-❌ ABSOLUUT VERBODEN: "voordeel van"
 ❌ ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
 ❌ ABSOLUUT VERBODEN: "Dat is best een opluchting"
 
@@ -728,7 +742,7 @@ Schrijf in het Nederlands en wees specifiek en gedetailleerd."""
                 'return_citations': True,
                 'search_recency_filter': 'month'
             },
-            timeout=30
+            timeout=60  # Increased from 30 to 60 seconds
         )
         
         if response.status_code != 200:
@@ -816,7 +830,7 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
         extra_context=extra_context
     )
     
-    system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. Schrijf natuurlijk en gevarieerd. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."
     
     for attempt in range(max_retries):
         try:
@@ -844,12 +858,7 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
                     continue
                 else:
                     # Last attempt - manually remove forbidden words
-                    print("⚠️ Max retries reached. Manually removing forbidden words...")
-                    article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', article, flags=re.IGNORECASE)
-                    article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', article, flags=re.IGNORECASE)
-                    article = re.sub(r'\bvoordelen\b', 'pluspunten', article, flags=re.IGNORECASE)
-                    article = re.sub(r'\bvoordeel\b', 'pluspunt', article, flags=re.IGNORECASE)
-                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
+                    print("⚠️ Max retries reached. Manually removing forbidden words...")                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
             
             article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
             article = format_article_html(article, anchor1, url1, anchor2, url2)
@@ -901,7 +910,6 @@ BELANGRIJK:
 - Voeg GEEN nieuwe secties toe
 - Breid bestaande alinea's uit met relevante informatie
 - Blijf on-topic en relevant
-- Gebruik NOOIT "voordelen" of "voordeel"
 - Behoud de HTML formatting
 
 Huidig artikel:
@@ -1067,7 +1075,7 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
         extra_context=extra_context
     )
     
-    system_prompt = "Je bent een expert Nederlandse contentschrijver. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm. Gebruik alternatieven zoals: pluspunten, sterke punten, wat het biedt, de meerwaarde. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. Schrijf natuurlijk en gevarieerd. BELANGRIJK: Headings in Sentence case (alleen eerste letter hoofdletter)."
     
     # Only use GPT-4o
     model = "gpt-4o"
@@ -1099,12 +1107,7 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                     continue
                 else:
                     # Last attempt - manually remove forbidden words
-                    print("⚠️ Max retries reached. Manually removing forbidden words...")
-                    article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', article, flags=re.IGNORECASE)
-                    article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', article, flags=re.IGNORECASE)
-                    article = re.sub(r'\bvoordelen\b', 'pluspunten', article, flags=re.IGNORECASE)
-                    article = re.sub(r'\bvoordeel\b', 'pluspunt', article, flags=re.IGNORECASE)
-                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
+                    print("⚠️ Max retries reached. Manually removing forbidden words...")                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
             
             article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
             
@@ -1240,13 +1243,12 @@ GEBRUIKER VRAAGT:
 BELANGRIJKE REGELS:
 ✅ Behoud de HTML structuur en formatting
 ✅ Behoud bestaande anchor links: {anchors}
-✅ NOOIT "voordelen" of "voordeel" gebruiken
 ✅ Headings in Sentence case (alleen eerste letter hoofdletter)
 ✅ Gebruik "je" en "jij" (NOOIT "u")
 
 Geef het VOLLEDIGE aangepaste artikel terug in HTML formaat."""
 
-    system_prompt = "Je bent een expert Nederlandse content editor. ABSOLUUT VERBODEN: 'voordelen', 'voordeel' in ELKE vorm."
+    system_prompt = "Je bent een expert Nederlandse content editor. Schrijf natuurlijk en gevarieerd."
     
     for attempt in range(max_retries):
         try:
@@ -1274,12 +1276,7 @@ Geef het VOLLEDIGE aangepaste artikel terug in HTML formaat."""
                     prompt += f"\n\n⚠️ KRITIEK: Je gebruikte verboden woorden: {', '.join(found_phrases)}. Herschrijf ZONDER deze woorden!"
                     continue
                 else:
-                    # Manually remove forbidden words
-                    refined_article = re.sub(r'\bvoordelen\s+van\b', 'pluspunten van', refined_article, flags=re.IGNORECASE)
-                    refined_article = re.sub(r'\bvoordeel\s+van\b', 'pluspunt van', refined_article, flags=re.IGNORECASE)
-                    refined_article = re.sub(r'\bvoordelen\b', 'pluspunten', refined_article, flags=re.IGNORECASE)
-                    refined_article = re.sub(r'\bvoordeel\b', 'pluspunt', refined_article, flags=re.IGNORECASE)
-            
+                    # Manually remove forbidden words            
             print(f"✅ Article refined successfully (attempt {attempt + 1})")
             return refined_article
             
@@ -1572,6 +1569,7 @@ def index():
 def api_generate_topic():
     """Generate article topic"""
     try:
+        print("📝 Starting topic generation...")
         data = request.json
         anchor1 = data.get('anchor1', '').strip()
         anchor2 = data.get('anchor2', '').strip()
@@ -1579,18 +1577,23 @@ def api_generate_topic():
         model = data.get('model', 'gpt-4o')
         
         if not anchor1 or not anchor2:
-            return jsonify({"error": "Both anchor texts are required"}), 400
+            return jsonify({"success": False, "error": "Both anchor texts are required"}), 400
         
         topic = generate_topic(anchor1, anchor2, extra, model)
+        print(f"✅ Topic generated successfully")
         return jsonify({"success": True, "topic": topic})
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(f"❌ Error in topic generation: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/generate-article', methods=['POST'])
 def api_generate_article():
     """Generate linkbuilding article"""
     try:
+        print("📝 Starting linkbuilding article generation...")
         data = request.json
         onderwerp = data.get('onderwerp', '').strip()
         anchor1 = data.get('anchor1', '').strip()
@@ -1601,7 +1604,7 @@ def api_generate_article():
         model = data.get('model', 'gpt-4o')
         
         if not all([onderwerp, anchor1, url1, anchor2, url2]):
-            return jsonify({"error": "All fields are required"}), 400
+            return jsonify({"success": False, "error": "All fields are required"}), 400
         
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
@@ -1609,6 +1612,7 @@ def api_generate_article():
         text_content = re.sub(r'<[^>]+>', '', article)
         word_count = len(text_content.split())
         
+        print(f"✅ Linkbuilding article generated successfully ({word_count} words)")
         return jsonify({
             "success": True,
             "article": article,
@@ -1616,12 +1620,16 @@ def api_generate_article():
         })
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(f"❌ Error in linkbuilding article generation: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/generate-general-article', methods=['POST'])
 def api_generate_general_article():
     """Generate general article with optional extra elements"""
     try:
+        print("📝 Starting general article generation...")
         data = request.json
         onderwerp = data.get('onderwerp', '').strip()
         word_count = int(data.get('word_count', 500))
@@ -1642,8 +1650,9 @@ def api_generate_general_article():
         }
         
         if not onderwerp:
-            return jsonify({"error": "Topic is required"}), 400
+            return jsonify({"success": False, "error": "Topic is required"}), 400
         
+        print(f"📊 Target word count: {word_count}, Research: {use_research}")
         article = generate_general_article(
             onderwerp, 
             word_count, 
@@ -1658,6 +1667,7 @@ def api_generate_general_article():
         text_content = re.sub(r'<[^>]+>', '', article)
         actual_word_count = len(text_content.split())
         
+        print(f"✅ General article generated successfully ({actual_word_count} words)")
         return jsonify({
             "success": True,
             "article": article,
@@ -1665,12 +1675,16 @@ def api_generate_general_article():
         })
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(f"❌ Error in general article generation: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/refine-article', methods=['POST'])
 def api_refine_article():
     """Refine article based on user request"""
     try:
+        print("✏️ Starting article refinement...")
         data = request.json
         article = data.get('article', '').strip()
         topic = data.get('topic', '').strip()
@@ -1679,7 +1693,7 @@ def api_refine_article():
         model = data.get('model', 'gpt-4o')
         
         if not all([article, user_request]):
-            return jsonify({"error": "Article and request are required"}), 400
+            return jsonify({"success": False, "error": "Article and request are required"}), 400
         
         refined_article = refine_article(article, topic, anchors, user_request, model=model)
         
@@ -1687,6 +1701,7 @@ def api_refine_article():
         text_content = re.sub(r'<[^>]+>', '', refined_article)
         word_count = len(text_content.split())
         
+        print(f"✅ Article refined successfully ({word_count} words)")
         return jsonify({
             "success": True,
             "article": refined_article,
@@ -1694,7 +1709,10 @@ def api_refine_article():
         })
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(f"❌ Error in article refinement: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/search-pixabay-images', methods=['POST'])
 def api_search_pixabay_images():
