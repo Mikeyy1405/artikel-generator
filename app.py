@@ -361,10 +361,13 @@ def count_words(text):
     words = text_only.split()
     return len(words)
 
-def enforce_word_count(article, target_word_count, min_percentage=0.90):
+def enforce_word_count(article, target_word_count, min_percentage=0.95):
     """
     Validate that article meets minimum word count requirement
     Returns (is_valid, actual_count, message)
+    
+    Default min_percentage is 0.95 (95%) to ensure articles are close to target length.
+    For 1500 words target, minimum is 1425 words.
     """
     actual_count = count_words(article)
     min_required = int(target_word_count * min_percentage)
@@ -374,7 +377,7 @@ def enforce_word_count(article, target_word_count, min_percentage=0.90):
     if is_valid:
         message = f"✅ Word count OK: {actual_count}/{target_word_count} words ({actual_count/target_word_count*100:.1f}%)"
     else:
-        message = f"❌ Word count too low: {actual_count}/{target_word_count} words (minimum {min_required} required)"
+        message = f"❌ Word count too low: {actual_count}/{target_word_count} words (minimum {min_required} required, {min_percentage*100:.0f}% threshold)"
     
     return is_valid, actual_count, message
 
@@ -753,7 +756,7 @@ Schrijf in het Nederlands en wees specifiek en gedetailleerd."""
                 'Content-Type': 'application/json'
             },
             json={
-                'model': 'llama-3.1-sonar-large-128k-online',
+                'model': 'sonar-pro',
                 'messages': [
                     {
                         'role': 'system',
