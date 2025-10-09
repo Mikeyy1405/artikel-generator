@@ -2083,6 +2083,157 @@ def api_keyword_research():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
+# NEW: WordPress REST API Integration Endpoint
+@app.route('/api/add-wordpress-site', methods=['POST'])
+def api_add_wordpress_site():
+    """Add WordPress site with REST API authentication"""
+    try:
+        # Get credentials
+        wp_url = request.json.get('wp_url', '').strip()
+        username = request.json.get('username', '').strip()
+        app_password = request.json.get('app_password', '').strip()
+        
+        if not wp_url or not username or not app_password:
+            return jsonify({
+                'success': False,
+                'error': 'Alle velden zijn verplicht'
+            }), 400
+        
+        # Validate URL
+        if not wp_url.startswith('http'):
+            wp_url = 'https://' + wp_url
+        
+        # WordPress REST API base URL
+        api_base = f"{wp_url}/wp-json/wp/v2"
+        
+        # Basic Auth
+        auth = (username, app_password)
+        
+        print(f"🔗 Connecting to WordPress site: {wp_url}")
+        
+        # 1. Test connection & get site info
+        site_response = requests.get(f"{wp_url}/wp-json", auth=auth, timeout=30)
+        
+        if site_response.status_code == 401:
+            return jsonify({
+                'success': False,
+                'error': 'Authenticatie mislukt. Controleer je username en application password.'
+            }), 401
+        
+        if site_response.status_code != 200:
+            return jsonify({
+                'success': False,
+                'error': f'Kan geen verbinding maken met WordPress site (status: {site_response.status_code})'
+            }), 400
+        
+        site_info = site_response.json()
+        print(f"✅ Connected to: {site_info.get('name', 'Unknown')}")
+        
+        # 2. Get posts
+        print("📝 Fetching posts...")
+        posts_response = requests.get(f"{api_base}/posts", auth=auth, params={'per_page': 100}, timeout=30)
+        posts = posts_response.json() if posts_response.status_code == 200 else []
+        print(f"✅ Found {len(posts)} posts")
+        
+        # 3. Get pages
+        print("📄 Fetching pages...")
+        pages_response = requests.get(f"{api_base}/pages", auth=auth, params={'per_page': 100}, timeout=30)
+        pages = pages_response.json() if pages_response.status_code == 200 else []
+        print(f"✅ Found {len(pages)} pages")
+        
+        # 4. Get categories
+        print("📂 Fetching categories...")
+        categories_response = requests.get(f"{api_base}/categories", auth=auth, params={'per_page': 100}, timeout=30)
+        categories = categories_response.json() if categories_response.status_code == 200 else []
+        print(f"✅ Found {len(categories)} categories")
+        
+        # 5. Get tags
+        print("🏷️ Fetching tags...")
+        tags_response = requests.get(f"{api_base}/tags", auth=auth, params={'per_page': 100}, timeout=30)
+        tags = tags_response.json() if tags_response.status_code == 200 else []
+        print(f"✅ Found {len(tags)} tags")
+        
+        # Extract data
+        site_data = {
+            'url': wp_url,
+            'name': site_info.get('name', 'Unknown'),
+            'description': site_info.get('description', ''),
+            'posts_count': len(posts),
+            'pages_count': len(pages),
+            'categories': [
+                {
+                    'id': c['id'], 
+                    'name': c['name'], 
+                    'count': c.get('count', 0)
+                } 
+                for c in categories if isinstance(c, dict)
+            ],
+            'tags': [
+                {
+                    'id': t['id'], 
+                    'name': t['name'], 
+                    'count': t.get('count', 0)
+                } 
+                for t in tags if isinstance(t, dict)
+            ],
+            'recent_posts': [
+                {
+                    'id': p['id'],
+                    'title': p['title']['rendered'] if isinstance(p.get('title'), dict) else p.get('title', ''),
+                    'link': p.get('link', ''),
+                    'date': p.get('date', '')
+                }
+                for p in posts[:10] if isinstance(p, dict)
+            ],
+            'all_posts': [
+                {
+                    'id': p['id'],
+                    'title': p['title']['rendered'] if isinstance(p.get('title'), dict) else p.get('title', ''),
+                    'link': p.get('link', '')
+                }
+                for p in posts if isinstance(p, dict)
+            ],
+            'all_pages': [
+                {
+                    'id': p['id'],
+                    'title': p['title']['rendered'] if isinstance(p.get('title'), dict) else p.get('title', ''),
+                    'link': p.get('link', '')
+                }
+                for p in pages if isinstance(p, dict)
+            ]
+        }
+        
+        print(f"✅ WordPress site data collected successfully")
+        
+        return jsonify({
+            'success': True,
+            'site_data': site_data,
+            'credentials': {
+                'wp_url': wp_url,
+                'username': username,
+                'app_password': app_password
+            }
+        })
+        
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'success': False,
+            'error': 'Timeout: WordPress site reageert niet binnen 30 seconden'
+        }), 408
+    except requests.exceptions.ConnectionError:
+        return jsonify({
+            'success': False,
+            'error': 'Kan geen verbinding maken met WordPress site. Controleer de URL.'
+        }), 400
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in add_wordpress_site: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': f'Onverwachte fout: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     print("🚀 Starting WritgoAI Content Generator v21...")
     print("📍 Server running on http://localhost:5000")
