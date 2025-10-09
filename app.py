@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 WritgoAI Content Generator v21
@@ -14,6 +15,7 @@ NEW IN V21:
 - Maximum 1 blank line between paragraphs
 - WordPress sitemap integration
 - Improved Pixabay keyword generation (more relevant images)
+- FIXED: Pixabay API endpoints for images and videos
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -1312,38 +1314,51 @@ def translate_to_english(text):
         print(f"⚠️  Translation failed for '{text}': {e}. Using original query.")
         return text
 
-def search_pixabay_images(query, per_page=10, image_type='photo', orientation='horizontal'):
-    """Search for images on Pixabay"""
+def search_pixabay_images(query, per_page=20, image_type='photo'):
+    """
+    Search for images on Pixabay
+    FIXED: Correct API endpoint and parameters according to Pixabay API docs
+    """
     if not PIXABAY_API_KEY:
         raise Exception("Pixabay API key not configured")
     
-    # Translate query to English
+    # Translate query to English for better results
     query = translate_to_english(query)
     
+    # Ensure per_page is within valid range (3-200)
     per_page = max(3, min(per_page, 200))
     
     try:
+        # FIXED: Correct Pixabay Images API endpoint
         url = "https://pixabay.com/api/"
         params = {
             'key': PIXABAY_API_KEY,
             'q': query,
             'per_page': per_page,
-            'lang': 'en'  # Force English for better results
+            'image_type': image_type,
+            'lang': 'en'
         }
+        
+        print(f"🔍 Pixabay Images API call: {url} with query='{query}', per_page={per_page}")
         
         response = requests.get(url, params=params, timeout=10)
         
         if response.status_code != 200:
-            print(f"Pixabay API Error: {response.status_code} - {response.text}")
+            print(f"❌ Pixabay API Error: {response.status_code} - {response.text}")
             return []
         
         try:
             data = response.json()
         except json.JSONDecodeError as e:
             print(f"❌ Pixabay JSON parsing error: {e}")
+            print(f"Response text: {response.text[:200]}")
             return []
         
-        if data.get('totalHits', 0) == 0:
+        total_hits = data.get('totalHits', 0)
+        print(f"✅ Pixabay returned {total_hits} total results")
+        
+        if total_hits == 0:
+            print(f"⚠️  No images found for query: {query}")
             return []
         
         images = []
@@ -1358,16 +1373,97 @@ def search_pixabay_images(query, per_page=10, image_type='photo', orientation='h
                 'user': hit.get('user')
             })
         
+        print(f"✅ Processed {len(images)} images from Pixabay")
         return images
         
     except requests.exceptions.Timeout:
-        print("Pixabay API Timeout")
+        print("❌ Pixabay API Timeout")
         return []
     except requests.exceptions.RequestException as e:
-        print(f"Pixabay API Request Error: {e}")
+        print(f"❌ Pixabay API Request Error: {e}")
         return []
     except Exception as e:
-        print(f"Pixabay API Exception: {e}")
+        print(f"❌ Pixabay API Exception: {e}")
+        import traceback
+        print(traceback.format_exc())
+        return []
+
+def search_pixabay_videos(query, per_page=12, video_type='all'):
+    """
+    Search for videos on Pixabay
+    FIXED: Correct API endpoint and parameters according to Pixabay API docs
+    """
+    if not PIXABAY_API_KEY:
+        raise Exception("Pixabay API key not configured")
+    
+    # Translate query to English for better results
+    query = translate_to_english(query)
+    
+    # Ensure per_page is within valid range (3-200)
+    per_page = max(3, min(per_page, 200))
+    
+    try:
+        # FIXED: Correct Pixabay Videos API endpoint
+        url = "https://pixabay.com/api/videos/"
+        params = {
+            'key': PIXABAY_API_KEY,
+            'q': query,
+            'per_page': per_page,
+            'video_type': video_type,
+            'lang': 'en'
+        }
+        
+        print(f"🔍 Pixabay Videos API call: {url} with query='{query}', per_page={per_page}")
+        
+        response = requests.get(url, params=params, timeout=10)
+        
+        if response.status_code != 200:
+            print(f"❌ Pixabay Videos API Error: {response.status_code} - {response.text}")
+            return []
+        
+        try:
+            data = response.json()
+        except json.JSONDecodeError as e:
+            print(f"❌ Pixabay Videos JSON parsing error: {e}")
+            print(f"Response text: {response.text[:200]}")
+            return []
+        
+        total_hits = data.get('totalHits', 0)
+        print(f"✅ Pixabay Videos returned {total_hits} total results")
+        
+        if total_hits == 0:
+            print(f"⚠️  No videos found for query: {query}")
+            return []
+        
+        videos = []
+        for hit in data.get('hits', []):
+            # Get the medium quality video
+            video_files = hit.get('videos', {})
+            medium_video = video_files.get('medium', {})
+            
+            videos.append({
+                'id': hit.get('id'),
+                'preview': medium_video.get('url', ''),
+                'url': hit.get('pageURL', ''),
+                'width': medium_video.get('width', 0),
+                'height': medium_video.get('height', 0),
+                'tags': hit.get('tags', ''),
+                'user': hit.get('user', '')
+            })
+        
+        print(f"✅ Processed {len(videos)} videos from Pixabay")
+        return videos
+        
+    except requests.exceptions.Timeout:
+        print("❌ Pixabay Videos API Timeout")
+        return []
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Pixabay Videos API Request Error: {e}")
+        return []
+    except Exception as e:
+        print(f"❌ Pixabay Videos API Exception: {e}")
+        import traceback
+        print(traceback.format_exc())
         return []
 
 def generate_dalle_image(prompt):
@@ -1549,10 +1645,9 @@ def api_generate_article():
         
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
-        text_content = re.sub(r'<[^>]+>', '', article)
-        word_count = len(text_content.split())
+        word_count = count_words(article)
         
-        print(f"✅ Linkbuilding article generated successfully ({word_count} words)")
+        print(f"✅ Article generated successfully - {word_count} words")
         return jsonify({
             "success": True,
             "article": article,
@@ -1571,7 +1666,6 @@ def api_generate_general_article():
     try:
         print("📝 Starting general article generation...")
         
-        # FIXED: Check if request has JSON data
         if not request.is_json:
             return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
         
@@ -1580,9 +1674,8 @@ def api_generate_general_article():
             return jsonify({"success": False, "error": "Invalid JSON data"}), 400
         
         onderwerp = data.get('onderwerp', '').strip()
-        word_count = data.get('word_count', 800)
+        word_count = data.get('word_count', 500)
         extra = data.get('extra', '').strip()
-        model = data.get('model', 'gpt-4o')
         
         # Optional elements
         elements = {
@@ -1592,12 +1685,10 @@ def api_generate_general_article():
             'include_conclusion': data.get('include_conclusion', True),
             'pixabay_images': data.get('pixabay_images', 0),
             'dalle_images': data.get('dalle_images', 0),
-            'dalle_style': data.get('dalle_style', 'realistic photo'),
             'youtube_video': data.get('youtube_video', False)
         }
         
         use_research = data.get('perplexity_research', False)
-        wordpress_site_url = data.get('wordpress_site_url', '').strip()
         sitemap_url = data.get('sitemap_url', '').strip()
         
         if not onderwerp:
@@ -1607,21 +1698,18 @@ def api_generate_general_article():
             onderwerp=onderwerp,
             word_count=word_count,
             extra=extra,
-            model=model,
             elements=elements,
             use_research=use_research,
-            wordpress_site_url=wordpress_site_url,
-            sitemap_url=sitemap_url
+            sitemap_url=sitemap_url if sitemap_url else None
         )
         
-        text_content = re.sub(r'<[^>]+>', '', article)
-        actual_word_count = len(text_content.split())
+        final_word_count = count_words(article)
         
-        print(f"✅ General article generated successfully ({actual_word_count} words)")
+        print(f"✅ General article generated successfully - {final_word_count} words")
         return jsonify({
             "success": True,
             "article": article,
-            "word_count": actual_word_count
+            "word_count": final_word_count
         })
         
     except Exception as e:
@@ -1630,37 +1718,132 @@ def api_generate_general_article():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/search-images', methods=['POST'])
+def api_search_images():
+    """
+    Search for images on Pixabay
+    FIXED: New endpoint for frontend image search
+    """
+    try:
+        print("🔍 Starting Pixabay image search...")
+        
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
+        query = data.get('query', '').strip()
+        per_page = data.get('per_page', 20)
+        
+        if not query:
+            return jsonify({"success": False, "error": "Query is required"}), 400
+        
+        images = search_pixabay_images(query, per_page=per_page)
+        
+        if not images:
+            print(f"⚠️  No images found for query: {query}")
+            return jsonify({
+                "success": True,
+                "images": [],
+                "total": 0,
+                "message": "Geen afbeeldingen gevonden"
+            })
+        
+        print(f"✅ Found {len(images)} images for query: {query}")
+        return jsonify({
+            "success": True,
+            "images": images,
+            "total": len(images)
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in image search: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/search-videos', methods=['POST'])
+def api_search_videos():
+    """
+    Search for videos on Pixabay
+    FIXED: New endpoint for frontend video search
+    """
+    try:
+        print("🔍 Starting Pixabay video search...")
+        
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
+        query = data.get('query', '').strip()
+        per_page = data.get('per_page', 12)
+        
+        if not query:
+            return jsonify({"success": False, "error": "Query is required"}), 400
+        
+        videos = search_pixabay_videos(query, per_page=per_page)
+        
+        if not videos:
+            print(f"⚠️  No videos found for query: {query}")
+            return jsonify({
+                "success": True,
+                "videos": [],
+                "total": 0,
+                "message": "Geen video's gevonden"
+            })
+        
+        print(f"✅ Found {len(videos)} videos for query: {query}")
+        return jsonify({
+            "success": True,
+            "videos": videos,
+            "total": len(videos)
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in video search: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/generate-dalle-image', methods=['POST'])
 def api_generate_dalle_image():
     """Generate image using DALL-E 3"""
     try:
-        data = request.json
+        print("🎨 Starting DALL-E image generation...")
+        
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
         prompt = data.get('prompt', '').strip()
         
         if not prompt:
             return jsonify({"success": False, "error": "Prompt is required"}), 400
         
-        print(f"🎨 API: Generating DALL-E image for prompt: {prompt[:50]}...")
-        
         result = generate_dalle_image(prompt)
         
         if result.get('success'):
-            return jsonify({
-                "success": True,
-                "image_url": result.get('image_url')
-            })
+            print(f"✅ DALL-E image generated successfully")
+            return jsonify(result)
         else:
-            return jsonify({
-                "success": False,
-                "error": result.get('error', 'Unknown error')
-            }), 500
-            
+            print(f"❌ DALL-E image generation failed: {result.get('error')}")
+            return jsonify(result), 500
+        
     except Exception as e:
         import traceback
-        print(f"❌ Error in DALL-E API endpoint: {str(e)}")
+        print(f"❌ Error in DALL-E generation: {str(e)}")
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    print("🚀 Starting WritgoAI Content Generator v21...")
+    print("📍 Server running on http://localhost:5000")
+    app.run(debug=True, host='0.0.0.0', port=5000)
