@@ -444,19 +444,107 @@
                 <p>Content Generator v21</p>
             </div>
             
+            <div class="menu-item" onclick="switchSection('website-beheer')">
+                🌐 Website Beheer
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('keyword-research')">
+                🔍 Zoekwoordonderzoek
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('content-planning')">
+                📅 Contentplanning
+            </div>
+            
             <div class="menu-item active" onclick="switchSection('content-writer')">
-                ✍️ Content Writer
+                ✍️ Content Schrijver
             </div>
+            
             <div class="menu-item" onclick="switchSection('media-library')">
-                🖼️ Media Bibliotheek
+                🖼️ Afbeeldingen & Media
             </div>
+            
             <div class="menu-item" onclick="switchSection('wordpress')">
-                🌐 WordPress
+                📤 WordPress Publicatie
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('social-media')">
+                📱 Social Media
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('saved-articles')">
+                💾 Opgeslagen Artikelen
             </div>
         </div>
         
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Website Beheer Section -->
+            <div id="website-beheer" class="section">
+                <div class="section-header">
+                    <h2>🌐 Website Beheer</h2>
+                    <p>Laad je WordPress website in om interne links en context te analyseren</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="input-panel">
+                        <div class="form-group">
+                            <label>WordPress Site URL</label>
+                            <input type="text" id="scraper-site-url" placeholder="https://jouwwebsite.nl">
+                            <small style="color: #666; display: block; margin-top: 5px;">De tool zoekt automatisch naar sitemap.xml</small>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="scrapeWebsite()">🔍 Website Inladen</button>
+                    </div>
+                    
+                    <div class="editor-area">
+                        <div id="scraper-output" style="padding: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Keyword Research Section -->
+            <div id="keyword-research" class="section">
+                <div class="section-header">
+                    <h2>🔍 Zoekwoordonderzoek</h2>
+                    <p>Ontdek gerelateerde keywords en long-tail varianten voor je content</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="input-panel">
+                        <div class="form-group">
+                            <label>Hoofd Keyword</label>
+                            <input type="text" id="research-keyword" placeholder="Bijv: yoga voor beginners">
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="researchKeyword()">🚀 Onderzoek Starten</button>
+                    </div>
+                    
+                    <div class="editor-area">
+                        <div id="keyword-output" style="padding: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Planning Section -->
+            <div id="content-planning" class="section">
+                <div class="section-header">
+                    <h2>📅 Contentplanning</h2>
+                    <p>Plan je content en beheer je redactionele kalender</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Plan je content, beheer je redactionele kalender en houd je publicatieschema bij</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Content Writer Section -->
             <div id="content-writer" class="section active">
                 <div class="section-header">
@@ -679,8 +767,46 @@
             <!-- WordPress Section (placeholder) -->
             <div id="wordpress" class="section">
                 <div class="section-header">
-                    <h2>🌐 WordPress Integratie</h2>
+                    <h2>📤 WordPress Publicatie</h2>
                     <p>WordPress functionaliteit (niet geïmplementeerd in deze versie)</p>
+                </div>
+            </div>
+            
+            <!-- Social Media Section -->
+            <div id="social-media" class="section">
+                <div class="section-header">
+                    <h2>📱 Social Media</h2>
+                    <p>Deel je content op social media platforms</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Deel automatisch je content op Facebook, Twitter, LinkedIn en meer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Articles Section -->
+            <div id="saved-articles" class="section">
+                <div class="section-header">
+                    <h2>💾 Opgeslagen Artikelen</h2>
+                    <p>Beheer je opgeslagen content</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Bewaar en beheer al je gegenereerde artikelen op één plek</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1093,6 +1219,99 @@
             navigator.clipboard.writeText(url).then(() => {
                 alert('✅ Afbeelding URL gekopieerd!');
             });
+        }
+        
+        // Website Scraper Function
+        async function scrapeWebsite() {
+            const siteUrl = document.getElementById('scraper-site-url').value.trim();
+            const output = document.getElementById('scraper-output');
+            
+            if (!siteUrl) {
+                output.innerHTML = '<div class="alert alert-error">❌ Vul een WordPress site URL in</div>';
+                return;
+            }
+            
+            output.innerHTML = '<div class="alert alert-info">🔍 Website aan het inladen...</div>';
+            
+            try {
+                const response = await fetch('/api/scrape-website', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_url: siteUrl })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ Website succesvol ingeladen!<br>
+                            <strong>${data.pages_found || 0}</strong> pagina's gevonden
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <h3>Gevonden Pagina's:</h3>
+                            <ul style="list-style: none; padding: 0;">
+                                ${(data.pages || []).slice(0, 10).map(page => `
+                                    <li style="padding: 8px; border-bottom: 1px solid #e0e0e0;">
+                                        <a href="${page.url}" target="_blank" style="color: var(--light-blue);">${page.title || page.url}</a>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            ${data.pages_found > 10 ? `<p style="color: #666; margin-top: 10px;">... en ${data.pages_found - 10} meer</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error || 'Onbekende fout'}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // Keyword Research Function
+        async function researchKeyword() {
+            const keyword = document.getElementById('research-keyword').value.trim();
+            const output = document.getElementById('keyword-output');
+            
+            if (!keyword) {
+                output.innerHTML = '<div class="alert alert-error">❌ Vul een keyword in</div>';
+                return;
+            }
+            
+            output.innerHTML = '<div class="alert alert-info">🔍 Keyword onderzoek aan het uitvoeren...</div>';
+            
+            try {
+                const response = await fetch('/api/keyword-research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword: keyword })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const keywords = data.keywords || [];
+                    output.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ Onderzoek voltooid! <strong>${keywords.length}</strong> gerelateerde keywords gevonden
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <h3>Gerelateerde Keywords:</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
+                                ${keywords.map(kw => `
+                                    <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid var(--light-blue);">
+                                        <strong>${kw}</strong>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error || 'Onbekende fout'}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
         }
     </script>
 </body>
