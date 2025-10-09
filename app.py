@@ -1,16 +1,18 @@
-
 #!/usr/bin/env python3
 """
-WritgoAI Content Generator v20
+WritgoAI Content Generator v21
 Multi-feature content creation platform with WordPress integration
 Enhanced with extra elements: tables, FAQ, bold text, Pixabay images, DALL-E images, YouTube videos
 
-NEW IN V20:
+NEW IN V21:
+- FIXED: Enforced word count with retry mechanism (minimum 90% of target)
+- FIXED: Strip markdown code blocks (```html, ```markdown, etc.)
+- FIXED: Stricter whitespace cleaning (max 1 blank line)
+- FIXED: Mandatory list/table/FAQ when requested
 - HTML output instead of markdown (proper <h2>, <h3> tags for WordPress blocks)
 - 1 image per 500 words (configurable)
 - Maximum 1 blank line between paragraphs
-- Restored checkboxes for lists, tables, FAQ, conclusion
-- WordPress sitemap integration restored
+- WordPress sitemap integration
 - Improved Pixabay keyword generation (more relevant images)
 """
 
@@ -313,6 +315,92 @@ def call_openai_with_correct_params(model, messages, temperature=0.9, max_tokens
             max_tokens=max_tokens
         )
 
+def clean_markdown_blocks(text):
+    """
+    Remove markdown code block markers from text
+    Strips ```html, ```markdown, ``` at beginning/end
+    """
+    # Remove code block markers at start
+    text = re.sub(r'^```(?:html|markdown|md)?\s*\n?', '', text, flags=re.MULTILINE)
+    
+    # Remove code block markers at end
+    text = re.sub(r'\n?```\s*$', '', text, flags=re.MULTILINE)
+    
+    # Remove any remaining standalone ``` markers
+    text = re.sub(r'^```\s*$', '', text, flags=re.MULTILINE)
+    
+    return text.strip()
+
+def normalize_whitespace(text):
+    """
+    Aggressive whitespace cleaning
+    - Max 1 blank line between elements
+    - Remove trailing/leading whitespace
+    - Consistent line breaks
+    """
+    # Remove trailing whitespace from each line
+    lines = text.split('\n')
+    lines = [line.rstrip() for line in lines]
+    
+    # Join and collapse multiple blank lines to max 1
+    text = '\n'.join(lines)
+    
+    # Replace 3+ newlines with exactly 2 (1 blank line)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    # Remove leading/trailing whitespace from entire text
+    text = text.strip()
+    
+    return text
+
+def count_words(text):
+    """Count words in text (excluding HTML tags)"""
+    # Remove HTML tags
+    text_only = re.sub(r'<[^>]+>', '', text)
+    # Count words
+    words = text_only.split()
+    return len(words)
+
+def enforce_word_count(article, target_word_count, min_percentage=0.90):
+    """
+    Validate that article meets minimum word count requirement
+    Returns (is_valid, actual_count, message)
+    """
+    actual_count = count_words(article)
+    min_required = int(target_word_count * min_percentage)
+    
+    is_valid = actual_count >= min_required
+    
+    if is_valid:
+        message = f"✅ Word count OK: {actual_count}/{target_word_count} words ({actual_count/target_word_count*100:.1f}%)"
+    else:
+        message = f"❌ Word count too low: {actual_count}/{target_word_count} words (minimum {min_required} required)"
+    
+    return is_valid, actual_count, message
+
+def enforce_options(article, elements):
+    """
+    Validate that requested options are present in article
+    Returns (is_valid, missing_elements)
+    """
+    missing = []
+    
+    if elements.get('include_lists'):
+        if not re.search(r'<ul>.*?</ul>', article, re.DOTALL):
+            missing.append('lijst')
+    
+    if elements.get('include_tables'):
+        if not re.search(r'<table>.*?</table>', article, re.DOTALL):
+            missing.append('tabel')
+    
+    if elements.get('include_faq'):
+        if not re.search(r'<h2>Veelgestelde vragen</h2>', article, re.IGNORECASE):
+            missing.append('FAQ sectie')
+    
+    is_valid = len(missing) == 0
+    
+    return is_valid, missing
+
 # Topic generation prompt
 TOPIC_GENERATION_PROMPT = """Je bent een SEO expert die perfecte artikel onderwerpen bedenkt voor linkbuilding.
 
@@ -441,7 +529,8 @@ TECHNISCHE EISEN:
 {extra_context}
 
 Schrijf nu het artikel. Begin direct met de <h1> titel: <h1>{onderwerp}</h1>.
-ONTHOUD: Gebruik ECHTE HTML tags (<h1>, <h2>, <h3>, <p>) en Sentence case voor headings!"""
+ONTHOUD: Gebruik ECHTE HTML tags (<h1>, <h2>, <h3>, <p>) en Sentence case voor headings!
+GEEN markdown code blocks - schrijf direct HTML zonder ``` markers!"""
 
 # General AI writer prompt - ENHANCED with HTML output and configurable options
 GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijver. Je schrijft natuurlijke, menselijke teksten die NIET detecteerbaar zijn als AI-gegenereerd.
@@ -449,18 +538,21 @@ GENERAL_ARTICLE_PROMPT = """Je bent een professionele Nederlandse contentschrijv
 OPDRACHT:
 Schrijf een artikel over: {onderwerp}
 
-{word_count_instruction}
-
-KRITIEK - WOORDENAANTAL:
-✅ Het artikel moet EXACT {target_word_count} woorden bevatten
+KRITIEK - WOORDENAANTAL (ZEER BELANGRIJK):
+✅ Het artikel moet MINIMAAL {min_word_count} woorden bevatten (target: {target_word_count})
 ✅ Tel de woorden terwijl je schrijft
-✅ Pas de lengte van secties aan om het exacte aantal te bereiken
+✅ Maak secties lang genoeg om het woordenaantal te halen
+✅ Voeg voldoende diepgang en details toe
 ✅ Geen intro/outro teksten - alleen het artikel zelf
-✅ Elke sectie moet voldoende diepgang hebben om het woordenaantal te halen
+✅ Als je twijfelt, schrijf MEER in plaats van minder
+✅ Elke sectie moet uitgebreid zijn met concrete voorbeelden en uitleg
+
+{sectioning_instruction}
 
 FORMATTING - ZEER BELANGRIJK:
 ✅ Gebruik ECHTE HTML tags: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <table>, <strong>
 ✅ NIET markdown (##, ###) - alleen HTML
+✅ GEEN code block markers (```html, ```, etc.) - schrijf direct HTML
 ✅ Headings in Sentence case (alleen eerste letter hoofdletter)
 ✅ Wrap alle paragrafen in <p> tags
 ✅ Maximum 1 lege regel tussen elementen
@@ -476,7 +568,8 @@ SCHRIJFSTIJL:
 ✅ Directe aanspreking
 ✅ Natuurlijk en menselijk
 ✅ Professioneel maar toegankelijk
-✅ Concrete voorbeelden
+✅ Concrete voorbeelden en details
+✅ Uitgebreide uitleg per sectie
 
 ⚠️ VERBODEN WOORDEN EN ZINNEN - ZEER STRENG:
 ❌ ABSOLUUT VERBODEN: "Dat is best een opluchting, toch?"
@@ -503,6 +596,7 @@ NIET doen:
 ❌ Geen perfecte, gepolijste zinnen
 ❌ Geen marketing-taal
 ❌ GEEN markdown (##, ###) - alleen HTML tags
+❌ GEEN code block markers (```html, ```) - direct HTML schrijven
 
 TOON:
 - Professioneel maar niet stijf
@@ -513,8 +607,11 @@ TOON:
 
 {extra_context}
 
-Schrijf nu het artikel van EXACT {target_word_count} woorden.
-ONTHOUD: Gebruik ECHTE HTML tags en GEEN markdown!"""
+Schrijf nu het artikel van MINIMAAL {min_word_count} woorden (target: {target_word_count}).
+ONTHOUD: 
+- Gebruik ECHTE HTML tags en GEEN markdown!
+- GEEN code block markers - schrijf direct HTML!
+- Maak het artikel LANG GENOEG met voldoende details!"""
 
 # WordPress sitemap functions
 def fetch_wordpress_sitemap(site_url):
@@ -753,7 +850,7 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
         extra_context=extra_context
     )
     
-    system_prompt = "Je bent een expert Nederlandse contentschrijver. Schrijf natuurlijk en gevarieerd. BELANGRIJK: Gebruik ECHTE HTML tags (<h1>, <h2>, <h3>) en Sentence case voor headings."
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. Schrijf natuurlijk en gevarieerd. BELANGRIJK: Gebruik ECHTE HTML tags (<h1>, <h2>, <h3>) en Sentence case voor headings. GEEN markdown code blocks!"
     
     for attempt in range(max_retries):
         try:
@@ -770,6 +867,9 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
                 max_tokens=2000
             )
             article = response.choices[0].message.content.strip()
+            
+            # FIXED: Strip markdown code blocks
+            article = clean_markdown_blocks(article)
             
             # Check for forbidden words
             has_forbidden, found_phrases = check_forbidden_words(article)
@@ -789,8 +889,8 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
             # Add anchor links
             article = add_anchor_links(article, anchor1, url1, anchor2, url2)
             
-            # Clean up whitespace
-            article = clean_whitespace(article)
+            # FIXED: Stricter whitespace cleaning
+            article = normalize_whitespace(article)
             
             print(f"✅ Article generated successfully (attempt {attempt + 1})")
             return article
@@ -834,18 +934,6 @@ def add_anchor_links(article, anchor1, url1, anchor2, url2):
         )
     
     return article
-
-def clean_whitespace(text):
-    """Clean up excessive whitespace - max 1 blank line"""
-    # Replace 3+ consecutive newlines with 2 newlines (1 blank line)
-    text = re.sub(r'\n{3,}', '\n\n', text)
-    
-    # Remove trailing whitespace from lines
-    lines = text.split('\n')
-    lines = [line.rstrip() for line in lines]
-    text = '\n'.join(lines)
-    
-    return text
 
 def wrap_paragraphs_in_p_tags(text):
     """Wrap plain text paragraphs in <p> tags"""
@@ -908,7 +996,7 @@ def generate_better_pixabay_keywords(topic, section_context=""):
 
 def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o", 
                             elements=None, use_research=False, wordpress_site_url=None,
-                            sitemap_url=None, max_retries=3):
+                            sitemap_url=None, max_retries=5):
     """
     Generate general article with optional extra elements
     
@@ -921,7 +1009,7 @@ def generate_general_article(onderwerp, word_count=500, extra="", model="gpt-4o"
         use_research: Whether to use Perplexity research
         wordpress_site_url: WordPress site URL for internal links
         sitemap_url: Direct sitemap URL (overrides wordpress_site_url)
-        max_retries: Max retry attempts
+        max_retries: Max retry attempts (increased to 5 for word count enforcement)
     """
     if elements is None:
         elements = {}
@@ -941,7 +1029,20 @@ Bronnen: {len(research_result.get('citations', []))} actuele bronnen geraadpleeg
 """
             print("✅ Research completed and added to context")
     
-    word_count_instruction = f"Schrijf een artikel van EXACT {word_count} woorden. Tel de woorden en zorg dat je precies op dit aantal uitkomt."
+    # FIXED: Calculate minimum word count (90% of target)
+    min_word_count = int(word_count * 0.90)
+    
+    # FIXED: Add sectioning instruction for longer articles
+    sectioning_instruction = ""
+    if word_count >= 1000:
+        num_sections = max(4, word_count // 300)
+        sectioning_instruction = f"""
+SECTIE STRUCTUUR VOOR LANG ARTIKEL:
+✅ Verdeel het artikel in minimaal {num_sections} hoofdsecties (<h2>)
+✅ Elke sectie moet minimaal 200-300 woorden bevatten
+✅ Voeg subsecties toe (<h3>) waar relevant
+✅ Zorg dat elke sectie voldoende diepgang heeft
+"""
     
     # Calculate number of images based on word count
     num_images = calculate_image_frequency(word_count)
@@ -949,31 +1050,37 @@ Bronnen: {len(research_result.get('citations', []))} actuele bronnen geraadpleeg
     # Build extra elements instruction
     extra_elements_parts = []
     
+    # FIXED: Mandatory list instruction
     if elements.get('include_lists'):
         extra_elements_parts.append("""
-LIJSTEN VEREIST:
-✅ Voeg minimaal 1-2 relevante lijsten toe in het artikel
+LIJSTEN VERPLICHT (ZEER BELANGRIJK):
+✅ Je MOET minimaal 1-2 relevante lijsten toevoegen in het artikel
 ✅ Gebruik HTML list format: <ul><li>item</li></ul>
 ✅ Lijsten moeten logisch passen in de context
-✅ Gebruik voor opsommingen, stappen, tips, etc.""")
+✅ Gebruik voor opsommingen, stappen, tips, voordelen, etc.
+✅ VERPLICHT: Artikel wordt afgekeurd als er geen lijst in zit!""")
     
+    # FIXED: Mandatory table instruction
     if elements.get('include_tables'):
         extra_elements_parts.append("""
-TABEL VEREIST:
-✅ Voeg 1 relevante tabel toe in het artikel
+TABEL VERPLICHT (ZEER BELANGRIJK):
+✅ Je MOET 1 relevante tabel toevoegen in het artikel
 ✅ Gebruik HTML table format: <table><tr><th>Header</th></tr><tr><td>Data</td></tr></table>
 ✅ Minimaal 3 rijen en 2 kolommen
 ✅ Geef de tabel een duidelijke context in de tekst
-✅ Plaats de tabel op een logische plek in het artikel""")
+✅ Plaats de tabel op een logische plek in het artikel
+✅ VERPLICHT: Artikel wordt afgekeurd als er geen tabel in zit!""")
     
+    # FIXED: Mandatory FAQ instruction
     if elements.get('include_faq'):
         extra_elements_parts.append("""
-FAQ SECTIE VEREIST:
-✅ Voeg een FAQ sectie toe met minimaal 5 vragen
+FAQ SECTIE VERPLICHT (ZEER BELANGRIJK):
+✅ Je MOET een FAQ sectie toevoegen met minimaal 5 vragen
 ✅ Gebruik <h2>Veelgestelde vragen</h2>
 ✅ Elke vraag als <h3>[vraag]</h3>
 ✅ Geef kort en bondig antwoord onder elke vraag in <p> tags
-✅ Vragen moeten relevant zijn voor het onderwerp""")
+✅ Vragen moeten relevant zijn voor het onderwerp
+✅ VERPLICHT: Artikel wordt afgekeurd als er geen FAQ sectie in zit!""")
     
     if elements.get('include_conclusion', True):  # Default to True
         extra_elements_parts.append("""
@@ -1023,14 +1130,15 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
     
     prompt = GENERAL_ARTICLE_PROMPT.format(
         onderwerp=onderwerp,
-        word_count_instruction=word_count_instruction,
+        min_word_count=min_word_count,
         target_word_count=word_count,
+        sectioning_instruction=sectioning_instruction,
         extra_elements=extra_elements_instruction,
         research_context=research_context,
         extra_context=extra_context
     )
     
-    system_prompt = "Je bent een expert Nederlandse contentschrijver. Schrijf natuurlijk en gevarieerd. BELANGRIJK: Gebruik ECHTE HTML tags (<h1>, <h2>, <h3>, <p>) en Sentence case voor headings."
+    system_prompt = "Je bent een expert Nederlandse contentschrijver. Schrijf natuurlijk en gevarieerd. BELANGRIJK: Gebruik ECHTE HTML tags (<h1>, <h2>, <h3>, <p>) en Sentence case voor headings. GEEN markdown code blocks! Schrijf LANG GENOEG om het woordenaantal te halen!"
     
     model = "gpt-4o"
     
@@ -1039,6 +1147,9 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
             if not client:
                 raise Exception("OpenAI API key not configured")
             
+            # FIXED: Increase max_tokens for longer articles
+            max_tokens = min(4000, max(2000, word_count * 2))
+            
             response = call_openai_with_correct_params(
                 model=model,
                 messages=[
@@ -1046,9 +1157,12 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.9,
-                max_tokens=4000
+                max_tokens=max_tokens
             )
             article = response.choices[0].message.content.strip()
+            
+            # FIXED: Strip markdown code blocks FIRST
+            article = clean_markdown_blocks(article)
             
             # Check for forbidden words
             has_forbidden, found_phrases = check_forbidden_words(article)
@@ -1062,6 +1176,23 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                     print("⚠️ Max retries reached. Manually removing forbidden words...")
                     article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
             
+            # FIXED: Validate word count
+            is_valid_count, actual_count, count_message = enforce_word_count(article, word_count)
+            print(count_message)
+            
+            if not is_valid_count and attempt < max_retries - 1:
+                print(f"⚠️ Retrying due to insufficient word count...")
+                prompt += f"\n\n⚠️ KRITIEK: Je artikel had slechts {actual_count} woorden, maar moet minimaal {min_word_count} woorden hebben (target: {word_count}). Schrijf een LANGER artikel met meer details en uitleg per sectie!"
+                continue
+            
+            # FIXED: Validate mandatory options
+            is_valid_options, missing = enforce_options(article, elements)
+            
+            if not is_valid_options and attempt < max_retries - 1:
+                print(f"⚠️ Missing required elements: {', '.join(missing)}")
+                prompt += f"\n\n⚠️ KRITIEK: Je vergat de volgende VERPLICHTE elementen: {', '.join(missing)}. Voeg deze toe aan het artikel!"
+                continue
+            
             # Convert any remaining markdown to HTML
             article = convert_markdown_to_html(article)
             
@@ -1071,8 +1202,8 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
             # Wrap paragraphs in <p> tags if not already
             article = wrap_paragraphs_in_p_tags(article)
             
-            # Clean up whitespace
-            article = clean_whitespace(article)
+            # FIXED: Stricter whitespace cleaning
+            article = normalize_whitespace(article)
             
             # Add WordPress internal links if sitemap URL provided
             if sitemap_url:
@@ -1088,7 +1219,11 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                     article = add_internal_links_to_article(article, internal_links, num_links=3)
                     print(f"✅ Added {min(3, len(internal_links))} internal links to article")
             
+            # Final validation summary
+            final_count = count_words(article)
             print(f"✅ Article generated successfully with {model} (attempt {attempt + 1})")
+            print(f"📊 Final word count: {final_count}/{word_count} ({final_count/word_count*100:.1f}%)")
+            
             return article
             
         except Exception as e:
