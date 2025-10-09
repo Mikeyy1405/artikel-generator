@@ -1924,14 +1924,42 @@ def api_scrape_website():
         
         print(f"📍 Scraping site: {url}")
         
-        # Try sitemap.xml first
-        sitemap_url = f"{url.rstrip('/')}/sitemap.xml"
+        # Try multiple common WordPress sitemap URLs
+        base_url = url.rstrip('/')
+        sitemap_urls = [
+            f"{base_url}/sitemap.xml",
+            f"{base_url}/sitemap_index.xml",
+            f"{base_url}/wp-sitemap.xml",
+            f"{base_url}/sitemap-index.xml",
+            f"{base_url}/post-sitemap.xml"
+        ]
+        
+        response = None
+        sitemap_url = None
+        
+        # Try each sitemap URL until one works
+        for test_url in sitemap_urls:
+            try:
+                print(f"🔍 Trying: {test_url}")
+                test_response = requests.get(test_url, timeout=15, headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                })
+                if test_response.status_code == 200:
+                    response = test_response
+                    sitemap_url = test_url
+                    print(f"✅ Found sitemap at: {test_url}")
+                    break
+            except Exception as e:
+                print(f"⚠️  {test_url} not found: {str(e)}")
+                continue
+        
+        if not response:
+            return jsonify({
+                'success': False,
+                'error': 'Geen sitemap gevonden. Probeerde: sitemap.xml, sitemap_index.xml, wp-sitemap.xml'
+            }), 404
         
         try:
-            response = requests.get(sitemap_url, timeout=30, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            })
-            response.raise_for_status()
             
             # Parse sitemap
             from bs4 import BeautifulSoup
@@ -1973,10 +2001,32 @@ def api_scrape_website():
             domain = parsed.netloc
             site_name = domain.replace('www.', '').split('.')[0].title()
             
+            # Check if we found any URLs
+            if not urls:
+                print(f"⚠️  Sitemap found at {sitemap_url} but contains 0 URLs")
+                return jsonify({
+                    'success': False,
+                    'error': f'Sitemap gevonden maar bevat geen URLs. Controleer of de sitemap correct is: {sitemap_url}'
+                }), 400
+            
             print(f"✅ Successfully scraped {len(urls)} URLs from sitemap")
+            
+            # Format pages for frontend display
+            pages = []
+            for url_text in urls:
+                # Extract title from URL path
+                from urllib.parse import urlparse
+                path = urlparse(url_text).path
+                title = path.strip('/').split('/')[-1].replace('-', ' ').title() if path.strip('/') else domain
+                pages.append({
+                    'url': url_text,
+                    'title': title
+                })
             
             return jsonify({
                 'success': True,
+                'pages_found': len(urls),
+                'pages': pages,
                 'site_data': {
                     'url': url,
                     'domain': domain,
