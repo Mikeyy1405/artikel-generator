@@ -240,7 +240,7 @@ PERPLEXITY_API_KEY = api_keys['perplexity']
 # Initialize OpenAI client
 client = None
 if OPENAI_API_KEY:
-    http_client = httpx.Client(timeout=120.0, follow_redirects=True)
+    http_client = httpx.Client(timeout=600.0, follow_redirects=True)
     client = OpenAI(api_key=OPENAI_API_KEY, http_client=http_client)
     print("✅ OpenAI API key loaded")
 else:
