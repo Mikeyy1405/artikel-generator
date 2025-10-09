@@ -667,6 +667,10 @@
                 <p>Content Generator v22</p>
             </div>
             
+            <div class="menu-item active" onclick="switchSection('dashboard')">
+                📊 Dashboard
+            </div>
+            
             <div class="menu-item" onclick="switchSection('website-beheer')">
                 🌐 Website Beheer
             </div>
@@ -679,7 +683,7 @@
                 📅 Contentplanning
             </div>
             
-            <div class="menu-item active" onclick="switchSection('content-writer')">
+            <div class="menu-item" onclick="switchSection('content-writer')">
                 ✍️ Content Schrijver
             </div>
             
@@ -698,10 +702,229 @@
             <div class="menu-item" onclick="switchSection('saved-articles')">
                 💾 Opgeslagen Artikelen
             </div>
+                💾 Opgeslagen Artikelen
+            </div>
         </div>
         
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Dashboard Section (NEW - Fase 2) -->
+            <div id="dashboard" class="section active">
+                <div class="section-header">
+                    <h2>📊 Dashboard</h2>
+                    <p>Overzicht van je content en statistieken</p>
+                </div>
+                
+                <div class="section-content" style="overflow-y: auto;">
+                    <div style="padding: 30px; max-width: 1400px; margin: 0 auto;">
+                        
+                        <!-- Welcome Section -->
+                        <div style="background: linear-gradient(135deg, var(--deep-blue), var(--light-blue)); padding: 40px; border-radius: 16px; color: white; margin-bottom: 30px; box-shadow: 0 8px 24px rgba(0,174,239,0.3);">
+                            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+                                <div style="font-size: 48px;">🚀</div>
+                                <div>
+                                    <h1 style="margin: 0; font-size: 32px; font-weight: 700;">WritgoAI Dashboard</h1>
+                                    <p style="margin: 5px 0 0 0; font-size: 16px; opacity: 0.9;">Welkom terug! Hier is je content overzicht</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; opacity: 0.8;">
+                                <span>🕐</span>
+                                <span id="last-sync-time">Laatste sync: Vandaag om 14:30</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                            <!-- Posts Card -->
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <div style="font-size: 36px; margin-bottom: 10px;">📝</div>
+                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="posts-count">0</div>
+                                <div style="font-size: 14px; opacity: 0.9;">Totaal Posts</div>
+                            </div>
+
+                            <!-- Pages Card -->
+                            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(240,147,251,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <div style="font-size: 36px; margin-bottom: 10px;">📄</div>
+                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="pages-count">0</div>
+                                <div style="font-size: 14px; opacity: 0.9;">Totaal Pagina's</div>
+                            </div>
+
+                            <!-- Categories Card -->
+                            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(79,172,254,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <div style="font-size: 36px; margin-bottom: 10px;">📁</div>
+                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="categories-count">0</div>
+                                <div style="font-size: 14px; opacity: 0.9;">Categorieën</div>
+                            </div>
+
+                            <!-- Tags Card -->
+                            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(250,112,154,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <div style="font-size: 36px; margin-bottom: 10px;">🏷️</div>
+                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="tags-count">0</div>
+                                <div style="font-size: 14px; opacity: 0.9;">Tags</div>
+                            </div>
+                        </div>
+
+                        <!-- Two Column Layout -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 30px;">
+                            
+                            <!-- Recent Articles -->
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                    <h3 style="margin: 0; color: var(--dark-blue); font-size: 20px;">📰 Recente Artikelen</h3>
+                                    <button onclick="switchSection('saved-articles')" style="padding: 8px 16px; background: var(--light-blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">Bekijk Alles</button>
+                                </div>
+                                <div id="recent-articles-list">
+                                    <!-- Will be populated by JavaScript -->
+                                    <div style="text-align: center; padding: 40px; color: #999;">
+                                        <div style="font-size: 48px; margin-bottom: 10px;">📝</div>
+                                        <p>Nog geen artikelen. Start met schrijven!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Keyword Overview -->
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                                <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">🔍 Keyword Overzicht</h3>
+                                
+                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; margin-bottom: 15px; text-align: center;">
+                                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">Totaal Keywords</div>
+                                    <div style="font-size: 32px; font-weight: 700;" id="total-keywords">0</div>
+                                </div>
+
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-size: 13px; color: #666; margin-bottom: 8px;">Top Priority Keywords</div>
+                                    <div id="top-keywords-list">
+                                        <div style="padding: 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 8px; font-size: 13px;">
+                                            <span style="color: var(--light-blue); font-weight: 600;">🔥</span> yoga oefeningen beginners
+                                        </div>
+                                        <div style="padding: 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 8px; font-size: 13px;">
+                                            <span style="color: var(--orange); font-weight: 600;">⭐</span> meditatie technieken
+                                        </div>
+                                        <div style="padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 13px;">
+                                            <span style="color: #999; font-weight: 600;">📊</span> mindfulness oefeningen
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Voortgang</div>
+                                    <div style="background: #ddd; height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="background: linear-gradient(90deg, var(--light-blue), var(--deep-blue)); height: 100%; width: 35%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <div style="font-size: 11px; color: #999; margin-top: 5px;">35% van keywords gebruikt</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content Gaps & Quick Actions -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                            
+                            <!-- Content Gaps -->
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                                <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">🎯 Content Gaps</h3>
+                                
+                                <div style="border-left: 4px solid #f44336; padding: 15px; background: #ffebee; border-radius: 8px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <span style="font-weight: 600; color: #c62828; font-size: 14px;">Yoga voor rugpijn</span>
+                                        <span style="background: #f44336; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">HOOG</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">Est. zoekvolume: 2,400/maand</div>
+                                </div>
+
+                                <div style="border-left: 4px solid #ff9800; padding: 15px; background: #fff3e0; border-radius: 8px; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <span style="font-weight: 600; color: #e65100; font-size: 14px;">Meditatie voor stress</span>
+                                        <span style="background: #ff9800; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">MEDIUM</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">Est. zoekvolume: 1,800/maand</div>
+                                </div>
+
+                                <div style="border-left: 4px solid #4caf50; padding: 15px; background: #e8f5e9; border-radius: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <span style="font-weight: 600; color: #2e7d32; font-size: 14px;">Ademhalingsoefeningen</span>
+                                        <span style="background: #4caf50; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">LAAG</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">Est. zoekvolume: 900/maand</div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                                <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">⚡ Quick Actions</h3>
+                                
+                                <button onclick="switchSection('keyword-research')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, var(--deep-blue), var(--light-blue)); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                    <span style="font-size: 24px;">🔍</span>
+                                    <span>Start Automatisch Onderzoek</span>
+                                </button>
+
+                                <button onclick="switchSection('content-writer')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                    <span style="font-size: 24px;">✍️</span>
+                                    <span>Schrijf Nieuw Artikel</span>
+                                </button>
+
+                                <button onclick="switchSection('keyword-research')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                    <span style="font-size: 24px;">📊</span>
+                                    <span>Bekijk Alle Keywords</span>
+                                </button>
+
+                                <button onclick="switchSection('content-planning')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                    <span style="font-size: 24px;">📈</span>
+                                    <span>Content Planning</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Activity Timeline -->
+                        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                            <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">📅 Recente Activiteit</h3>
+                            
+                            <div style="position: relative; padding-left: 30px;">
+                                <!-- Timeline line -->
+                                <div style="position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #e0e0e0;"></div>
+                                
+                                <!-- Activity items -->
+                                <div style="position: relative; margin-bottom: 20px;">
+                                    <div style="position: absolute; left: -26px; width: 16px; height: 16px; background: var(--light-blue); border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px var(--light-blue);"></div>
+                                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px;">
+                                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 3px; font-size: 14px;">✍️ Artikel gepubliceerd</div>
+                                        <div style="font-size: 13px; color: #666;">Beste yoga oefeningen voor beginners</div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 5px;">Vandaag om 14:30</div>
+                                    </div>
+                                </div>
+
+                                <div style="position: relative; margin-bottom: 20px;">
+                                    <div style="position: absolute; left: -26px; width: 16px; height: 16px; background: var(--orange); border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px var(--orange);"></div>
+                                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px;">
+                                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 3px; font-size: 14px;">🔍 Keyword onderzoek voltooid</div>
+                                        <div style="font-size: 13px; color: #666;">45 nieuwe keywords gevonden</div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 5px;">Gisteren om 16:45</div>
+                                    </div>
+                                </div>
+
+                                <div style="position: relative; margin-bottom: 20px;">
+                                    <div style="position: absolute; left: -26px; width: 16px; height: 16px; background: #4caf50; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px #4caf50;"></div>
+                                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px;">
+                                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 3px; font-size: 14px;">🌐 Website toegevoegd</div>
+                                        <div style="font-size: 13px; color: #666;">writgo.nl succesvol verbonden</div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 5px;">2 dagen geleden</div>
+                                    </div>
+                                </div>
+
+                                <div style="position: relative;">
+                                    <div style="position: absolute; left: -26px; width: 16px; height: 16px; background: #9e9e9e; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px #9e9e9e;"></div>
+                                    <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px;">
+                                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 3px; font-size: 14px;">📊 Content gap analyse</div>
+                                        <div style="font-size: 13px; color: #666;">12 content gaps geïdentificeerd</div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 5px;">3 dagen geleden</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
             <!-- Website Beheer Section -->
             <div id="website-beheer" class="section">
                 <div class="section-header">
@@ -2036,6 +2259,115 @@
             console.log('✅ Initialization complete');
             console.log(`📊 ${sites.length} site(s) loaded`);
         });
+
+        // Dashboard Data Loading
+        function loadDashboardData() {
+            // Load WordPress stats if site is connected
+            const siteInfo = localStorage.getItem('wordpress_site_info');
+            if (siteInfo) {
+                const site = JSON.parse(siteInfo);
+                
+                // Update stats from WordPress
+                fetch('/api/wordpress/stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('posts-count').textContent = data.posts || 0;
+                            document.getElementById('pages-count').textContent = data.pages || 0;
+                            document.getElementById('categories-count').textContent = data.categories || 0;
+                            document.getElementById('tags-count').textContent = data.tags || 0;
+                        }
+                    })
+                    .catch(err => console.log('Stats loading:', err));
+            }
+            
+            // Load recent articles from localStorage
+            loadRecentArticles();
+            
+            // Update last sync time
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('last-sync-time').textContent = `Laatste sync: Vandaag om ${timeStr}`;
+        }
+        
+        function loadRecentArticles() {
+            const savedArticles = JSON.parse(localStorage.getItem('saved_articles') || '[]');
+            const recentList = document.getElementById('recent-articles-list');
+            
+            if (savedArticles.length === 0) {
+                recentList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📝</div>
+                        <p>Nog geen artikelen. Start met schrijven!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show last 5 articles
+            const recent = savedArticles.slice(-5).reverse();
+            recentList.innerHTML = recent.map(article => `
+                <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 5px; font-size: 14px;">${article.title || 'Untitled'}</div>
+                        <div style="font-size: 12px; color: #666;">
+                            <span>📅 ${new Date(article.timestamp).toLocaleDateString('nl-NL')}</span>
+                            <span style="margin-left: 15px;">📊 ${article.word_count || 0} woorden</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="viewArticle('${article.id}')" style="padding: 6px 12px; background: var(--light-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bekijk</button>
+                        <button onclick="editArticle('${article.id}')" style="padding: 6px 12px; background: var(--orange); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bewerk</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function viewArticle(id) {
+            // Switch to saved articles and show the article
+            switchSection('saved-articles');
+            // Trigger view of specific article
+            setTimeout(() => {
+                const articles = JSON.parse(localStorage.getItem('saved_articles') || '[]');
+                const article = articles.find(a => a.id === id);
+                if (article) {
+                    showArticleModal(article);
+                }
+            }, 100);
+        }
+        
+        function editArticle(id) {
+            // Load article into editor
+            const articles = JSON.parse(localStorage.getItem('saved_articles') || '[]');
+            const article = articles.find(a => a.id === id);
+            if (article) {
+                switchSection('content-writer');
+                setTimeout(() => {
+                    document.getElementById('content-topic').value = article.title || '';
+                    if (window.quill) {
+                        quill.root.innerHTML = article.content || '';
+                    }
+                }, 100);
+            }
+        }
+        
+        // Load dashboard data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            
+            // Refresh dashboard every 5 minutes
+            setInterval(loadDashboardData, 5 * 60 * 1000);
+        });
+        
+        // Refresh dashboard when switching to it
+        const originalSwitchSection = switchSection;
+        switchSection = function(sectionId) {
+            originalSwitchSection(sectionId);
+            if (sectionId === 'dashboard') {
+                setTimeout(loadDashboardData, 100);
+            }
+        };
+
     </script>
 </body>
 </html>
