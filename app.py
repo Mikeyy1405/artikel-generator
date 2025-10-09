@@ -1452,8 +1452,24 @@ def api_generate_article():
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
         
-        if not all([onderwerp, anchor1, url1, anchor2, url2]):
-            return jsonify({"success": False, "error": "All fields are required"}), 400
+        # Validate required fields
+        missing_fields = []
+        if not onderwerp:
+            missing_fields.append('onderwerp')
+        if not anchor1:
+            missing_fields.append('anchor1')
+        if not url1:
+            missing_fields.append('url1')
+        if not anchor2:
+            missing_fields.append('anchor2')
+        if not url2:
+            missing_fields.append('url2')
+        
+        if missing_fields:
+            error_msg = f"Missing required fields: {', '.join(missing_fields)}"
+            print(f"❌ Validation error: {error_msg}")
+            print(f"📋 Received data: onderwerp={bool(onderwerp)}, anchor1={bool(anchor1)}, url1={bool(url1)}, anchor2={bool(anchor2)}, url2={bool(url2)}")
+            return jsonify({"success": False, "error": error_msg}), 400
         
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
