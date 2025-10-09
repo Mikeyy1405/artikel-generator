@@ -469,6 +469,26 @@
             .video-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
+            
+            /* Sitemap mobile optimizations */
+            #website-details > div {
+                padding: 15px !important;
+                max-height: calc(100vh - 60px) !important;
+            }
+            
+            #urls-table {
+                font-size: 12px !important;
+            }
+            
+            #urls-table th,
+            #urls-table td {
+                padding: 8px 4px !important;
+                font-size: 11px !important;
+            }
+            
+            #websites-grid {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
@@ -779,9 +799,9 @@
 
                     <!-- Selected Website Details -->
                     <div id="website-details" style="display: none;">
-                        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                <div>
+                        <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); max-height: calc(100vh - 100px); overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                                <div style="flex: 1; min-width: 250px;">
                                     <h3 style="color: #2d3748; margin: 0 0 10px 0; font-size: 22px;">
                                         <span id="detail-website-name"></span>
                                     </h3>
@@ -789,15 +809,15 @@
                                         <!-- Stats will be inserted here -->
                                     </div>
                                 </div>
-                                <button onclick="closeWebsiteDetails()" style="background: #f7fafc; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #4a5568;">
+                                <button onclick="closeWebsiteDetails()" style="background: #f7fafc; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #4a5568; flex-shrink: 0;">
                                     ✕ Sluiten
                                 </button>
                             </div>
 
                             <!-- Search & Filter -->
-                            <div style="margin-bottom: 20px; display: flex; gap: 12px;">
-                                <input type="text" id="url-search" placeholder="🔍 Zoek URLs..." onkeyup="filterUrls()" style="flex: 1; padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
-                                <select id="type-filter" onchange="filterUrls()" style="padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                            <div style="margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                <input type="text" id="url-search" placeholder="🔍 Zoek URLs..." onkeyup="filterUrls()" style="flex: 1; min-width: 200px; padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                                <select id="type-filter" onchange="filterUrls()" style="padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; min-width: 150px;">
                                     <option value="">🔽 Alle types</option>
                                     <option value="post">📝 Posts</option>
                                     <option value="category">📁 Categorieën</option>
@@ -807,15 +827,15 @@
                             </div>
 
                             <!-- URLs Table -->
-                            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-                                <table id="urls-table" style="width: 100%; border-collapse: collapse;">
+                            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; -webkit-overflow-scrolling: touch;">
+                                <table id="urls-table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
                                     <thead>
                                         <tr style="background: #f7fafc;">
-                                            <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">#</th>
-                                            <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">Type</th>
-                                            <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">URL</th>
-                                            <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">Titel</th>
-                                            <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0;">Acties</th>
+                                            <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0; font-size: 13px;">#</th>
+                                            <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Type</th>
+                                            <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0; font-size: 13px;">URL</th>
+                                            <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Titel</th>
+                                            <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Acties</th>
                                         </tr>
                                     </thead>
                                     <tbody id="urls-table-body">
@@ -825,12 +845,12 @@
                             </div>
 
                             <!-- Pagination -->
-                            <div id="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px; background: #f7fafc; border-radius: 8px;">
-                                <button onclick="previousPage()" id="prev-btn" style="padding: 8px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: 500; color: #4a5568;">
+                            <div id="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px; background: #f7fafc; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                                <button onclick="previousPage()" id="prev-btn" style="padding: 8px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: 500; color: #4a5568; font-size: 14px;">
                                     ← Vorige
                                 </button>
-                                <span id="page-info" style="color: #4a5568; font-weight: 500;">Pagina 1 van 1</span>
-                                <button onclick="nextPage()" id="next-btn" style="padding: 8px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: 500; color: #4a5568;">
+                                <span id="page-info" style="color: #4a5568; font-weight: 500; font-size: 14px;">Pagina 1 van 1</span>
+                                <button onclick="nextPage()" id="next-btn" style="padding: 8px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: 500; color: #4a5568; font-size: 14px;">
                                     Volgende →
                                 </button>
                             </div>
@@ -2745,23 +2765,29 @@
                         <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;" 
                             onmouseover="this.style.background='#f7fafc'" 
                             onmouseout="this.style.background='white'">
-                            <td style="padding: 12px 16px; color: #718096; font-weight: 500;">${startIdx + idx + 1}</td>
-                            <td style="padding: 12px 16px;">
+                            <td style="padding: 12px 8px; color: #718096; font-weight: 500; font-size: 13px;">${startIdx + idx + 1}</td>
+                            <td style="padding: 12px 8px;">
                                 <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">
                                     ${emoji} ${badgeText}
                                 </span>
                             </td>
-                            <td style="padding: 12px 16px;">
-                                <a href="${item.url}" target="_blank" style="color: #4299e1; text-decoration: none; word-break: break-all;">
+                            <td style="padding: 12px 8px;">
+                                <a href="${item.url}" target="_blank" style="color: #4299e1; text-decoration: none; word-break: break-all; font-size: 13px;">
                                     ${item.url}
                                 </a>
                             </td>
-                            <td style="padding: 12px 16px; color: #4a5568;">${item.title}</td>
-                            <td style="padding: 12px 16px;">
-                                <button onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}', event)" 
-                                        style="background: #edf2f7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #4a5568; font-size: 12px;">
-                                    📋 Kopieer
-                                </button>
+                            <td style="padding: 12px 8px; color: #4a5568; font-size: 13px;">${item.title}</td>
+                            <td style="padding: 12px 8px;">
+                                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    <button onclick="useForKeywordResearch('${item.url.replace(/'/g, "\\'")}', '${item.title.replace(/'/g, "\\'")}', event)" 
+                                            style="background: linear-gradient(135deg, var(--light-blue), var(--deep-blue)); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                                        🔍 Keyword
+                                    </button>
+                                    <button onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}', event)" 
+                                            style="background: #edf2f7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #4a5568; font-size: 11px; white-space: nowrap;">
+                                        📋 Kopieer
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -2799,6 +2825,36 @@
                 console.error('Error copying:', err);
                 showNotification('❌ Fout bij kopiëren', 'error');
             });
+        }
+        
+        // Use URL for keyword research
+        function useForKeywordResearch(url, title, event) {
+            event.stopPropagation();
+            
+            // Switch to keyword research section
+            switchSection('keyword-research', event);
+            
+            // Fill in the URL field
+            setTimeout(() => {
+                const urlInput = document.getElementById('competitor-url');
+                if (urlInput) {
+                    urlInput.value = url;
+                    
+                    // Scroll to the input
+                    urlInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Highlight the input briefly
+                    urlInput.style.border = '2px solid var(--light-blue)';
+                    urlInput.style.boxShadow = '0 0 10px rgba(0, 174, 239, 0.3)';
+                    
+                    setTimeout(() => {
+                        urlInput.style.border = '';
+                        urlInput.style.boxShadow = '';
+                    }, 2000);
+                    
+                    showNotification(`🔍 URL geladen voor keyword research: ${title}`, 'success');
+                }
+            }, 300);
         }
         
         // Delete website
