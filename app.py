@@ -858,7 +858,8 @@ def generate_article(onderwerp, anchor1, url1, anchor2, url2, extra="", model="g
                     continue
                 else:
                     # Last attempt - manually remove forbidden words
-                    print("⚠️ Max retries reached. Manually removing forbidden words...")                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
+                    print("⚠️ Max retries reached. Manually removing forbidden words...")
+                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
             
             article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
             article = format_article_html(article, anchor1, url1, anchor2, url2)
@@ -1107,7 +1108,8 @@ YOUTUBE VIDEO PLACEHOLDER VEREIST:
                     continue
                 else:
                     # Last attempt - manually remove forbidden words
-                    print("⚠️ Max retries reached. Manually removing forbidden words...")                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
+                    print("⚠️ Max retries reached. Manually removing forbidden words...")
+                    article = re.sub(r'dat is best een opluchting,?\s*toch\??', 'dat is fijn om te weten', article, flags=re.IGNORECASE)
             
             article = re.sub(r'^H2:\s*conclusie\s*$', 'H2: Conclusie', article, flags=re.MULTILINE | re.IGNORECASE)
             
@@ -1276,7 +1278,8 @@ Geef het VOLLEDIGE aangepaste artikel terug in HTML formaat."""
                     prompt += f"\n\n⚠️ KRITIEK: Je gebruikte verboden woorden: {', '.join(found_phrases)}. Herschrijf ZONDER deze woorden!"
                     continue
                 else:
-                    # Manually remove forbidden words            
+                    # Manually remove forbidden words
+                    pass
             print(f"✅ Article refined successfully (attempt {attempt + 1})")
             return refined_article
             
