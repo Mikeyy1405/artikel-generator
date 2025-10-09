@@ -445,6 +445,94 @@
             border: none;
         }
         
+        /* Perplexity Checkbox Styling */
+        .perplexity-checkbox-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .perplexity-checkbox-container:hover {
+            border-color: var(--light-blue);
+            box-shadow: 0 4px 12px rgba(0, 174, 239, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .perplexity-checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 12px;
+            font-weight: normal;
+        }
+        
+        .perplexity-checkbox {
+            display: none;
+        }
+        
+        .perplexity-checkmark {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            background: white;
+            border: 3px solid #dee2e6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .perplexity-icon {
+            width: 28px;
+            height: 28px;
+            color: #adb5bd;
+            transition: all 0.3s ease;
+        }
+        
+        .perplexity-checkbox:checked + .perplexity-checkmark {
+            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
+            border-color: var(--light-blue);
+            box-shadow: 0 4px 12px rgba(0, 174, 239, 0.3);
+        }
+        
+        .perplexity-checkbox:checked + .perplexity-checkmark .perplexity-icon {
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .perplexity-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .perplexity-text strong {
+            color: var(--dark-blue);
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .perplexity-description {
+            color: #6c757d;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .perplexity-tooltip {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 174, 239, 0.1);
+            border-left: 3px solid var(--light-blue);
+            border-radius: 6px;
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.5;
+        }
+        
         /* Responsive */
         @media (max-width: 1200px) {
             .input-panel, .ai-chat-panel {
@@ -468,6 +556,17 @@
             
             .ai-chat-panel {
                 display: none;
+            }
+            
+            .perplexity-checkmark {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+            }
+            
+            .perplexity-icon {
+                width: 24px;
+                height: 24px;
             }
         }
     </style>
@@ -558,35 +657,28 @@
                         </div>
                         
                         <div class="form-group">
-                            <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                <input type="checkbox" id="perplexity-research" style="margin-right: 8px;">
-                                <span style="font-weight: 600;">Perplexity Onderzoek (uitgebreid onderzoek)</span>
-                            </label>
-                            <small style="color: #666;">Gebruikt Perplexity AI voor diepgaand onderzoek zoals een copywriter</small>
+                            <label>Zoekwoord of Onderwerp</label>
+                            <input type="text" id="content-topic" placeholder="Bijv: yoga voor beginners, beste laptops 2024">
+                            <small style="color: #666; display: block; margin-top: 5px;">Voer een zoekwoord of onderwerp in. De AI optimaliseert automatisch de SEO titel en meta beschrijving.</small>
                         </div>
                         
                         <div class="form-group">
-                            <label>Onderwerp</label>
-                            <input type="text" id="content-topic" placeholder="Bijv: Yoga voor beginners">
-                        </div>
-                        
-                        <!-- SEO specific fields -->
-                        <div id="seo-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>Hoofd keyword</label>
-                                <input type="text" id="content-keyword" placeholder="Bijv: yoga beginners">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>SEO Titel (max 55 tekens)</label>
-                                <input type="text" id="content-seo-title" placeholder="Optimale titel voor zoekmachines" maxlength="55">
-                                <div class="char-counter" id="content-title-counter">0 / 55</div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Meta Beschrijving (max 130 tekens)</label>
-                                <textarea id="content-meta" placeholder="Korte beschrijving voor zoekmachines" maxlength="130"></textarea>
-                                <div class="char-counter" id="content-meta-counter">0 / 130</div>
+                            <div class="perplexity-checkbox-container">
+                                <label class="perplexity-checkbox-label">
+                                    <input type="checkbox" id="perplexity-research" class="perplexity-checkbox">
+                                    <span class="perplexity-checkmark">
+                                        <svg class="perplexity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                    <span class="perplexity-text">
+                                        <strong>Perplexity Onderzoek</strong>
+                                        <span class="perplexity-description">Uitgebreid AI-onderzoek voor diepgaande content</span>
+                                    </span>
+                                </label>
+                                <div class="perplexity-tooltip">
+                                    💡 Perplexity AI voert diepgaand onderzoek uit zoals een professionele copywriter, met actuele informatie en bronvermelding voor hoogwaardige content.
+                                </div>
                             </div>
                         </div>
                         
@@ -816,10 +908,6 @@
                 }
             });
             
-            // Character counters for content writer
-            setupCharCounter('content-seo-title', 'content-title-counter', 55);
-            setupCharCounter('content-meta', 'content-meta-counter', 130);
-            
             // Content type change handler
             document.getElementById('content-type').addEventListener('change', handleContentTypeChange);
             handleContentTypeChange(); // Initialize on load
@@ -871,21 +959,19 @@
             const contentType = document.getElementById('content-type').value;
             
             // Hide all specific fields
-            document.getElementById('seo-fields').style.display = 'none';
             document.getElementById('list-fields').style.display = 'none';
             document.getElementById('youtube-fields').style.display = 'none';
             document.getElementById('linkbuilding-fields').style.display = 'none';
             
             // Show relevant fields based on content type
-            if (contentType === 'seo') {
-                document.getElementById('seo-fields').style.display = 'block';
-            } else if (contentType === 'list') {
+            if (contentType === 'list') {
                 document.getElementById('list-fields').style.display = 'block';
             } else if (contentType === 'youtube') {
                 document.getElementById('youtube-fields').style.display = 'block';
             } else if (contentType === 'linkbuilding') {
                 document.getElementById('linkbuilding-fields').style.display = 'block';
             }
+            // Note: SEO type no longer has specific fields - AI auto-optimizes
         }
         
         // Auto-generate topic for linkbuilding (inline version)
@@ -949,24 +1035,15 @@
             
             // Handle different content types
             if (contentType === 'seo') {
-                const keyword = document.getElementById('content-keyword').value;
-                const title = document.getElementById('content-seo-title').value;
-                const meta = document.getElementById('content-meta').value;
-                
-                if (!keyword || !title || !meta) {
-                    alert('Vul alle SEO velden in');
-                    loading.classList.remove('active');
-                    return;
-                }
-                
+                // SEO artikel - AI optimaliseert automatisch titel en meta beschrijving
                 if (perplexityResearch) {
                     // Use general article endpoint with perplexity research
                     requestBody.perplexity_research = true;
-                    requestBody.extra = `SEO Keyword: ${keyword}\nSEO Titel: ${title}\nMeta Beschrijving: ${meta}`;
+                    requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
                 } else {
                     // Use original SEO endpoint
                     endpoint = '/api/generate-article';
-                    requestBody.extra = `SEO Keyword: ${keyword}\nSEO Titel: ${title}\nMeta Beschrijving: ${meta}`;
+                    requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
                 }
             } else if (contentType === 'list') {
                 const items = document.getElementById('content-list-items').value;
