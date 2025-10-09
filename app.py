@@ -1419,7 +1419,15 @@ def api_generate_topic():
     """Generate article topic"""
     try:
         print("📝 Starting topic generation...")
-        data = request.json
+        
+        # FIXED: Check if request has JSON data
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
         anchor1 = data.get('anchor1', '').strip()
         anchor2 = data.get('anchor2', '').strip()
         extra = data.get('extra', '').strip()
@@ -1438,12 +1446,80 @@ def api_generate_topic():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/suggest-topic', methods=['POST'])
+def api_suggest_topic():
+    """Suggest article topic based on anchor texts and URLs"""
+    try:
+        print("📝 Starting topic suggestion...")
+        
+        # FIXED: Check if request has JSON data
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
+        anchor1 = data.get('anchor1', '').strip()
+        url1 = data.get('url1', '').strip()
+        anchor2 = data.get('anchor2', '').strip()
+        url2 = data.get('url2', '').strip()
+        context = data.get('context', '').strip()
+        
+        if not anchor1 or not url1 or not anchor2 or not url2:
+            return jsonify({"success": False, "error": "All anchor texts and URLs are required"}), 400
+        
+        # Generate topic suggestion based on anchors and URLs
+        prompt = f"""Genereer een relevant artikel onderwerp dat natuurlijk beide volgende links kan bevatten:
+
+Link 1: "{anchor1}" ({url1})
+Link 2: "{anchor2}" ({url2})
+
+Extra context: {context if context else 'Geen extra context'}
+
+Geef ALLEEN het onderwerp terug, geen uitleg. Het onderwerp moet:
+- Relevant zijn voor beide links
+- Natuurlijk klinken
+- Geschikt zijn voor een informatief artikel
+- In het Nederlands zijn"""
+
+        if not client:
+            raise Exception("OpenAI API key not configured")
+        
+        response = call_openai_with_correct_params(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Je bent een expert in het bedenken van relevante artikel onderwerpen."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=100
+        )
+        
+        topic = response.choices[0].message.content.strip()
+        print(f"✅ Topic suggested successfully: {topic}")
+        return jsonify({"success": True, "topic": topic})
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in topic suggestion: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/generate-article', methods=['POST'])
 def api_generate_article():
     """Generate linkbuilding article"""
     try:
         print("📝 Starting linkbuilding article generation...")
-        data = request.json
+        
+        # FIXED: Check if request has JSON data
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
         onderwerp = data.get('onderwerp', '').strip()
         anchor1 = data.get('anchor1', '').strip()
         url1 = data.get('url1', '').strip()
@@ -1494,7 +1570,15 @@ def api_generate_general_article():
     """Generate general article with optional elements"""
     try:
         print("📝 Starting general article generation...")
-        data = request.json
+        
+        # FIXED: Check if request has JSON data
+        if not request.is_json:
+            return jsonify({"success": False, "error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        if data is None:
+            return jsonify({"success": False, "error": "Invalid JSON data"}), 400
+        
         onderwerp = data.get('onderwerp', '').strip()
         word_count = data.get('word_count', 800)
         extra = data.get('extra', '').strip()
