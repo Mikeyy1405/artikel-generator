@@ -481,41 +481,39 @@
                 <p>Content Generator v22</p>
             </div>
             
-            <div class="menu-item active" onclick="switchSection('dashboard')">
+            <div class="menu-item active" onclick="switchSection('dashboard', event)">
                 📊 Dashboard
             </div>
             
-            <div class="menu-item" onclick="switchSection('website-beheer')">
+            <div class="menu-item" onclick="switchSection('website-beheer', event)">
                 🌐 Website Beheer
             </div>
             
-            <div class="menu-item" onclick="switchSection('keyword-research')">
+            <div class="menu-item" onclick="switchSection('keyword-research', event)">
                 🔍 Zoekwoordonderzoek
             </div>
             
-            <div class="menu-item" onclick="switchSection('content-planning')">
+            <div class="menu-item" onclick="switchSection('content-planning', event)">
                 📅 Contentplanning
             </div>
             
-            <div class="menu-item" onclick="switchSection('content-writer')">
+            <div class="menu-item" onclick="switchSection('content-writer', event)">
                 ✍️ Content Schrijver
             </div>
             
-            <div class="menu-item" onclick="switchSection('media-library')">
+            <div class="menu-item" onclick="switchSection('media-library', event)">
                 🖼️ Afbeeldingen & Media
             </div>
             
-            <div class="menu-item" onclick="switchSection('wordpress')">
+            <div class="menu-item" onclick="switchSection('wordpress', event)">
                 📤 WordPress Publicatie
             </div>
             
-            <div class="menu-item" onclick="switchSection('social-media')">
+            <div class="menu-item" onclick="switchSection('social-media', event)">
                 📱 Social Media
             </div>
             
-            <div class="menu-item" onclick="switchSection('saved-articles')">
-                💾 Opgeslagen Artikelen
-            </div>
+            <div class="menu-item" onclick="switchSection('saved-articles', event)">
                 💾 Opgeslagen Artikelen
             </div>
         </div>
@@ -1205,7 +1203,7 @@
         
         let currentSection = 'dashboard';
         
-        function switchSection(sectionId) {
+        function switchSection(sectionId, event) {
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
@@ -1217,10 +1215,22 @@
             });
             
             // Show selected section
-            document.getElementById(sectionId).classList.add('active');
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
             
             // Add active to clicked menu item
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // If no event (programmatic call), find and activate the menu item
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(sectionId)) {
+                        item.classList.add('active');
+                    }
+                });
+            }
             
             currentSection = sectionId;
         }
@@ -2064,6 +2074,8 @@
         
         // Load dashboard data when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Ensure dashboard is visible on load
+            switchSection('dashboard');
             loadDashboardData();
             
             // Refresh dashboard every 5 minutes
@@ -2072,8 +2084,8 @@
         
         // Refresh dashboard when switching to it
         const originalSwitchSection = switchSection;
-        switchSection = function(sectionId) {
-            originalSwitchSection(sectionId);
+        switchSection = function(sectionId, event) {
+            originalSwitchSection(sectionId, event);
             if (sectionId === 'dashboard') {
                 setTimeout(loadDashboardData, 100);
             }
