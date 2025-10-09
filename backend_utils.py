@@ -268,46 +268,75 @@ def fetch_sitemap_urls(sitemap_url, max_urls=100):
         max_urls: Maximum number of URLs to fetch
     
     Returns:
-        dict: {"success": bool, "urls": list, "error": str}
+        list: List of URL dictionaries with 'url' and 'title' keys, or empty list on error
     """
     try:
-        response = requests.get(sitemap_url, timeout=15)
+        print(f"🔍 Fetching sitemap: {sitemap_url}")
+        response = requests.get(sitemap_url, timeout=15, headers={
+            'User-Agent': 'Mozilla/5.0 (compatible; WritgoAI/1.0)'
+        })
+        
         if response.status_code != 200:
-            return {
-                "success": False,
-                "error": f"Failed to fetch sitemap: HTTP {response.status_code}"
-            }
+            print(f"❌ Failed to fetch sitemap: HTTP {response.status_code}")
+            return []
         
-        # Parse XML
-        root = ET.fromstring(response.content)
-        
-        # Handle namespaces
-        namespaces = {
-            'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'
-        }
+        # Parse XML with BeautifulSoup for better handling
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(response.content, 'xml')
         
         urls = []
         
         # Check if it's a sitemap index
-        sitemaps = root.findall('.//sm:sitemap/sm:loc', namespaces)
+        sitemaps = soup.find_all('sitemap')
         if sitemaps:
-            # It's a sitemap index, fetch first sitemap
-            first_sitemap_url = sitemaps[0].text
-            return fetch_sitemap_urls(first_sitemap_url, max_urls)
+            print(f"📑 Found sitemap index with {len(sitemaps)} sub-sitemaps")
+            # It's a sitemap index, fetch all sub-sitemaps
+            for sitemap in sitemaps[:5]:  # Limit to first 5 sub-sitemaps
+                loc = sitemap.find('loc')
+                if loc and loc.text:
+                    sub_sitemap_url = loc.text
+                    try:
+                        print(f"  📄 Fetching sub-sitemap: {sub_sitemap_url}")
+                        sub_response = requests.get(sub_sitemap_url, timeout=15, headers={
+                            'User-Agent': 'Mozilla/5.0 (compatible; WritgoAI/1.0)'
+                        })
+                        if sub_response.status_code == 200:
+                            sub_soup = BeautifulSoup(sub_response.content, 'xml')
+                            sub_locs = sub_soup.find_all('loc')
+                            for loc_elem in sub_locs:
+                                if loc_elem.text and len(urls) < max_urls:
+                                    # Extract title from URL
+                                    from urllib.parse import urlparse
+                                    path = urlparse(loc_elem.text).path
+                                    title = path.strip('/').split('/')[-1].replace('-', ' ').title() if path.strip('/') else loc_elem.text
+                                    urls.append({
+                                        'url': loc_elem.text,
+                                        'title': title
+                                    })
+                            print(f"    ✅ Found {len(sub_locs)} URLs")
+                    except Exception as e:
+                        print(f"    ⚠️  Error fetching sub-sitemap: {str(e)}")
+                        continue
+        else:
+            # It's a regular sitemap
+            locs = soup.find_all('loc')
+            print(f"📄 Found regular sitemap with {len(locs)} URLs")
+            for loc_elem in locs[:max_urls]:
+                if loc_elem.text:
+                    # Extract title from URL
+                    from urllib.parse import urlparse
+                    path = urlparse(loc_elem.text).path
+                    title = path.strip('/').split('/')[-1].replace('-', ' ').title() if path.strip('/') else loc_elem.text
+                    urls.append({
+                        'url': loc_elem.text,
+                        'title': title
+                    })
         
-        # It's a regular sitemap
-        url_elements = root.findall('.//sm:url/sm:loc', namespaces)
-        for url_elem in url_elements[:max_urls]:
-            urls.append(url_elem.text)
-        
-        return {
-            "success": True,
-            "urls": urls,
-            "count": len(urls)
-        }
+        print(f"✅ Successfully fetched {len(urls)} URLs from sitemap")
+        return urls
         
     except Exception as e:
-        return {
-            "success": False,
-            "error": f"Error fetching sitemap URLs: {str(e)}"
-        }
+        print(f"❌ Error fetching sitemap URLs: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return []
