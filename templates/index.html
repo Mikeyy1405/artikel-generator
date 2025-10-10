@@ -5214,6 +5214,11 @@
         
         async function runKeywordResearch() {
             try {
+                // Check if onboardingSessionId is defined
+                if (!onboardingSessionId) {
+                    throw new Error('Onboarding sessie ID niet gevonden. Start de wizard opnieuw.');
+                }
+                
                 document.getElementById('keyword-research-status').textContent = '⏳ Keywords genereren...';
                 
                 const response = await fetch(`/api/onboarding/keyword-research/${onboardingSessionId}`, {
@@ -5221,7 +5226,25 @@
                     headers: { 'Content-Type': 'application/json' }
                 });
                 
-                const data = await response.json();
+                // Check if response is OK
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server response:', errorText);
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+                
+                // Get response text first for better error handling
+                const responseText = await response.text();
+                
+                // Parse JSON with error handling
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error('JSON parsing error:', jsonError);
+                    console.error('Response text:', responseText);
+                    throw new Error('Server retourneerde geen geldige JSON. De server kan overbelast zijn.');
+                }
                 
                 if (data.success) {
                     document.getElementById('keyword-research-status').textContent = `✅ ${data.total_keywords} keywords gegenereerd!`;

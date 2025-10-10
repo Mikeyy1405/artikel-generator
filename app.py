@@ -1014,12 +1014,64 @@ def add_internal_links_to_article(article, internal_links, num_links=3):
     
     return article
 
-# Perplexity AI research
-def perplexity_research(topic, num_results=5):
-    """Use Perplexity AI to research a topic"""
-    if not PERPLEXITY_API_KEY:
-        print("⚠️  Perplexity API key not configured")
+# OpenAI-based research fallback
+def openai_research_fallback(topic, num_results=5):
+    """Use OpenAI to research a topic when Perplexity is not available"""
+    if not client:
+        print("⚠️  OpenAI API key not configured")
         return None
+    
+    try:
+        print(f"🔍 Starting OpenAI research fallback for: {topic}")
+        
+        research_prompt = f"""Voer een grondige analyse uit van het volgende onderwerp:
+
+Onderwerp: {topic}
+
+Geef de volgende informatie:
+1. Een korte samenvatting van de belangrijkste informatie over dit onderwerp
+2. De top {num_results} belangrijkste punten die behandeld moeten worden in een artikel
+3. Actuele trends en ontwikkelingen
+4. Praktische tips en adviezen
+
+Schrijf in het Nederlands en wees specifiek en gedetailleerd."""
+
+        response = call_openai_with_correct_params(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Je bent een onderzoeksassistent die informatie verzamelt en analyseert. Wees specifiek en gedetailleerd."
+                },
+                {
+                    "role": "user",
+                    "content": research_prompt
+                }
+            ],
+            temperature=0.2,
+            max_tokens=2000
+        )
+        
+        research_content = response.choices[0].message.content
+        
+        print(f"✅ OpenAI research fallback completed")
+        
+        return {
+            'summary': research_content,
+            'citations': [],
+            'success': True
+        }
+        
+    except Exception as e:
+        print(f"❌ OpenAI research fallback error: {e}")
+        return None
+
+# Perplexity AI research with OpenAI fallback
+def perplexity_research(topic, num_results=5):
+    """Use Perplexity AI to research a topic, with OpenAI fallback"""
+    if not PERPLEXITY_API_KEY:
+        print("⚠️  Perplexity API key not configured, using OpenAI fallback")
+        return openai_research_fallback(topic, num_results)
     
     try:
         print(f"🔍 Starting Perplexity research for: {topic}")
@@ -1064,7 +1116,8 @@ Schrijf in het Nederlands en wees specifiek en gedetailleerd."""
         
         if response.status_code != 200:
             print(f"❌ Perplexity API error: {response.status_code} - {response.text}")
-            return None
+            print("⚠️  Falling back to OpenAI")
+            return openai_research_fallback(topic, num_results)
         
         data = response.json()
         research_content = data['choices'][0]['message']['content']
@@ -1082,7 +1135,8 @@ Schrijf in het Nederlands en wees specifiek en gedetailleerd."""
         
     except Exception as e:
         print(f"❌ Perplexity research error: {e}")
-        return None
+        print("⚠️  Falling back to OpenAI")
+        return openai_research_fallback(topic, num_results)
 
 # Content generation functions
 def generate_topic(anchor1, anchor2, extra="", model="gpt-4o", max_retries=3):
@@ -3976,14 +4030,19 @@ def api_onboarding_start():
 def api_onboarding_keyword_research(onboarding_id):
     """Run keyword research as part of onboarding flow"""
     
+    print(f"🔍 [KEYWORD RESEARCH] Starting for onboarding_id={onboarding_id}")
+    
     try:
         user = get_current_user()
         user_id = user.get('id', 1)
+        
+        print(f"🔍 [KEYWORD RESEARCH] User ID: {user_id}")
         
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Get onboarding session
+        print(f"🔍 [KEYWORD RESEARCH] Fetching onboarding session from database...")
         cursor.execute('''
             SELECT website_id, site_data, status 
             FROM onboarding_sessions 
@@ -3993,6 +4052,7 @@ def api_onboarding_keyword_research(onboarding_id):
         row = cursor.fetchone()
         if not row:
             conn.close()
+            print(f"❌ [KEYWORD RESEARCH] Onboarding session not found: id={onboarding_id}, user={user_id}")
             return jsonify({
                 'success': False,
                 'error': 'Onboarding sessie niet gevonden'
@@ -4000,14 +4060,18 @@ def api_onboarding_keyword_research(onboarding_id):
         
         website_id, site_data_json, status = row
         
+        print(f"🔍 [KEYWORD RESEARCH] Session found - website_id={website_id}, status={status}")
+        
         if status == 'completed':
             conn.close()
+            print(f"❌ [KEYWORD RESEARCH] Onboarding already completed")
             return jsonify({
                 'success': False,
                 'error': 'Onboarding al voltooid'
             }), 400
         
         # Update step to keyword_research
+        print(f"🔍 [KEYWORD RESEARCH] Updating session step to 'keyword_research'...")
         cursor.execute('''
             UPDATE onboarding_sessions 
             SET current_step = 'keyword_research', updated_at = ?
@@ -4017,7 +4081,7 @@ def api_onboarding_keyword_research(onboarding_id):
         
         site_data = json.loads(site_data_json)
         
-        print(f"🔍 Starting keyword research for onboarding {onboarding_id}")
+        print(f"🔍 [KEYWORD RESEARCH] Site data loaded: {site_data}")
         
         # Extract site info
         domain = site_data.get('domain', '')
@@ -4025,6 +4089,8 @@ def api_onboarding_keyword_research(onboarding_id):
         language = site_data.get('language', 'English')
         niche = site_data.get('name', '')
         description = site_data.get('description', '')
+        
+        print(f"🔍 [KEYWORD RESEARCH] Domain: {domain}, Country: {country}, Language: {language}")
         
         # Determine language context
         lang_context = ""
@@ -4044,7 +4110,7 @@ def api_onboarding_keyword_research(onboarding_id):
             lang_context = "English language, targeting international market"
         
         # Run keyword research using existing perplexity_research function
-        print("🔑 Generating 150+ keywords...")
+        print("🔑 [KEYWORD RESEARCH] Generating 150+ keywords...")
         keywords_prompt = f"""
 Generate 150 SEO keywords for {domain} ({niche}).
 Language/Market: {lang_context}
@@ -4087,10 +4153,18 @@ For EACH keyword provide in a table format:
 Make sure all keywords are relevant to {niche} and target the {country} market.
 """
         
+        print(f"🔑 [KEYWORD RESEARCH] Calling perplexity_research (or OpenAI fallback)...")
         keywords_result = perplexity_research(keywords_prompt)
-        keywords_data = keywords_result.get('summary', 'Geen data beschikbaar') if keywords_result else 'Geen data beschikbaar'
+        
+        if keywords_result:
+            print(f"✅ [KEYWORD RESEARCH] Research completed successfully")
+            keywords_data = keywords_result.get('summary', 'Geen data beschikbaar')
+        else:
+            print(f"⚠️ [KEYWORD RESEARCH] Research returned None, using default message")
+            keywords_data = 'Geen data beschikbaar'
         
         # Store keyword research results
+        print(f"🔑 [KEYWORD RESEARCH] Storing results in database...")
         keyword_research_json = json.dumps({
             'keywords': keywords_data,
             'country': country,
@@ -4107,24 +4181,29 @@ Make sure all keywords are relevant to {niche} and target the {country} market.
         conn.commit()
         conn.close()
         
-        print(f"✅ Keyword research completed for onboarding {onboarding_id}")
+        print(f"✅ [KEYWORD RESEARCH] Keyword research completed for onboarding {onboarding_id}")
         
-        return jsonify({
+        response_data = {
             'success': True,
             'onboarding_id': onboarding_id,
             'keywords': keywords_data,
             'total_keywords': '150+',
             'current_step': 'keyword_research_completed',
             'message': 'Keyword research voltooid'
-        })
+        }
+        
+        print(f"✅ [KEYWORD RESEARCH] Returning success response")
+        return jsonify(response_data)
         
     except Exception as e:
-        print(f"❌ Error in onboarding keyword research: {str(e)}")
+        print(f"❌ [KEYWORD RESEARCH] Error in onboarding keyword research: {str(e)}")
         import traceback
+        print(f"❌ [KEYWORD RESEARCH] Full traceback:")
         traceback.print_exc()
         
         # Update onboarding session with error
         try:
+            print(f"❌ [KEYWORD RESEARCH] Updating onboarding session with error status...")
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute('''
@@ -4134,13 +4213,18 @@ Make sure all keywords are relevant to {niche} and target the {country} market.
             ''', (str(e), datetime.now(), onboarding_id))
             conn.commit()
             conn.close()
-        except:
+            print(f"❌ [KEYWORD RESEARCH] Error status saved to database")
+        except Exception as db_error:
+            print(f"❌ [KEYWORD RESEARCH] Failed to save error to database: {db_error}")
             pass
         
-        return jsonify({
+        error_response = {
             'success': False,
             'error': str(e)
-        }), 500
+        }
+        
+        print(f"❌ [KEYWORD RESEARCH] Returning error response: {error_response}")
+        return jsonify(error_response), 500
 
 
 @app.route('/api/onboarding/content-plan/<int:onboarding_id>', methods=['POST'])
