@@ -619,6 +619,102 @@
                 left: 0;
             }
         }
+        
+        /* Media Library Styles */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .image-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .image-item:hover {
+            border-color: var(--light-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .image-item.selected {
+            border-color: var(--orange);
+            border-width: 3px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            color: var(--light-blue);
+        }
+        
+        .tab.active {
+            color: var(--light-blue);
+            border-bottom-color: var(--light-blue);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .video-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .video-item:hover {
+            border-color: var(--light-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .video-item video {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
@@ -648,6 +744,18 @@
             
             <div class="menu-item" onclick="switchSection('content-writer', event)">
                 🔥 Content Schrijver
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('media-library', event)">
+                🖼️ Afbeeldingen & Media
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('wordpress', event)">
+                📤 WordPress Publicatie
+            </div>
+            
+            <div class="menu-item" onclick="switchSection('social-media', event)">
+                📱 Social Media
             </div>
             
             <div class="menu-item" onclick="switchSection('saved-articles', event)">
@@ -895,10 +1003,120 @@
                 </div>
             </div>
             
+            <!-- Media Library Section -->
+            <div id="media-library" class="section">
+                <div class="section-header">
+                    <h2>🖼️ Media Bibliotheek</h2>
+                    <p>Zoek en beheer afbeeldingen en video's</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; padding: 30px; overflow-y: auto;">
+                        <div class="tabs">
+                            <button class="tab active" onclick="showTab('img-pixabay')">📷 Afbeeldingen</button>
+                            <button class="tab" onclick="showTab('img-dalle')">🎨 AI Afbeeldingen</button>
+                        </div>
+                        
+                        <!-- Pixabay Images Tab -->
+                        <div id="img-pixabay" class="tab-content active">
+                            <h3 style="margin-bottom: 20px;">Pixabay Afbeeldingen</h3>
+                            
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <div style="flex: 1;">
+                                    <input type="text" id="pixabay-query" placeholder="Bijv: business meeting, yoga, nature" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" onclick="searchPixabay()">🔍 Zoeken</button>
+                                </div>
+                            </div>
+                            
+                            <div id="pixabay-results"></div>
+                            
+                            <h3 style="margin-top: 40px; margin-bottom: 20px;">Pixabay Video's</h3>
+                            
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <div style="flex: 1;">
+                                    <input type="text" id="pixabay-video-query" placeholder="Bijv: nature landscape, city timelapse" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" onclick="searchPixabayVideos()">🔍 Zoeken</button>
+                                </div>
+                            </div>
+                            
+                            <div id="pixabay-video-results"></div>
+                        </div>
+                        
+                        <!-- DALL-E Tab -->
+                        <div id="img-dalle" class="tab-content">
+                            <h3 style="margin-bottom: 20px;">DALL-E AI Afbeeldingen</h3>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Beschrijving (Engels)</label>
+                                <textarea id="dalle-prompt" rows="4" placeholder="Bijv: A modern minimalist yoga studio with natural lighting and plants" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-family: inherit;"></textarea>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="generateDalleImage()">🎨 Genereer Afbeelding</button>
+                            
+                            <div id="dalle-results"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WordPress Section -->
+            <div id="wordpress" class="section">
+                <div class="section-header">
+                    <h2>📤 WordPress Publicatie</h2>
+                    <p>Publiceer je content naar WordPress</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">WordPress Integratie</h3>
+                            <p style="font-size: 16px; color: #666;">Publiceer je artikelen direct naar je WordPress website</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Deze functie wordt binnenkort uitgebreid</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Social Media Section -->
+            <div id="social-media" class="section">
+                <div class="section-header">
+                    <h2>📱 Social Media</h2>
+                    <p>Deel je content op social media platforms</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Deel automatisch je content op Facebook, Twitter, LinkedIn en meer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Articles Section -->
             <div id="saved-articles" class="section">
-                <div style="padding: 30px;">
+                <div class="section-header">
                     <h2>💾 Opgeslagen Artikelen</h2>
-                    <p>Bekijk al je artikelen</p>
+                    <p>Beheer je opgeslagen content</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">📚</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Je Artikelen</h3>
+                            <p style="font-size: 16px; color: #666;">Bekijk en beheer al je opgeslagen artikelen</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Deze functie wordt binnenkort uitgebreid</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1165,6 +1383,157 @@
             if (confirm('Weet je zeker dat je wilt uitloggen?')) {
                 window.location.href = '/logout';
             }
+        }
+        
+        // Tab switching for media library
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Pixabay Images Search
+        async function searchPixabay() {
+            const query = document.getElementById('pixabay-query').value;
+            if (!query) {
+                alert('Vul een zoekterm in!');
+                return;
+            }
+            
+            const results = document.getElementById('pixabay-results');
+            results.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Afbeeldingen zoeken...</p></div>';
+            
+            try {
+                const response = await fetch('/api/search-images', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, per_page: 20 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
+                        <div class="image-grid">
+                            ${data.images.map(img => `
+                                <div class="image-item" onclick="selectImage('${img.url}')">
+                                    <img src="${img.preview}" alt="Pixabay image">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = '<div class="alert alert-info">Geen afbeeldingen gevonden.</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // Pixabay Videos Search
+        async function searchPixabayVideos() {
+            const query = document.getElementById('pixabay-video-query').value;
+            if (!query) {
+                alert('Vul een zoekterm in!');
+                return;
+            }
+            
+            const results = document.getElementById('pixabay-video-results');
+            results.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Video\'s zoeken...</p></div>';
+            
+            try {
+                const response = await fetch('/api/search-videos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, per_page: 12 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.videos && data.videos.length > 0) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
+                        <div class="video-grid">
+                            ${data.videos.map(video => `
+                                <div class="video-item" onclick="selectVideo('${video.url}')">
+                                    <video src="${video.preview}" controls></video>
+                                    <div style="padding: 10px;">
+                                        <small style="color: #666;">Klik om URL te kopiëren</small>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = '<div class="alert alert-info">Geen video\'s gevonden.</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // DALL-E Image Generation
+        async function generateDalleImage() {
+            const prompt = document.getElementById('dalle-prompt').value;
+            if (!prompt) {
+                alert('Vul een beschrijving in!');
+                return;
+            }
+            
+            const results = document.getElementById('dalle-results');
+            results.innerHTML = '<div class="loading active"><div class="spinner"></div><p>AI afbeelding genereren...</p></div>';
+            
+            try {
+                const response = await fetch('/api/generate-dalle-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.image_url) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">Gegenereerde Afbeelding</h3>
+                        <div style="margin-top: 20px;">
+                            <img src="${data.image_url}" alt="DALL-E Generated" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-secondary btn-small" onclick="copyImageUrl('${data.image_url}')">📋 Kopieer URL</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error || 'Onbekende fout'}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // Helper functions for media library
+        function selectImage(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Afbeelding URL gekopieerd!');
+            });
+        }
+        
+        function selectVideo(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Video URL gekopieerd!');
+            });
+        }
+        
+        function copyImageUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ URL gekopieerd naar klembord!');
+            });
         }
     </script>
 </body>
