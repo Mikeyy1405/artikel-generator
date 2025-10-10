@@ -1,0 +1,363 @@
+From c864b1adcdac547e335dc87d11d3af0b3209fb1f Mon Sep 17 00:00:00 2001
+From: AI Agent <agent@abacus.ai>
+Date: Fri, 10 Oct 2025 06:29:39 +0000
+Subject: [PATCH] =?UTF-8?q?=E2=9C=A8=20Facturen=20&=20Stripe=20Customer=20?=
+ =?UTF-8?q?Portal=20toegevoegd?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Factuuroverzicht in Mijn Account met download functionaliteit
+- Stripe Customer Portal integratie voor abonnementsbeheer
+- API endpoints voor facturen ophalen en portal sessie aanmaken
+- Moderne tabel layout met status badges en download knoppen
+- Automatisch laden van facturen bij pagina load
+- Betaalmethode wijzigen via Stripe portal
+- Abonnement annuleren via Stripe portal
+---
+ app.py                 |  76 ++++++++++++++
+ templates/account.html | 220 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 296 insertions(+)
+
+diff --git a/app.py b/app.py
+index c542bdf..21858e9 100644
+--- a/app.py
++++ b/app.py
+@@ -2002,6 +2002,82 @@ def create_checkout_session():
+             'error': str(e)
+         }), 500
+ 
++@app.route('/api/stripe/customer-portal', methods=['POST'])
++def create_customer_portal():
++    """Create Stripe Customer Portal session"""
++    try:
++        if 'user_id' not in session:
++            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
++        
++        user_id = session['user_id']
++        conn = get_db_connection()
++        cursor = conn.cursor()
++        cursor.execute('SELECT stripe_customer_id FROM users WHERE id = ?', (user_id,))
++        user = cursor.fetchone()
++        conn.close()
++        
++        if not user or not user['stripe_customer_id']:
++            return jsonify({'success': False, 'error': 'No Stripe customer found'}), 404
++        
++        # Create portal session
++        portal_session = stripe.billing_portal.Session.create(
++            customer=user['stripe_customer_id'],
++            return_url=request.host_url + 'account.html'
++        )
++        
++        return jsonify({
++            'success': True,
++            'url': portal_session.url
++        })
++    except Exception as e:
++        print(f"❌ Error creating portal session: {e}")
++        return jsonify({'success': False, 'error': str(e)}), 500
++
++@app.route('/api/invoices', methods=['GET'])
++def get_invoices():
++    """Get user's Stripe invoices"""
++    try:
++        if 'user_id' not in session:
++            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
++        
++        user_id = session['user_id']
++        conn = get_db_connection()
++        cursor = conn.cursor()
++        cursor.execute('SELECT stripe_customer_id FROM users WHERE id = ?', (user_id,))
++        user = cursor.fetchone()
++        conn.close()
++        
++        if not user or not user['stripe_customer_id']:
++            return jsonify({'success': True, 'invoices': []})
++        
++        # Fetch invoices from Stripe
++        invoices = stripe.Invoice.list(
++            customer=user['stripe_customer_id'],
++            limit=100
++        )
++        
++        invoice_list = []
++        for invoice in invoices.data:
++            invoice_list.append({
++                'id': invoice.id,
++                'number': invoice.number,
++                'amount': invoice.amount_paid / 100,  # Convert cents to euros
++                'currency': invoice.currency.upper(),
++                'status': invoice.status,
++                'date': datetime.fromtimestamp(invoice.created).strftime('%Y-%m-%d'),
++                'pdf_url': invoice.invoice_pdf,
++                'hosted_url': invoice.hosted_invoice_url,
++                'description': invoice.lines.data[0].description if invoice.lines.data else 'Abonnement'
++            })
++        
++        return jsonify({
++            'success': True,
++            'invoices': invoice_list
++        })
++    except Exception as e:
++        print(f"❌ Error fetching invoices: {e}")
++        return jsonify({'success': False, 'error': str(e)}), 500
++
+ @app.route('/api/stripe/webhook', methods=['POST'])
+ def stripe_webhook():
+     """Handle Stripe webhooks"""
+diff --git a/templates/account.html b/templates/account.html
+index 0e8a389..b5e7808 100644
+--- a/templates/account.html
++++ b/templates/account.html
+@@ -356,6 +356,85 @@
+             color: #333;
+             margin-bottom: 15px;
+         }
++
++        .invoice-table {
++            width: 100%;
++            border-collapse: collapse;
++            margin-top: 15px;
++        }
++
++        .invoice-table th {
++            background: #f8f9fa;
++            padding: 12px;
++            text-align: left;
++            font-weight: 600;
++            font-size: 13px;
++            color: #333;
++            border-bottom: 2px solid #e0e0e0;
++        }
++
++        .invoice-table td {
++            padding: 12px;
++            border-bottom: 1px solid #f0f0f0;
++            font-size: 14px;
++            color: #666;
++        }
++
++        .invoice-table tr:hover {
++            background: #f8f9fa;
++        }
++
++        .invoice-status {
++            display: inline-block;
++            padding: 4px 12px;
++            border-radius: 12px;
++            font-size: 12px;
++            font-weight: 600;
++        }
++
++        .invoice-status.paid {
++            background: #d4edda;
++            color: #155724;
++        }
++
++        .invoice-status.open {
++            background: #fff3cd;
++            color: #856404;
++        }
++
++        .invoice-actions {
++            display: flex;
++            gap: 8px;
++        }
++
++        .btn-invoice {
++            padding: 6px 12px;
++            background: #667eea;
++            color: white;
++            border: none;
++            border-radius: 6px;
++            font-size: 12px;
++            font-weight: 600;
++            cursor: pointer;
++            text-decoration: none;
++            transition: all 0.2s;
++        }
++
++        .btn-invoice:hover {
++            background: #5568d3;
++            transform: translateY(-1px);
++        }
++
++        .no-invoices {
++            text-align: center;
++            padding: 40px 20px;
++            color: #999;
++        }
++
++        .no-invoices-icon {
++            font-size: 48px;
++            margin-bottom: 15px;
++        }
+     </style>
+ </head>
+ <body>
+@@ -519,6 +598,31 @@
+                 </div>
+             </div>
+ 
++            <!-- Abonnement & Facturen -->
++            <div class="card">
++                <div class="card-header">
++                    <span class="card-icon">💳</span>
++                    <h2 class="card-title">Abonnement & Facturen</h2>
++                </div>
++
++                <div class="info-box">
++                    <p><strong>Abonnement:</strong> <span id="subscription-status">Actief</span></p>
++                    <p><strong>Prijs:</strong> €99,00 per maand</p>
++                    <p><strong>Volgende betaling:</strong> <span id="next-payment">-</span></p>
++                </div>
++
++                <button type="button" class="btn-primary" onclick="openCustomerPortal()" style="margin-bottom: 20px;">
++                    🔧 Beheer Abonnement & Betaalmethode
++                </button>
++
++                <h3 class="section-title">Facturen</h3>
++                <div id="invoices-container">
++                    <p style="text-align: center; color: #666; padding: 20px;">
++                        <span class="loading"></span> Facturen laden...
++                    </p>
++                </div>
++            </div>
++
+             <!-- Content Voorkeuren -->
+             <div class="card">
+                 <div class="card-header">
+@@ -577,6 +681,7 @@
+         window.addEventListener('DOMContentLoaded', async () => {
+             await loadUserData();
+             await loadStats();
++            await loadInvoices();
+         });
+ 
+         async function loadUserData() {
+@@ -832,6 +937,121 @@
+             }
+         }
+ 
++        async function loadInvoices() {
++            try {
++                const response = await fetch('/api/invoices', {
++                    credentials: 'include'
++                });
++
++                if (!response.ok) {
++                    throw new Error('Failed to load invoices');
++                }
++
++                const data = await response.json();
++                
++                if (data.success) {
++                    displayInvoices(data.invoices);
++                } else {
++                    document.getElementById('invoices-container').innerHTML = `
++                        <div class="no-invoices">
++                            <div class="no-invoices-icon">📄</div>
++                            <p>Geen facturen gevonden</p>
++                        </div>
++                    `;
++                }
++            } catch (error) {
++                console.error('Error loading invoices:', error);
++                document.getElementById('invoices-container').innerHTML = `
++                    <div class="no-invoices">
++                        <p style="color: #e74c3c;">Fout bij laden van facturen</p>
++                    </div>
++                `;
++            }
++        }
++
++        function displayInvoices(invoices) {
++            const container = document.getElementById('invoices-container');
++            
++            if (!invoices || invoices.length === 0) {
++                container.innerHTML = `
++                    <div class="no-invoices">
++                        <div class="no-invoices-icon">📄</div>
++                        <p>Nog geen facturen beschikbaar</p>
++                    </div>
++                `;
++                return;
++            }
++
++            let html = `
++                <table class="invoice-table">
++                    <thead>
++                        <tr>
++                            <th>Factuurnummer</th>
++                            <th>Datum</th>
++                            <th>Bedrag</th>
++                            <th>Status</th>
++                            <th>Acties</th>
++                        </tr>
++                    </thead>
++                    <tbody>
++            `;
++
++            invoices.forEach(invoice => {
++                const statusClass = invoice.status === 'paid' ? 'paid' : 'open';
++                const statusText = invoice.status === 'paid' ? 'Betaald' : 'Openstaand';
++                
++                html += `
++                    <tr>
++                        <td><strong>${invoice.number || invoice.id}</strong></td>
++                        <td>${invoice.date}</td>
++                        <td>€${invoice.amount.toFixed(2)}</td>
++                        <td><span class="invoice-status ${statusClass}">${statusText}</span></td>
++                        <td>
++                            <div class="invoice-actions">
++                                ${invoice.pdf_url ? `<a href="${invoice.pdf_url}" target="_blank" class="btn-invoice">📥 PDF</a>` : ''}
++                                ${invoice.hosted_url ? `<a href="${invoice.hosted_url}" target="_blank" class="btn-invoice">👁️ Bekijken</a>` : ''}
++                            </div>
++                        </td>
++                    </tr>
++                `;
++            });
++
++            html += `
++                    </tbody>
++                </table>
++            `;
++
++            container.innerHTML = html;
++        }
++
++        async function openCustomerPortal() {
++            try {
++                const btn = event.target;
++                btn.disabled = true;
++                btn.innerHTML = 'Laden... <span class="loading"></span>';
++
++                const response = await fetch('/api/stripe/customer-portal', {
++                    method: 'POST',
++                    credentials: 'include'
++                });
++
++                const data = await response.json();
++
++                if (data.success && data.url) {
++                    window.open(data.url, '_blank');
++                } else {
++                    showAlert(data.error || 'Kon portal niet openen', 'error');
++                }
++            } catch (error) {
++                console.error('Error opening portal:', error);
++                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
++            } finally {
++                const btn = event.target;
++                btn.disabled = false;
++                btn.innerHTML = '🔧 Beheer Abonnement & Betaalmethode';
++            }
++        }
++
+         function showAlert(message, type = 'error') {
+             const alert = document.getElementById('alert');
+             alert.textContent = message;
+-- 
+2.39.5
+

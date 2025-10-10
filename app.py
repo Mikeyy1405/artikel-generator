@@ -64,6 +64,8 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 30  # 30 days
+app.config['SESSION_PERMANENT'] = True
 CORS(app, supports_credentials=True)
 
 # Error handlers
@@ -1802,6 +1804,7 @@ def login():
             }), 402
         
         session['user_id'] = user['id']
+        session.permanent = True  # Make session persistent across deployments
         cursor.execute('''
             UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
         ''', (user['id'],))
