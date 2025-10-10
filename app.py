@@ -2145,11 +2145,17 @@ def get_invoices():
             )
         except stripe.error.InvalidRequestError as e:
             print(f"❌ Stripe API error: {e}")
+            # Return empty list instead of error - customer might not have invoices yet
             return jsonify({
                 'success': True,
-                'invoices': [],
-                'message': 'Geen facturen gevonden voor dit account.'
+                'invoices': []
             })
+        except stripe.error.AuthenticationError as e:
+            print(f"❌ Stripe authentication error: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Stripe authenticatie mislukt. Controleer de API keys.'
+            }), 500
         
         invoice_list = []
         for invoice in invoices.data:
