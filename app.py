@@ -3095,11 +3095,94 @@ def api_generate_dalle_image():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
+def filter_sitemap_urls(urls, base_url):
+    """
+    Filter sitemap URLs to only include posts, categories, and products
+    Excludes tags, authors, pages, media, admin, feeds, etc.
+    
+    Args:
+        urls: List of URL strings
+        base_url: Base URL of the website
+    
+    Returns:
+        List of filtered URL strings
+    """
+    filtered = []
+    
+    # Exclusion patterns for URLs we DON'T want
+    exclude_patterns = [
+        '/tag/',           # Tags
+        '/author/',        # Authors
+        '/page/',          # Static pages (not posts)
+        '/wp-content/',    # Media/files
+        '/wp-admin/',      # Admin
+        '/feed/',          # RSS feeds
+        '/comments/',      # Comments
+        '/attachment/',    # Attachments
+        '?',               # Query parameters
+        '#',               # Anchors
+        '/wp-json/',       # API endpoints
+        '/xmlrpc.php',     # XML-RPC
+        '/wp-login',       # Login page
+    ]
+    
+    # Inclusion patterns - these are always included
+    include_patterns = [
+        '/category/',      # Categories
+        '/product/',       # WooCommerce products
+        '/product-category/', # Product categories
+    ]
+    
+    for url in urls:
+        if not url.startswith(base_url):
+            continue
+        
+        # Check if URL should be excluded
+        should_exclude = any(pattern in url for pattern in exclude_patterns)
+        if should_exclude:
+            continue
+        
+        # Check if it's a special type (category/product)
+        is_special_type = any(pattern in url for pattern in include_patterns)
+        
+        if is_special_type:
+            filtered.append(url)
+            continue
+        
+        # For remaining URLs, check if they look like posts
+        # Posts typically have:
+        # 1. Date pattern in URL (e.g., /2024/01/post-name/)
+        # 2. Simple structure (e.g., /post-name/)
+        from urllib.parse import urlparse
+        path = urlparse(url).path.strip('/')
+        
+        if not path:
+            continue
+        
+        path_parts = path.split('/')
+        
+        # Check for date pattern (YYYY/MM/DD or YYYY/MM)
+        has_date_pattern = False
+        if len(path_parts) >= 2:
+            if path_parts[0].isdigit() and len(path_parts[0]) == 4:
+                if path_parts[1].isdigit() and len(path_parts[1]) <= 2:
+                    has_date_pattern = True
+        
+        # Check if it's a simple post URL (1-2 levels deep)
+        is_simple_post = len(path_parts) <= 2 and path_parts[-1] != ''
+        
+        # Include if it looks like a post
+        if has_date_pattern or is_simple_post:
+            filtered.append(url)
+    
+    return filtered
+
+
 @app.route('/api/scrape-website', methods=['POST'])
 def api_scrape_website():
     """
     Scrape website sitemap - FIXED VERSION
-    Properly handles sitemap.xml parsing with better error handling
+    Properly handles sitemap.xml parsing with better error handling and URL filtering
     """
     try:
         print("🌐 Starting website scraping...")
@@ -3164,7 +3247,7 @@ def api_scrape_website():
             soup = BeautifulSoup(response.content, 'xml')
             
             # Extract URLs
-            urls = []
+            all_urls = []
             
             # Check for sitemap index
             sitemaps = soup.find_all('sitemap')
@@ -3182,7 +3265,7 @@ def api_scrape_website():
                             })
                             sub_soup = BeautifulSoup(sub_response.content, 'xml')
                             sub_urls = sub_soup.find_all('loc')
-                            urls.extend([u.text for u in sub_urls])
+                            all_urls.extend([u.text for u in sub_urls])
                             print(f"    ✅ Found {len(sub_urls)} URLs")
                         except Exception as e:
                             print(f"    ⚠️  Error fetching sub-sitemap: {str(e)}")
@@ -3190,8 +3273,13 @@ def api_scrape_website():
             else:
                 # Regular sitemap
                 locs = soup.find_all('loc')
-                urls = [loc.text for loc in locs]
-                print(f"📄 Found regular sitemap with {len(urls)} URLs")
+                all_urls = [loc.text for loc in locs]
+                print(f"📄 Found regular sitemap with {len(all_urls)} URLs")
+            
+            # Filter URLs for posts, categories, and products only
+            print(f"🔍 Filtering URLs for posts, categories, and products...")
+            urls = filter_sitemap_urls(all_urls, base_url)
+            print(f"✅ Filtered to {len(urls)} relevant URLs (posts, categories, products)")
             
             # Extract domain and site name
             from urllib.parse import urlparse
@@ -3201,11 +3289,17 @@ def api_scrape_website():
             
             # Check if we found any URLs
             if not urls:
-                print(f"⚠️  Sitemap found at {sitemap_url} but contains 0 URLs")
-                return jsonify({
-                    'success': False,
-                    'error': f'Sitemap gevonden maar bevat geen URLs. Controleer of de sitemap correct is: {sitemap_url}'
-                }), 400
+                print(f"⚠️  No relevant URLs found after filtering. Total URLs in sitemap: {len(all_urls)}, Filtered: {len(urls)}")
+                if len(all_urls) > 0:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Sitemap bevat {len(all_urls)} URLs, maar geen posts, categorieën of producten gevonden. De sitemap bevat mogelijk alleen paginas, tags of andere content types die niet relevant zijn voor keyword onderzoek.'
+                    }), 400
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Sitemap gevonden maar bevat geen URLs. Controleer of de sitemap correct is: {sitemap_url}'
+                    }), 400
             
             print(f"✅ Successfully scraped {len(urls)} URLs from sitemap")
             

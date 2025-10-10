@@ -735,7 +735,7 @@
                             <!-- Research Card -->
                             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                    <div style="width: 48px; height: 48px; background: #6366f1; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📊</div>
+                                    <div style="width: 48px; height: 48px; background: var(--dark-orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📊</div>
                                     <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
                                 </div>
                                 <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="research-count">0</div>
@@ -784,7 +784,7 @@
                                         <span>Sitemap Beheer</span>
                                     </button>
 
-                                    <button onclick="switchSection('saved-articles')" style="width: 100%; padding: 16px; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;" onmouseover="this.style.background='#5855eb'" onmouseout="this.style.background='#6366f1'">
+                                    <button onclick="switchSection('saved-articles')" style="width: 100%; padding: 16px; background: var(--dark-orange); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;" onmouseover="this.style.background='#c55a18'" onmouseout="this.style.background='var(--dark-orange)'">
                                         <span style="font-size: 18px;">📚</span>
                                         <span>Opgeslagen Artikelen</span>
                                     </button>
@@ -817,13 +817,13 @@
                 <div class="section-content" style="display: block; max-width: 1200px; margin: 0 auto;">
                     
                     <!-- Add New Website -->
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div style="background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                         <h3 style="color: white; margin-bottom: 20px; font-size: 24px;">➕ Nieuwe Website Toevoegen</h3>
                         
                         <!-- Method Selection Tabs -->
                         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                             <button id="tab-sitemap" class="add-method-tab active" onclick="switchAddMethod('sitemap')" 
-                                    style="flex: 1; padding: 12px; background: white; color: #667eea; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                    style="flex: 1; padding: 12px; background: white; color: var(--light-blue); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
                                 📄 Alleen Sitemap
                             </button>
                             <button id="tab-credentials" class="add-method-tab" onclick="switchAddMethod('credentials')" 
@@ -844,7 +844,7 @@
                                     </small>
                                 </div>
                                 <button class="btn btn-primary" onclick="fetchAndSaveSitemap()" 
-                                        style="background: white; color: #667eea; padding: 12px 30px; font-weight: 600; border: none; height: fit-content;">
+                                        style="background: white; color: var(--light-blue); padding: 12px 30px; font-weight: 600; border: none; height: fit-content;">
                                     🔍 Sitemap Ophalen
                                 </button>
                             </div>
@@ -875,7 +875,7 @@
                                     WordPress Dashboard → Gebruikers → Profiel → Applicatie Wachtwoorden → Nieuw wachtwoord toevoegen
                                 </small>
                                 <button class="btn btn-primary" onclick="addWebsiteWithCredentials()" 
-                                        style="background: white; color: #667eea; padding: 12px 30px; font-weight: 600; border: none; width: fit-content; margin-top: 10px;">
+                                        style="background: white; color: var(--light-blue); padding: 12px 30px; font-weight: 600; border: none; width: fit-content; margin-top: 10px;">
                                     ✅ Website Toevoegen
                                 </button>
                             </div>
@@ -2159,7 +2159,7 @@
                             </div>
                         </div>
                         
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                        <div style="background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%); padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
                             <div style="font-size: 36px; font-weight: bold; color: white;">${site.total_count}</div>
                             <div style="color: rgba(255,255,255,0.9); font-size: 14px;">URLs in sitemap</div>
                         </div>
@@ -2194,7 +2194,7 @@
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px;">
-                            <button onclick="startKeywordResearchForWebsite('${site.website_url}')" class="btn btn-primary" style="padding: 10px; font-size: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                            <button onclick="startKeywordResearchForWebsite('${site.website_url}')" class="btn btn-primary" style="padding: 10px; font-size: 14px; background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%); border: none;">
                                 🔍 Keyword Onderzoek Starten
                             </button>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -2420,14 +2420,14 @@
             // Update tab styles
             if (method === 'sitemap') {
                 document.getElementById('tab-sitemap').style.background = 'white';
-                document.getElementById('tab-sitemap').style.color = '#667eea';
+                document.getElementById('tab-sitemap').style.color = 'var(--light-blue)';
                 document.getElementById('tab-credentials').style.background = 'rgba(255,255,255,0.2)';
                 document.getElementById('tab-credentials').style.color = 'white';
             } else {
                 document.getElementById('tab-sitemap').style.background = 'rgba(255,255,255,0.2)';
                 document.getElementById('tab-sitemap').style.color = 'white';
                 document.getElementById('tab-credentials').style.background = 'white';
-                document.getElementById('tab-credentials').style.color = '#667eea';
+                document.getElementById('tab-credentials').style.color = 'var(--light-blue)';
             }
             
             // Show/hide content
@@ -2997,8 +2997,8 @@
                 
                 const hasUrls = website.urls_count > 0;
                 const cardGradient = hasUrls 
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                    ? 'linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%)'
+                    : 'linear-gradient(135deg, var(--orange) 0%, var(--dark-orange) 100%)';
                 
                 return `
                     <div style="background: ${cardGradient}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" 
@@ -3039,7 +3039,7 @@
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <button onclick="event.stopPropagation(); refreshSitemap(${website.id})" 
-                                    style="background: white; color: #667eea; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                    style="background: white; color: var(--light-blue); border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
                                 🔄 Refresh
                             </button>
                             <button onclick="event.stopPropagation(); viewWebsiteUrls(${website.id})" 
