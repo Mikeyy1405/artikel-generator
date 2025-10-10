@@ -1765,6 +1765,46 @@ def index():
     
     return send_file('templates/index.html')
 
+def generate_remember_token():
+    """Generate a secure remember token"""
+    import secrets
+    return secrets.token_urlsafe(32)
+
+def check_remember_token():
+    """Check if user has valid remember token and auto-login"""
+    remember_token = request.cookies.get('remember_token')
+    
+    if not remember_token:
+        return None
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT id, email, full_name, is_superuser, remember_token_expires
+        FROM users 
+        WHERE remember_token = ? AND is_active = 1
+    ''', (remember_token,))
+    
+    user = cursor.fetchone()
+    conn.close()
+    
+    if not user:
+        return None
+    
+    # Check if token is expired
+    from datetime import datetime
+    if user['remember_token_expires']:
+        expires = datetime.fromisoformat(user['remember_token_expires'])
+        if datetime.now() > expires:
+            return None
+    
+    # Auto-login user
+    session['user_id'] = user['id']
+    session.permanent = True
+    
+    return user
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     """Login endpoint - requires active subscription"""
@@ -1805,13 +1845,24 @@ def login():
         
         session['user_id'] = user['id']
         session.permanent = True  # Make session persistent across deployments
+        
+        # Generate remember token for persistent login
+        remember_token = generate_remember_token()
+        from datetime import datetime, timedelta
+        expires = datetime.now() + timedelta(days=30)
+        
         cursor.execute('''
-            UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
-        ''', (user['id'],))
+            UPDATE users 
+            SET last_login = CURRENT_TIMESTAMP,
+                remember_token = ?,
+                remember_token_expires = ?
+            WHERE id = ?
+        ''', (remember_token, expires.isoformat(), user['id']))
         conn.commit()
         conn.close()
         
-        return jsonify({
+        # Set remember token in response cookie
+        response = jsonify({
             'success': True,
             'user': {
                 'id': user['id'],
@@ -1821,6 +1872,8 @@ def login():
                 'subscription_status': subscription_status
             }
         })
+        response.set_cookie('remember_token', remember_token, max_age=30*24*60*60, httponly=True, samesite='Lax')
+        return response
     else:
         conn.close()
         return jsonify({'success': False, 'error': 'Ongeldige inloggegevens'}), 401
@@ -1883,8 +1936,24 @@ def register():
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
     """Logout endpoint"""
+    # Clear remember token from database
+    if 'user_id' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users 
+            SET remember_token = NULL, remember_token_expires = NULL
+            WHERE id = ?
+        ''', (session['user_id'],))
+        conn.commit()
+        conn.close()
+    
     session.clear()
-    return jsonify({'success': True})
+    
+    # Clear remember token cookie
+    response = jsonify({'success': True})
+    response.set_cookie('remember_token', '', expires=0)
+    return response
 
 # ============================================================================
 # STRIPE PAYMENT ENDPOINTS
@@ -2228,6 +2297,19 @@ def handle_payment_failed(invoice):
 def get_me():
     """Get current user info"""
     user = get_current_user()
+    
+    # If no session, try remember token
+    if not user:
+        user = check_remember_token()
+        if user:
+            # Convert to dict format expected by frontend
+            user = {
+                'id': user['id'],
+                'email': user['email'],
+                'full_name': user['full_name'],
+                'is_superuser': bool(user['is_superuser'])
+            }
+    
     if user:
         return jsonify({
             'success': True,
