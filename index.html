@@ -1856,6 +1856,9 @@
             document.getElementById(sectionId).classList.add('active');
             event.target.classList.add('active');
             
+            // Close mobile menu when a menu item is clicked
+            closeMobileMenu();
+            
             if (sectionId === 'wordpress') {
                 loadWordPressSites();
             } else if (sectionId === 'saved') {
