@@ -1,0 +1,50 @@
+{
+  "booking.com": {
+    "base_url": "https://www.booking.com/searchresults.html",
+    "params": {
+      "aid": "YOUR_BOOKING_AFFILIATE_ID",
+      "ss": "{destination}"
+    },
+    "description": "Hotel bookings affiliate program"
+  },
+  "getyourguide": {
+    "base_url": "https://www.getyourguide.com/s/",
+    "params": {
+      "partner_id": "YOUR_GETYOURGUIDE_PARTNER_ID",
+      "q": "{destination}"
+    },
+    "description": "Tours and activities affiliate program"
+  },
+  "viator": {
+    "base_url": "https://www.viator.com/searchResults/all",
+    "params": {
+      "pid": "YOUR_VIATOR_PARTNER_ID",
+      "text": "{destination}"
+    },
+    "description": "Tours and experiences affiliate program"
+  },
+  "rentalcars": {
+    "base_url": "https://www.rentalcars.com/SearchResults.do",
+    "params": {
+      "affiliateCode": "YOUR_RENTALCARS_AFFILIATE_CODE",
+      "city": "{destination}"
+    },
+    "description": "Car rental affiliate program"
+  },
+  "skyscanner": {
+    "base_url": "https://www.skyscanner.com/transport/flights/",
+    "params": {
+      "associateid": "YOUR_SKYSCANNER_ASSOCIATE_ID",
+      "destination": "{destination}"
+    },
+    "description": "Flight search affiliate program"
+  },
+  "tripadvisor": {
+    "base_url": "https://www.tripadvisor.com/Search",
+    "params": {
+      "pid": "YOUR_TRIPADVISOR_PARTNER_ID",
+      "q": "{destination}"
+    },
+    "description": "Travel reviews and bookings"
+  }
+}
