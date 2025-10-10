@@ -652,7 +652,7 @@
             </div>
             
             <div class="menu-item" onclick="switchSection('content-writer', event)">
-                ✍️ Content Schrijver
+                🔥 Content Schrijver
             </div>
             
             <div class="menu-item" onclick="switchSection('media-library', event)">
@@ -1287,157 +1287,146 @@
             <!-- Content Writer Section -->
             <div id="content-writer" class="section">
                 <div class="section-header">
-                    <h2>✍️ Content Writer</h2>
-                    <p>Genereer hoogwaardige content met AI</p>
+                    <h2>🔥 Automatische Blog Generator</h2>
+                    <p>Genereer complete blogs met afbeeldingen, interne links en affiliate links</p>
                 </div>
                 
                 <div class="section-content">
                     <!-- Input Panel -->
                     <div class="input-panel">
+                        <!-- Website Selectie -->
                         <div class="form-group">
-                            <label>Content Type</label>
-                            <select id="content-type" onchange="handleContentTypeChange()">
-                                <option value="general">Algemeen Artikel</option>
-                                <option value="seo">SEO Artikel</option>
-                                <option value="list">Lijst Artikel</option>
-                                <option value="youtube">YouTube Artikel</option>
-                                <option value="linkbuilding">Linkbuilding</option>
+                            <label>🌐 Selecteer Website *</label>
+                            <select id="blog-website-select" onchange="handleBlogWebsiteChange()">
+                                <option value="">-- Selecteer een website --</option>
                             </select>
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                💡 Voeg eerst een website toe in "Website Beheer"
+                            </small>
                         </div>
                         
+                        <!-- Content Planning Koppeling (Optioneel) -->
                         <div class="form-group">
-                            <label>Onderwerp</label>
-                            <input type="text" id="content-topic" placeholder="Bijv: Beste yoga oefeningen voor beginners">
+                            <label>📅 Content Planning (optioneel)</label>
+                            <select id="blog-content-plan-select">
+                                <option value="">-- Geen koppeling --</option>
+                            </select>
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                Koppel aan bestaand content plan item
+                            </small>
                         </div>
                         
+                        <!-- Onderwerp/Titel -->
                         <div class="form-group">
-                            <label>Aantal Woorden</label>
-                            <input type="number" id="content-words" value="500" min="100" max="5000">
+                            <label>✍️ Onderwerp/Titel *</label>
+                            <input type="text" id="blog-topic" placeholder="Bijv: De 10 beste yoga oefeningen voor beginners">
                         </div>
                         
-                        <!-- Perplexity Research -->
+                        <!-- Aantal Woorden -->
                         <div class="form-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="perplexity-research">
-                                <label for="perplexity-research">🔍 Perplexity Research</label>
+                            <label>📝 Aantal Woorden</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="range" id="blog-word-count-slider" min="500" max="3000" value="1500" step="100" 
+                                       style="flex: 1;" oninput="updateWordCountDisplay()">
+                                <input type="number" id="blog-word-count" value="1500" min="500" max="3000" 
+                                       style="width: 80px; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; text-align: center;"
+                                       oninput="updateWordCountSlider()">
                             </div>
                         </div>
                         
-                        <!-- Extra Options -->
+                        <!-- Automatische Features -->
                         <div class="form-group">
-                            <label>Extra Opties</label>
+                            <label>🚀 Automatische Features</label>
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-lists">
-                                    <label for="include-lists">Lijsten toevoegen</label>
+                                    <input type="checkbox" id="blog-auto-images" checked>
+                                    <label for="blog-auto-images">📸 Automatische afbeeldingen (Pixabay/Pexels/Unsplash)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-tables">
-                                    <label for="include-tables">Tabellen toevoegen</label>
+                                    <input type="checkbox" id="blog-internal-links" checked>
+                                    <label for="blog-internal-links">🔗 Interne links (van sitemap)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-faq">
-                                    <label for="include-faq">FAQ sectie</label>
+                                    <input type="checkbox" id="blog-affiliate-links" checked>
+                                    <label for="blog-affiliate-links">💰 Affiliate links (van website config)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-conclusion" checked>
-                                    <label for="include-conclusion">Conclusie</label>
+                                    <input type="checkbox" id="blog-faq-section">
+                                    <label for="blog-faq-section">❓ FAQ sectie</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="blog-conclusion" checked>
+                                    <label for="blog-conclusion">✅ Conclusie</label>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Image Source -->
+                        <!-- Extra Context (Optioneel) -->
                         <div class="form-group">
-                            <label>Afbeeldingen</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="radio" name="content-image-source" value="pixabay" checked>
-                                    <label>Pixabay (gratis)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="radio" name="content-image-source" value="dalle">
-                                    <label>DALL-E (AI)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="radio" name="content-image-source" value="none">
-                                    <label>Geen afbeeldingen</label>
-                                </div>
-                            </div>
+                            <label>📋 Extra Context (optioneel)</label>
+                            <textarea id="blog-extra-context" rows="3" 
+                                      placeholder="Extra informatie, specifieke eisen, tone of voice, etc."></textarea>
                         </div>
                         
-                        <!-- Sitemap URL -->
-                        <div class="form-group">
-                            <label>Sitemap URL (optioneel)</label>
-                            <input type="text" id="sitemap-url" placeholder="https://example.com/sitemap.xml">
-                        </div>
-                        
-                        <!-- List Article Fields -->
-                        <div id="list-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>Aantal Items</label>
-                                <input type="number" id="content-list-items" value="10" min="3" max="50">
-                            </div>
-                            <div class="form-group">
-                                <label>Woorden per Item</label>
-                                <input type="number" id="content-list-words" value="100" min="50" max="500">
-                            </div>
-                        </div>
-                        
-                        <!-- YouTube Fields -->
-                        <div id="youtube-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>YouTube URL</label>
-                                <input type="text" id="content-youtube-url" placeholder="https://youtube.com/watch?v=...">
-                            </div>
-                        </div>
-                        
-                        <!-- Linkbuilding Fields -->
-                        <div id="linkbuilding-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>Anchor Text 1</label>
-                                <input type="text" id="content-lb-anchor1" placeholder="Bijv: yoga mat">
-                            </div>
-                            <div class="form-group">
-                                <label>URL 1</label>
-                                <input type="text" id="content-lb-url1" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Anchor Text 2</label>
-                                <input type="text" id="content-lb-anchor2" placeholder="Bijv: meditatie kussen">
-                            </div>
-                            <div class="form-group">
-                                <label>URL 2</label>
-                                <input type="text" id="content-lb-url2" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Extra Context</label>
-                                <textarea id="content-lb-context" rows="3" placeholder="Extra informatie..."></textarea>
-                            </div>
-                            <button class="btn btn-secondary btn-small" onclick="autoGenerateTopicInline()" style="width: 100%; margin-bottom: 15px;">
-                                🎯 Auto-genereer Onderwerp
-                            </button>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="generateContent()" style="width: 100%; margin-top: 20px;">
-                            ✨ Genereer Content
+                        <!-- Genereer Knop -->
+                        <button class="btn btn-primary" onclick="generateAutomaticBlog()" style="width: 100%; margin-top: 20px; padding: 15px;">
+                            🚀 Genereer Artikel
                         </button>
+                        
+                        <!-- Progress Indicator -->
+                        <div id="blog-generation-progress" style="display: none; margin-top: 20px;">
+                            <div class="alert alert-info">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                                    <strong>Artikel wordt gegenereerd...</strong>
+                                </div>
+                                <div id="blog-progress-steps" class="progress-steps"></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Editor Area -->
+                    <!-- Preview/Resultaat Area -->
                     <div class="editor-area">
                         <div class="editor-toolbar">
-                            <button class="btn btn-secondary btn-small" onclick="copyToClipboard()">
+                            <button class="btn btn-secondary btn-small" onclick="copyBlogToClipboard()" id="blog-copy-btn" disabled>
                                 📋 Kopieer
                             </button>
-                            <button class="btn btn-secondary btn-small" onclick="downloadHTML()">
+                            <button class="btn btn-secondary btn-small" onclick="downloadBlogHTML()" id="blog-download-html-btn" disabled>
                                 💾 Download HTML
                             </button>
-                            <span style="margin-left: auto; color: #666; font-size: 14px;" id="word-counter">
+                            <button class="btn btn-secondary btn-small" onclick="downloadBlogMarkdown()" id="blog-download-md-btn" disabled>
+                                📄 Download Markdown
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="publishBlogToWordPress()" id="blog-publish-btn" disabled>
+                                📤 Publiceer naar WordPress
+                            </button>
+                            <span style="margin-left: auto; color: #666; font-size: 14px;" id="blog-word-counter">
                                 0 woorden
                             </span>
                         </div>
                         <div class="editor-container">
-                            <div id="editor"></div>
+                            <div id="blog-preview" style="padding: 20px; line-height: 1.8;">
+                                <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                                    <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px;">
+                                        🔥
+                                    </div>
+                                    <h3 style="color: var(--dark-blue); margin-bottom: 10px;">Automatische Blog Generator</h3>
+                                    <p style="margin: 0 0 20px 0; font-size: 16px;">
+                                        Selecteer een website en vul de details in om te beginnen
+                                    </p>
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: left; max-width: 500px; margin: 0 auto;">
+                                        <h4 style="margin-top: 0; color: var(--dark-blue);">✨ Features:</h4>
+                                        <ul style="margin: 0; padding-left: 20px; line-height: 2;">
+                                            <li>📸 Automatische afbeeldingen van Pixabay, Pexels & Unsplash</li>
+                                            <li>🔗 Slimme interne links van je sitemap</li>
+                                            <li>💰 Automatische affiliate links</li>
+                                            <li>❓ Optionele FAQ sectie</li>
+                                            <li>✅ Professionele conclusie</li>
+                                            <li>📤 Direct publiceren naar WordPress</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -4616,7 +4605,348 @@
                     initContentPlanning();
                 }, 100);
             }
+            
+            // Load blog generator data when switching to content writer
+            if (sectionId === 'content-writer') {
+                loadBlogGeneratorData();
+            }
         };
+        
+        // ========================================
+        // AUTOMATISCHE BLOG GENERATOR FUNCTIES
+        // ========================================
+        
+        let currentBlogData = null;
+        
+        // Load websites and content plans for blog generator
+        async function loadBlogGeneratorData() {
+            try {
+                // Load websites
+                const websitesResponse = await fetch('/api/websites', {
+                    credentials: 'include'
+                });
+                const websitesData = await websitesResponse.json();
+                
+                const websiteSelect = document.getElementById('blog-website-select');
+                websiteSelect.innerHTML = '<option value="">-- Selecteer een website --</option>';
+                
+                if (websitesData.success && websitesData.websites) {
+                    websitesData.websites.forEach(website => {
+                        const option = document.createElement('option');
+                        option.value = website.id;
+                        option.textContent = website.url;
+                        option.dataset.sitemapUrl = website.sitemap_url || '';
+                        websiteSelect.appendChild(option);
+                    });
+                }
+                
+                // Load content plans
+                const plansResponse = await fetch('/api/content-plans', {
+                    credentials: 'include'
+                });
+                const plansData = await plansResponse.json();
+                
+                const planSelect = document.getElementById('blog-content-plan-select');
+                planSelect.innerHTML = '<option value="">-- Geen koppeling --</option>';
+                
+                if (plansData.success && plansData.plans) {
+                    plansData.plans.forEach(plan => {
+                        const option = document.createElement('option');
+                        option.value = plan.id;
+                        option.textContent = `${plan.title} (${plan.target_date})`;
+                        planSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading blog generator data:', error);
+            }
+        }
+        
+        // Handle website selection change
+        function handleBlogWebsiteChange() {
+            const select = document.getElementById('blog-website-select');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                // Website selected - enable form
+                document.getElementById('blog-topic').disabled = false;
+            } else {
+                // No website selected - disable form
+                document.getElementById('blog-topic').disabled = true;
+            }
+        }
+        
+        // Update word count display from slider
+        function updateWordCountDisplay() {
+            const slider = document.getElementById('blog-word-count-slider');
+            const input = document.getElementById('blog-word-count');
+            input.value = slider.value;
+        }
+        
+        // Update word count slider from input
+        function updateWordCountSlider() {
+            const slider = document.getElementById('blog-word-count-slider');
+            const input = document.getElementById('blog-word-count');
+            slider.value = input.value;
+        }
+        
+        // Generate automatic blog
+        async function generateAutomaticBlog() {
+            // Validate inputs
+            const websiteSelect = document.getElementById('blog-website-select');
+            const topic = document.getElementById('blog-topic').value.trim();
+            const wordCount = parseInt(document.getElementById('blog-word-count').value);
+            
+            if (!websiteSelect.value) {
+                showNotification('Selecteer eerst een website', 'error');
+                return;
+            }
+            
+            if (!topic) {
+                showNotification('Vul een onderwerp/titel in', 'error');
+                return;
+            }
+            
+            // Get selected options
+            const selectedOption = websiteSelect.options[websiteSelect.selectedIndex];
+            const websiteId = selectedOption.value;
+            const sitemapUrl = selectedOption.dataset.sitemapUrl;
+            
+            const autoImages = document.getElementById('blog-auto-images').checked;
+            const internalLinks = document.getElementById('blog-internal-links').checked;
+            const affiliateLinks = document.getElementById('blog-affiliate-links').checked;
+            const faqSection = document.getElementById('blog-faq-section').checked;
+            const conclusion = document.getElementById('blog-conclusion').checked;
+            const extraContext = document.getElementById('blog-extra-context').value.trim();
+            const contentPlanId = document.getElementById('blog-content-plan-select').value;
+            
+            // Show progress
+            const progressDiv = document.getElementById('blog-generation-progress');
+            const progressSteps = document.getElementById('blog-progress-steps');
+            progressDiv.style.display = 'block';
+            progressSteps.innerHTML = '';
+            
+            // Disable generate button
+            const generateBtn = document.querySelector('button[onclick="generateAutomaticBlog()"]');
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Bezig met genereren...';
+            
+            try {
+                // Prepare request data
+                const requestData = {
+                    website_id: websiteId,
+                    topic: topic,
+                    word_count: wordCount,
+                    sitemap_url: sitemapUrl,
+                    auto_images: autoImages,
+                    internal_links: internalLinks,
+                    affiliate_links: affiliateLinks,
+                    faq_section: faqSection,
+                    conclusion: conclusion,
+                    extra_context: extraContext,
+                    content_plan_id: contentPlanId || null
+                };
+                
+                // Add progress step
+                addProgressStep('Artikel wordt gegenereerd...', false);
+                
+                // Call API
+                const response = await fetch('/api/generate-blog', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update progress
+                    updateProgressStep(0, 'Artikel succesvol gegenereerd!', true);
+                    
+                    // Store blog data
+                    currentBlogData = data;
+                    
+                    // Display blog in preview
+                    displayBlogPreview(data);
+                    
+                    // Enable action buttons
+                    enableBlogActionButtons();
+                    
+                    // Hide progress after delay
+                    setTimeout(() => {
+                        progressDiv.style.display = 'none';
+                    }, 2000);
+                    
+                    showNotification('Artikel succesvol gegenereerd!', 'success');
+                } else {
+                    throw new Error(data.error || 'Er ging iets mis bij het genereren');
+                }
+            } catch (error) {
+                console.error('Error generating blog:', error);
+                addProgressStep(`Fout: ${error.message}`, false);
+                showNotification(`Fout bij genereren: ${error.message}`, 'error');
+            } finally {
+                // Re-enable generate button
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🚀 Genereer Artikel';
+            }
+        }
+        
+        // Add progress step
+        function addProgressStep(message, completed) {
+            const progressSteps = document.getElementById('blog-progress-steps');
+            const step = document.createElement('div');
+            step.className = 'progress-step' + (completed ? ' completed' : '');
+            step.innerHTML = `
+                <span class="spinner">${completed ? '✅' : '⏳'}</span>
+                <span>${message}</span>
+            `;
+            progressSteps.appendChild(step);
+            return progressSteps.children.length - 1;
+        }
+        
+        // Update progress step
+        function updateProgressStep(index, message, completed) {
+            const progressSteps = document.getElementById('blog-progress-steps');
+            const step = progressSteps.children[index];
+            if (step) {
+                step.className = 'progress-step' + (completed ? ' completed' : '');
+                step.innerHTML = `
+                    <span class="spinner">${completed ? '✅' : '⏳'}</span>
+                    <span>${message}</span>
+                `;
+            }
+        }
+        
+        // Display blog preview
+        function displayBlogPreview(data) {
+            const preview = document.getElementById('blog-preview');
+            const wordCounter = document.getElementById('blog-word-counter');
+            
+            // Display HTML content
+            preview.innerHTML = data.html_content || data.content || '';
+            
+            // Update word counter
+            const text = preview.textContent || preview.innerText;
+            const words = text.trim().split(/\s+/).length;
+            wordCounter.textContent = `${words} woorden`;
+        }
+        
+        // Enable action buttons
+        function enableBlogActionButtons() {
+            document.getElementById('blog-copy-btn').disabled = false;
+            document.getElementById('blog-download-html-btn').disabled = false;
+            document.getElementById('blog-download-md-btn').disabled = false;
+            document.getElementById('blog-publish-btn').disabled = false;
+        }
+        
+        // Copy blog to clipboard
+        function copyBlogToClipboard() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te kopiëren', 'error');
+                return;
+            }
+            
+            const content = currentBlogData.html_content || currentBlogData.content || '';
+            
+            // Create temporary element
+            const temp = document.createElement('textarea');
+            temp.value = content;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            showNotification('Artikel gekopieerd naar klembord!', 'success');
+        }
+        
+        // Download blog as HTML
+        function downloadBlogHTML() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te downloaden', 'error');
+                return;
+            }
+            
+            const content = currentBlogData.html_content || currentBlogData.content || '';
+            const topic = document.getElementById('blog-topic').value.trim();
+            const filename = `${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+            
+            downloadFile(content, filename, 'text/html');
+            showNotification('HTML bestand gedownload!', 'success');
+        }
+        
+        // Download blog as Markdown
+        function downloadBlogMarkdown() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te downloaden', 'error');
+                return;
+            }
+            
+            const content = currentBlogData.markdown_content || currentBlogData.content || '';
+            const topic = document.getElementById('blog-topic').value.trim();
+            const filename = `${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+            
+            downloadFile(content, filename, 'text/markdown');
+            showNotification('Markdown bestand gedownload!', 'success');
+        }
+        
+        // Publish blog to WordPress
+        async function publishBlogToWordPress() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te publiceren', 'error');
+                return;
+            }
+            
+            if (!confirm('Wil je dit artikel publiceren naar WordPress?')) {
+                return;
+            }
+            
+            try {
+                const websiteId = document.getElementById('blog-website-select').value;
+                const topic = document.getElementById('blog-topic').value.trim();
+                
+                const response = await fetch('/api/publish-to-wordpress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        website_id: websiteId,
+                        title: topic,
+                        content: currentBlogData.html_content || currentBlogData.content,
+                        status: 'draft'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Artikel succesvol gepubliceerd naar WordPress!', 'success');
+                } else {
+                    throw new Error(data.error || 'Publicatie mislukt');
+                }
+            } catch (error) {
+                console.error('Error publishing to WordPress:', error);
+                showNotification(`Fout bij publiceren: ${error.message}`, 'error');
+            }
+        }
+        
+        // Helper function to download file
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
         
     </script>
     
