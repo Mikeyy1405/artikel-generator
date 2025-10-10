@@ -243,8 +243,42 @@ def init_db():
             sitemap_urls TEXT,
             urls_count INTEGER DEFAULT 0,
             last_updated TIMESTAMP,
+            posting_schedule TEXT DEFAULT 'weekly',
+            posting_days TEXT,
+            posting_time TEXT DEFAULT '09:00',
+            auto_publish INTEGER DEFAULT 0,
+            last_post_date TEXT,
+            wordpress_url TEXT,
+            wordpress_username TEXT,
+            wordpress_password TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS content_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL DEFAULT 1,
+            title TEXT NOT NULL,
+            description TEXT,
+            keyword TEXT,
+            target_date DATE,
+            status TEXT DEFAULT 'draft',
+            article_id INTEGER,
+            wordpress_site_id INTEGER,
+            word_count INTEGER DEFAULT 1000,
+            scheduled_date TEXT,
+            scheduled_time TEXT,
+            auto_generated INTEGER DEFAULT 0,
+            approval_status TEXT,
+            generated_content TEXT,
+            wordpress_post_id TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE SET NULL,
+            FOREIGN KEY (wordpress_site_id) REFERENCES wordpress_sites(id) ON DELETE SET NULL
         )
     ''')
     
