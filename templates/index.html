@@ -1117,37 +1117,12 @@
                 📊 Dashboard
             </div>
             
-            
-            <div class="menu-item" onclick="switchSection('website-beheer', event)">
-                🌐 Website Beheer
+            <div class="menu-item" onclick="openOnboardingWizard()" style="background: linear-gradient(135deg, var(--orange), var(--dark-orange)); font-weight: 600; border-left-color: #ffd700;">
+                🚀 Website Setup
             </div>
             
-            <div class="menu-item" onclick="switchSection('keyword-research', event)">
-                🔍 Zoekwoordonderzoek
-            </div>
-            
-            <div class="menu-item" onclick="switchSection('content-planning', event)">
-                📅 Contentplanning
-            </div>
-            
-            <div class="menu-item" onclick="switchSection('content-writer', event)">
-                ✍️ Content Schrijver
-            </div>
-            
-            <div class="menu-item" onclick="switchSection('media-library', event)">
-                🖼️ Afbeeldingen & Media
-            </div>
-            
-            <div class="menu-item" onclick="switchSection('wordpress', event)">
-                📤 WordPress Publicatie
-            </div>
-            
-            <div class="menu-item" onclick="switchSection('social-media', event)">
-                📱 Social Media
-            </div>
-            
-            <div class="menu-item" onclick="switchSection('saved-articles', event)">
-                💾 Opgeslagen Artikelen
+            <div class="menu-item" onclick="switchSection('automation-settings', event)">
+                ⚙️ Automation Instellingen
             </div>
             
             <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -1168,7 +1143,21 @@
                     <!-- Header -->
                     <div class="dashboard-header">
                         <h1>📊 Dashboard</h1>
-                        <p>Welkom terug! Hier is een overzicht van je content productie</p>
+                        <p>Overzicht van je geautomatiseerde content productie</p>
+                    </div>
+                    
+                    <!-- Setup CTA (shown when no websites) -->
+                    <div id="setup-cta" style="display: none; background: linear-gradient(135deg, var(--orange), var(--dark-orange)); padding: 40px; border-radius: 16px; margin-bottom: 30px; text-align: center; color: white; box-shadow: 0 8px 24px rgba(255,166,43,0.3);">
+                        <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                        <h2 style="color: white; margin-bottom: 12px; font-size: 28px;">Klaar om te Beginnen?</h2>
+                        <p style="font-size: 16px; margin-bottom: 30px; opacity: 0.95;">Laten we je eerste website instellen en automatisch content genereren</p>
+                        <button onclick="openOnboardingWizard()" class="btn" style="background: white; color: var(--dark-orange); padding: 16px 40px; font-size: 18px; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            ✨ Start Website Setup
+                        </button>
+                        <div style="margin-top: 25px; font-size: 14px; opacity: 0.9;">
+                            <strong>Wat gebeurt er?</strong><br>
+                            1️⃣ Je vult website info in → 2️⃣ Wij maken automatisch keywords & content plan → 3️⃣ Content wordt automatisch gepubliceerd
+                        </div>
                     </div>
                     
                     <!-- Stats Grid -->
@@ -1334,28 +1323,16 @@
                     <!-- Quick Actions -->
                     <div class="activity-section">
                         <div class="activity-header">
-                            <h3>⚡ Quick Actions</h3>
+                            <h3>⚡ Snelle Acties</h3>
                         </div>
                         <div class="quick-actions-grid">
-                            <div class="quick-action-btn" onclick="switchSection('content-writer', event)">
-                                <div class="quick-action-icon">✍️</div>
-                                <div class="quick-action-label">Schrijf Artikel</div>
+                            <div class="quick-action-btn" onclick="openOnboardingWizard()" style="border-color: var(--orange); background: linear-gradient(135deg, rgba(255,166,43,0.1), rgba(227,108,30,0.1));">
+                                <div class="quick-action-icon" style="color: var(--orange);">🚀</div>
+                                <div class="quick-action-label" style="color: var(--orange); font-weight: 600;">Website Setup</div>
                             </div>
-                            <div class="quick-action-btn" onclick="switchSection('website-beheer', event)">
-                                <div class="quick-action-icon">🌐</div>
-                                <div class="quick-action-label">Voeg Website Toe</div>
-                            </div>
-                            <div class="quick-action-btn" onclick="switchSection('keyword-research', event)">
-                                <div class="quick-action-icon">🔍</div>
-                                <div class="quick-action-label">Keyword Research</div>
-                            </div>
-                            <div class="quick-action-btn" onclick="switchSection('content-planning', event)">
-                                <div class="quick-action-icon">📅</div>
-                                <div class="quick-action-label">Content Planning</div>
-                            </div>
-                            <div class="quick-action-btn" onclick="switchSection('saved-articles', event)">
-                                <div class="quick-action-icon">💾</div>
-                                <div class="quick-action-label">Bekijk Artikelen</div>
+                            <div class="quick-action-btn" onclick="switchSection('automation-settings', event)">
+                                <div class="quick-action-icon">⚙️</div>
+                                <div class="quick-action-label">Automation Instellingen</div>
                             </div>
                         </div>
                     </div>
@@ -1924,6 +1901,119 @@
             </div>
             
             <!-- Saved Articles Section -->
+            <!-- Automation Settings Section -->
+            <div id="automation-settings" class="section">
+                <div class="section-header">
+                    <h2>⚙️ Automation Instellingen</h2>
+                    <p>Configureer automatische content generatie en publicatie per website</p>
+                </div>
+                
+                <div class="section-content" style="display: block; padding: 30px; overflow-y: auto; background: #f5f7fa;">
+                    <!-- Info Alert -->
+                    <div class="alert alert-info" style="margin-bottom: 30px;">
+                        <h4 style="margin-bottom: 10px;">📋 Hoe werkt het?</h4>
+                        <p style="font-size: 14px; line-height: 1.6;">
+                            Stel voor elke website in hoe vaak je wilt publiceren. Kies tussen automatisch publiceren of handmatige goedkeuring.
+                        </p>
+                        <ul style="font-size: 13px; margin-left: 20px; margin-top: 8px; line-height: 1.8;">
+                            <li><strong>Posting Schema:</strong> Dagelijks, 5x/week, 3x/week, wekelijks of maandelijks</li>
+                            <li><strong>Auto-Publiceren:</strong> Artikelen worden automatisch gepubliceerd naar WordPress</li>
+                            <li><strong>Handmatige Goedkeuring:</strong> Je krijgt artikelen ter beoordeling voor publicatie</li>
+                            <li><strong>Posting Tijd:</strong> Stel in op welk tijdstip content moet worden gepubliceerd</li>
+                        </ul>
+                    </div>
+
+                    <!-- Websites Grid -->
+                    <div id="automation-websites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 24px;">
+                        <!-- Website automation cards will be inserted here by JavaScript -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="automation-empty-state" style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; display: none;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">🌐</div>
+                        <h3 style="color: #666; margin-bottom: 10px;">Geen websites gevonden</h3>
+                        <p style="color: #999; margin-bottom: 20px;">Voeg eerst een website toe in "Website Beheer"</p>
+                        <button class="btn btn-primary" onclick="switchSection('website-beheer', event)">
+                            Website Toevoegen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posting Schedule Section -->
+            <div id="posting-schedule" class="section">
+                <div class="section-header">
+                    <h2>📆 Posting Schema</h2>
+                    <p>Overzicht van geplande publicaties voor alle websites</p>
+                </div>
+                
+                <div class="section-content" style="display: block; padding: 30px; overflow-y: auto; background: #f5f7fa;">
+                    <!-- Stats Overview -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: var(--light-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📅</div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="scheduled-today">0</div>
+                                    <div style="font-size: 13px; color: #666;">Vandaag Gepland</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: var(--orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📊</div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="scheduled-this-week">0</div>
+                                    <div style="font-size: 13px; color: #666;">Deze Week</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: #8b5cf6; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📈</div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="scheduled-this-month">0</div>
+                                    <div style="font-size: 13px; color: #666;">Deze Maand</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">✅</div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="active-websites">0</div>
+                                    <div style="font-size: 13px; color: #666;">Actieve Websites</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Calendar -->
+                    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px;">
+                        <h3 style="margin-bottom: 20px; color: var(--dark-blue);">📅 Komende Publicaties</h3>
+                        <div id="schedule-calendar"></div>
+                    </div>
+
+                    <!-- Website Schedule List -->
+                    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="margin-bottom: 20px; color: var(--dark-blue);">🌐 Websites & Schema's</h3>
+                        <div id="schedule-website-list">
+                            <!-- Website schedule cards will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="schedule-empty-state" style="text-align: center; padding: 60px 20px; display: none;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+                        <h3 style="color: #666; margin-bottom: 10px;">Geen posting schema's ingesteld</h3>
+                        <p style="color: #999; margin-bottom: 20px;">Configureer eerst automation instellingen voor je websites</p>
+                        <button class="btn btn-primary" onclick="switchSection('automation-settings', event)">
+                            Naar Automation Instellingen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div id="saved-articles" class="section">
                 <div class="section-header">
                     <h2>💾 Opgeslagen Artikelen</h2>
@@ -2087,6 +2177,22 @@
             }
             
             currentSection = sectionId;
+            
+            // Load data when switching to specific sections
+            if (sectionId === 'automation-settings') {
+                loadAutomationSettings();
+            } else if (sectionId === 'posting-schedule') {
+                loadPostingSchedule();
+            } else if (sectionId === 'content-planning') {
+                initContentPlanning();
+            } else if (sectionId === 'dashboard') {
+                loadDashboardData();
+            }
+            
+            // Close mobile menu after switching section
+            if (window.innerWidth <= 768) {
+                closeMobileMenu();
+            }
         }
         
         function getCurrentEditor() {
@@ -4638,20 +4744,33 @@
         // Update websites
         function updateWebsites(websites) {
             const container = document.getElementById('dashboard-websites');
+            const setupCTA = document.getElementById('setup-cta');
             
             if (!websites || websites.length === 0) {
+                // Show setup CTA at top of dashboard
+                if (setupCTA) {
+                    setupCTA.style.display = 'block';
+                }
+                
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🌐</div>
-                        <h3>Geen websites toegevoegd</h3>
-                        <p>Voeg je eerste website toe om te beginnen</p>
-                        <button class="btn btn-primary" onclick="switchSection('website-beheer', event)">
-                            Website Toevoegen
+                        <h3>Geen websites ingesteld</h3>
+                        <p>Start met de Website Setup wizard om te beginnen</p>
+                        <button class="btn btn-primary" onclick="openOnboardingWizard()">
+                            🚀 Start Website Setup
                         </button>
                     </div>
                 `;
                 return;
             }
+            
+            // Hide setup CTA if websites exist
+            if (setupCTA) {
+                setupCTA.style.display = 'none';
+            }
+            
+            // Render website cards (existing code would continue here)
         }
 
         function handleBlogWebsiteChange() {
@@ -5194,6 +5313,378 @@
                 console.error('Error completing onboarding:', error);
                 showNotification('Fout bij afronden: ' + error.message, 'error');
             }
+        }
+        
+        // ========================================
+        // AUTOMATION SETTINGS FUNCTIONS
+        // ========================================
+        
+        async function loadAutomationSettings() {
+            try {
+                const response = await fetch('/api/websites/schedules');
+                const data = await response.json();
+                
+                if (data.success && data.websites) {
+                    const grid = document.getElementById('automation-websites-grid');
+                    const emptyState = document.getElementById('automation-empty-state');
+                    
+                    if (data.websites.length === 0) {
+                        grid.innerHTML = '';
+                        emptyState.style.display = 'block';
+                    } else {
+                        emptyState.style.display = 'none';
+                        grid.innerHTML = data.websites.map(website => createAutomationCard(website)).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading automation settings:', error);
+                showNotification('Fout bij laden automation instellingen', 'error');
+            }
+        }
+        
+        function createAutomationCard(website) {
+            const scheduleLabels = {
+                'daily': 'Dagelijks',
+                '5x_week': '5x per week',
+                '3x_week': '3x per week',
+                'weekly': 'Wekelijks',
+                'monthly': 'Maandelijks'
+            };
+            
+            const scheduleLabel = scheduleLabels[website.posting_schedule] || 'Niet ingesteld';
+            const autoPublishBadge = website.auto_publish 
+                ? '<span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">🤖 AUTO-PUBLICEREN</span>'
+                : '<span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">👤 HANDMATIG</span>';
+            
+            return `
+                <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s;">
+                    <!-- Website Header -->
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #f0f0f0;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--light-blue), var(--deep-blue)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                            🌐
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 4px 0; color: var(--dark-blue); font-size: 16px;">${website.name}</h4>
+                            <p style="margin: 0; font-size: 12px; color: #999;">${website.url}</p>
+                        </div>
+                        ${autoPublishBadge}
+                    </div>
+                    
+                    <!-- Current Settings -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: #666; margin-bottom: 4px;">POSTING SCHEMA</div>
+                                <div style="font-size: 14px; font-weight: 600; color: var(--dark-blue);">${scheduleLabel}</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: #666; margin-bottom: 4px;">POSTING TIJD</div>
+                                <div style="font-size: 14px; font-weight: 600; color: var(--dark-blue);">${website.posting_time || '09:00'}</div>
+                            </div>
+                        </div>
+                        ${website.last_post_date ? `
+                            <div style="background: #e8f5e9; padding: 10px; border-radius: 6px; font-size: 12px; color: #2e7d32;">
+                                ✅ Laatste post: ${new Date(website.last_post_date).toLocaleDateString('nl-NL')}
+                            </div>
+                        ` : `
+                            <div style="background: #fff3e0; padding: 10px; border-radius: 6px; font-size: 12px; color: #e65100;">
+                                ⏳ Nog geen posts gepubliceerd
+                            </div>
+                        `}
+                    </div>
+                    
+                    <!-- Actions -->
+                    <button onclick="openAutomationSettingsModal(${website.id})" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px;">
+                        ⚙️ Instellingen Bewerken
+                    </button>
+                </div>
+            `;
+        }
+        
+        async function openAutomationSettingsModal(websiteId) {
+            try {
+                // Fetch current settings
+                const response = await fetch(`/api/websites/${websiteId}/schedule`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    showNotification('Fout bij laden instellingen', 'error');
+                    return;
+                }
+                
+                const website = data.website;
+                const schedule = data.schedule;
+                
+                // Create and show modal
+                const modal = document.createElement('div');
+                modal.id = 'automation-settings-modal';
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+                
+                modal.innerHTML = `
+                    <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
+                        <!-- Header -->
+                        <div style="padding: 24px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin: 0 0 5px 0; color: var(--dark-blue); font-size: 20px;">⚙️ Automation Instellingen</h3>
+                                <p style="margin: 0; font-size: 14px; color: #666;">${website.name}</p>
+                            </div>
+                            <button onclick="closeAutomationSettingsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 32px; height: 32px;">&times;</button>
+                        </div>
+                        
+                        <!-- Body -->
+                        <div style="padding: 24px;">
+                            <form id="automation-form-${websiteId}" onsubmit="saveAutomationSettings(event, ${websiteId})">
+                                <!-- Posting Schedule -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Posting Schema *</label>
+                                    <select id="posting-schedule-${websiteId}" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" onchange="updatePostingDaysUI(${websiteId})">
+                                        <option value="daily" ${schedule.posting_schedule === 'daily' ? 'selected' : ''}>Dagelijks</option>
+                                        <option value="5x_week" ${schedule.posting_schedule === '5x_week' ? 'selected' : ''}>5x per week</option>
+                                        <option value="3x_week" ${schedule.posting_schedule === '3x_week' ? 'selected' : ''}>3x per week</option>
+                                        <option value="weekly" ${schedule.posting_schedule === 'weekly' ? 'selected' : ''}>Wekelijks</option>
+                                        <option value="monthly" ${schedule.posting_schedule === 'monthly' ? 'selected' : ''}>Maandelijks</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Posting Days (conditional) -->
+                                <div id="posting-days-container-${websiteId}" style="margin-bottom: 20px; display: none;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Posting Dagen</label>
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="monday"> Ma
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="tuesday"> Di
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="wednesday"> Wo
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="thursday"> Do
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="friday"> Vr
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="saturday"> Za
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 6px; padding: 10px; background: #f8f9fa; border-radius: 6px; cursor: pointer;">
+                                            <input type="checkbox" name="posting-day-${websiteId}" value="sunday"> Zo
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Posting Time -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Posting Tijd *</label>
+                                    <input type="time" id="posting-time-${websiteId}" value="${schedule.posting_time || '09:00'}" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                </div>
+                                
+                                <!-- Auto Publish -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 16px; background: #f8f9fa; border-radius: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="auto-publish-${websiteId}" ${schedule.auto_publish ? 'checked' : ''} style="width: 20px; height: 20px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 4px;">🤖 Automatisch Publiceren</div>
+                                            <div style="font-size: 12px; color: #666;">Artikelen worden automatisch naar WordPress gepubliceerd</div>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <!-- WordPress Credentials (if not set) -->
+                                ${!website.wordpress_url ? `
+                                    <div style="margin-top: 30px; padding: 20px; background: #fff3e0; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                        <h4 style="margin: 0 0 10px 0; color: #e65100;">⚠️ WordPress Integratie</h4>
+                                        <p style="margin: 0; font-size: 13px; color: #e65100; line-height: 1.6;">
+                                            Voeg WordPress credentials toe in de Website Beheer sectie om automatisch te kunnen publiceren.
+                                        </p>
+                                    </div>
+                                ` : ''}
+                                
+                                <!-- Actions -->
+                                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                                    <button type="button" onclick="closeAutomationSettingsModal()" class="btn btn-secondary" style="flex: 1;">
+                                        Annuleren
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                                        💾 Opslaan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Initialize posting days UI
+                updatePostingDaysUI(websiteId);
+                
+                // Pre-select posting days if they exist
+                if (schedule.posting_days) {
+                    try {
+                        const days = JSON.parse(schedule.posting_days);
+                        days.forEach(day => {
+                            const checkbox = document.querySelector(`input[name="posting-day-${websiteId}"][value="${day.toLowerCase()}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    } catch (e) {
+                        console.error('Error parsing posting days:', e);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error opening automation settings modal:', error);
+                showNotification('Fout bij laden instellingen', 'error');
+            }
+        }
+        
+        function updatePostingDaysUI(websiteId) {
+            const scheduleSelect = document.getElementById(`posting-schedule-${websiteId}`);
+            const daysContainer = document.getElementById(`posting-days-container-${websiteId}`);
+            
+            if (!scheduleSelect || !daysContainer) return;
+            
+            const schedule = scheduleSelect.value;
+            
+            // Show posting days for 3x_week, 5x_week, and weekly schedules
+            if (['3x_week', '5x_week', 'weekly'].includes(schedule)) {
+                daysContainer.style.display = 'block';
+            } else {
+                daysContainer.style.display = 'none';
+            }
+        }
+        
+        function closeAutomationSettingsModal() {
+            const modal = document.getElementById('automation-settings-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        async function saveAutomationSettings(event, websiteId) {
+            event.preventDefault();
+            
+            try {
+                const schedule = document.getElementById(`posting-schedule-${websiteId}`).value;
+                const time = document.getElementById(`posting-time-${websiteId}`).value;
+                const autoPublish = document.getElementById(`auto-publish-${websiteId}`).checked;
+                
+                // Get selected posting days
+                let postingDays = null;
+                if (['3x_week', '5x_week', 'weekly'].includes(schedule)) {
+                    const checkboxes = document.querySelectorAll(`input[name="posting-day-${websiteId}"]:checked`);
+                    const days = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    if (days.length === 0) {
+                        showNotification('Selecteer minimaal één posting dag', 'error');
+                        return;
+                    }
+                    
+                    postingDays = JSON.stringify(days);
+                }
+                
+                const response = await fetch(`/api/websites/${websiteId}/schedule`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        posting_schedule: schedule,
+                        posting_days: postingDays,
+                        posting_time: time,
+                        auto_publish: autoPublish
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('✅ Instellingen opgeslagen!', 'success');
+                    closeAutomationSettingsModal();
+                    loadAutomationSettings(); // Refresh the grid
+                } else {
+                    showNotification(data.error || 'Fout bij opslaan', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving automation settings:', error);
+                showNotification('Fout bij opslaan: ' + error.message, 'error');
+            }
+        }
+        
+        // ========================================
+        // POSTING SCHEDULE OVERVIEW FUNCTIONS
+        // ========================================
+        
+        async function loadPostingSchedule() {
+            try {
+                const response = await fetch('/api/websites/schedules');
+                const data = await response.json();
+                
+                if (data.success && data.websites) {
+                    const emptyState = document.getElementById('schedule-empty-state');
+                    const scheduleList = document.getElementById('schedule-website-list');
+                    
+                    if (data.websites.length === 0) {
+                        emptyState.style.display = 'block';
+                        scheduleList.style.display = 'none';
+                    } else {
+                        emptyState.style.display = 'none';
+                        scheduleList.style.display = 'block';
+                        
+                        // Update stats
+                        updateScheduleStats(data.websites);
+                        
+                        // Render website schedule list
+                        scheduleList.innerHTML = data.websites.map(website => createScheduleCard(website)).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading posting schedule:', error);
+                showNotification('Fout bij laden posting schema', 'error');
+            }
+        }
+        
+        function updateScheduleStats(websites) {
+            // Calculate stats
+            const activeWebsites = websites.filter(w => w.posting_schedule).length;
+            document.getElementById('active-websites').textContent = activeWebsites;
+            
+            // For now, set dummy values - in production, these would come from the backend
+            document.getElementById('scheduled-today').textContent = '0';
+            document.getElementById('scheduled-this-week').textContent = Math.min(activeWebsites * 2, 10);
+            document.getElementById('scheduled-this-month').textContent = Math.min(activeWebsites * 8, 30);
+        }
+        
+        function createScheduleCard(website) {
+            const scheduleLabels = {
+                'daily': 'Dagelijks',
+                '5x_week': '5x per week',
+                '3x_week': '3x per week',
+                'weekly': 'Wekelijks',
+                'monthly': 'Maandelijks'
+            };
+            
+            const scheduleLabel = scheduleLabels[website.posting_schedule] || 'Niet ingesteld';
+            const autoPublishBadge = website.auto_publish 
+                ? '<span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">AUTO</span>'
+                : '<span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">HANDMATIG</span>';
+            
+            return `
+                <div style="padding: 16px; background: #f8f9fa; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--light-blue), var(--deep-blue)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; flex-shrink: 0;">
+                        🌐
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 2px;">${website.name}</div>
+                        <div style="font-size: 12px; color: #666;">${scheduleLabel} om ${website.posting_time || '09:00'}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        ${autoPublishBadge}
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                            ${website.last_post_date ? `Laatste: ${new Date(website.last_post_date).toLocaleDateString('nl-NL', {day: 'numeric', month: 'short'})}` : 'Nog geen posts'}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         
     </script>
