@@ -143,7 +143,11 @@ def deepagent_monthly_content_plan(domain, niche, country, language, description
     Returns:
         dict: Monthly content plan with article topics
     """
-    print(f"📅 [DEEPAGENT] Generating monthly content plan for {domain}")
+    import time
+    from datetime import datetime
+    
+    start_time = time.time()
+    print(f"📅 [DEEPAGENT] Starting monthly content plan for {domain} at {datetime.now().strftime('%H:%M:%S')}")
     
     # Calculate number of articles based on posting frequency
     frequency_map = {
@@ -173,91 +177,104 @@ def deepagent_monthly_content_plan(domain, niche, country, language, description
     lang_context = lang_context_map.get(country, "English language, targeting international market")
     
     # Build focused prompt for monthly content planning
+    # Optimized shorter prompt for faster API response
+    desc_line = f"\n- Description: {description}" if description else ""
     prompt = f"""
-Create a focused monthly content plan for: {domain}
+Create monthly content plan for {domain}
 
-**Website Information:**
-- Domain: {domain}
-- Niche/Industry: {niche}
-- Target Country: {country}
-- Language: {language}
-{f"- Description: {description}" if description else ""}
-- Posting Frequency: {posting_frequency}
-- Number of Articles This Month: {num_articles}
+Website: {niche} | {country} | {language}{desc_line}
+Posting: {posting_frequency} = {num_articles} articles/month
 
-**Content Plan Requirements:**
+Generate {num_articles} SEO-optimized article ideas. For each provide:
 
-Generate exactly {num_articles} article ideas that:
-1. Are highly relevant to {niche} in {country}
-2. Target different search intents (informational, commercial, navigational)
-3. Mix content types (guides, listicles, how-tos, comparisons)
-4. Are optimized for SEO with clear keywords
-5. Build topical authority progressively
+1. Number & Title (in {language}, engaging, SEO-friendly)
+2. Primary Keyword + 2-3 Secondary Keywords (in {language})
+3. Content Type (Guide/Listicle/How-to/Comparison)
+4. Search Intent (Informational/Commercial/Transactional)
+5. Word Count estimate
+6. 3-5 section outline
+7. Priority (High/Medium/Low)
 
-**For EACH article provide:**
-- Article Number (1-{num_articles})
-- Title (compelling, SEO-optimized, in {language})
-- Primary Keyword (in {language})
-- Secondary Keywords (2-3 keywords, in {language})
-- Content Type (Guide/Listicle/How-to/Comparison/Tutorial)
-- Search Intent (Informational/Commercial/Transactional)
-- Estimated Word Count
-- Brief Outline (3-5 main sections)
-- Priority (High/Medium/Low)
-
-**Important:**
-- ALL content must be in {language} language
-- Focus on {country} market specifics
-- Consider local search behavior and trends
-- Make titles engaging and click-worthy
-
-Provide a clear, structured format that's easy to parse.
+Requirements:
+- All content in {language} for {country} market
+- Mix different content types and intents
+- Build topical authority
+- Clear, structured format
 """
     
     try:
-        print(f"🤖 [DEEPAGENT] Calling OpenAI for monthly content plan...")
+        print(f"🤖 [DEEPAGENT] Calling OpenAI API for monthly content plan...")
         
         if not client:
-            raise Exception("OpenAI API key not configured")
+            error_msg = "OpenAI API key not configured - please set OPENAI_API_KEY environment variable"
+            print(f"❌ [DEEPAGENT] {error_msg}")
+            raise Exception(error_msg)
         
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Using mini for faster response
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"You are an expert content strategist specializing in {language} content for {country}. Create practical, actionable monthly content plans."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
+        # Retry logic with exponential backoff
+        max_retries = 3
+        retry_delay = 2  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                print(f"🔄 [DEEPAGENT] API call attempt {attempt + 1}/{max_retries}...")
+                
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",  # Using mini for faster response
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": f"You are an expert content strategist specializing in {language} content for {country}. Create practical, actionable monthly content plans."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature=0.5,
+                    max_tokens=2000,  # Reduced for faster response
+                    timeout=90  # 90 second timeout per API call
+                )
+                
+                content_plan_text = response.choices[0].message.content
+                elapsed_time = time.time() - start_time
+                
+                print(f"✅ [DEEPAGENT] Monthly content plan completed in {elapsed_time:.2f} seconds")
+                
+                return {
+                    'success': True,
+                    'content_plan': content_plan_text,
+                    'num_articles': num_articles,
+                    'posting_frequency': posting_frequency,
+                    'domain': domain,
+                    'niche': niche,
+                    'country': country,
+                    'language': language,
+                    'generated_at': datetime.now().isoformat(),
+                    'generation_time': f"{elapsed_time:.2f}s"
                 }
-            ],
-            temperature=0.5,
-            max_tokens=2500  # Reduced tokens for faster response
-        )
-        
-        content_plan_text = response.choices[0].message.content
-        
-        print(f"✅ [DEEPAGENT] Monthly content plan completed successfully")
-        
-        return {
-            'success': True,
-            'content_plan': content_plan_text,
-            'num_articles': num_articles,
-            'posting_frequency': posting_frequency,
-            'domain': domain,
-            'niche': niche,
-            'country': country,
-            'language': language,
-            'generated_at': datetime.now().isoformat()
-        }
+                
+            except Exception as api_error:
+                print(f"⚠️ [DEEPAGENT] Attempt {attempt + 1} failed: {str(api_error)}")
+                
+                if attempt < max_retries - 1:
+                    wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                    print(f"⏳ [DEEPAGENT] Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    raise  # Re-raise the last exception if all retries failed
         
     except Exception as e:
-        print(f"❌ [DEEPAGENT] Monthly content planning failed: {e}")
+        elapsed_time = time.time() - start_time
+        error_details = f"Error: {str(e)} | Type: {type(e).__name__} | Time: {elapsed_time:.2f}s"
+        print(f"❌ [DEEPAGENT] Monthly content planning failed after {elapsed_time:.2f}s")
+        print(f"❌ [DEEPAGENT] {error_details}")
+        
         return {
             'success': False,
             'error': str(e),
-            'content_plan': None
+            'error_details': error_details,
+            'content_plan': None,
+            'generation_time': f"{elapsed_time:.2f}s"
         }
 
 
