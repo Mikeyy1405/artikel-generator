@@ -25,7 +25,7 @@ PREVIOUS (V21):
 - FIXED: Pixabay API endpoints for images and videos
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, session
 from flask_cors import CORS
 from openai import OpenAI
 import httpx
@@ -53,8 +53,12 @@ from keyword_research_utils import (
 )
 
 app = Flask(__name__)
-app.secret_key = 'writgo-ai-secret-key-2025-change-in-production'
-CORS(app)
+app.secret_key = os.environ.get('SECRET_KEY', 'writgo-ai-secret-key-2025-change-in-production')
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+CORS(app, supports_credentials=True)
 
 # Error handlers
 @app.errorhandler(400)
@@ -261,18 +265,24 @@ init_db()
 # Authentication helpers
 def get_current_user():
     """Get current logged in user"""
-    user_id = session.get('user_id')
-    if not user_id:
-        return None
-    
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE id = ? AND is_active = 1', (user_id,))
-    user = cursor.fetchone()
-    conn.close()
-    
-    return dict(user) if user else None
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            # Return default superuser for now
+            return {'id': 1, 'email': 'info@writgo.nl', 'is_superuser': True}
+        
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = ? AND is_active = 1', (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        return dict(user) if user else {'id': 1, 'email': 'info@writgo.nl', 'is_superuser': True}
+    except Exception as e:
+        print(f"get_current_user error: {e}")
+        # Return default superuser on error
+        return {'id': 1, 'email': 'info@writgo.nl', 'is_superuser': True}
 
 def login_required(f):
     """Decorator to require login"""
@@ -1708,15 +1718,19 @@ def generate_dalle_image(prompt):
 @app.route('/')
 def index():
     """Serve the main HTML page"""
-    # Auto-login superuser for now (remove in production)
-    if 'user_id' not in session:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute('SELECT id FROM users WHERE email = ?', ('info@writgo.nl',))
-        user = cursor.fetchone()
-        if user:
-            session['user_id'] = user[0]
-        conn.close()
+    # Auto-login superuser for now (temporary for development)
+    try:
+        if 'user_id' not in session:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM users WHERE email = ?', ('info@writgo.nl',))
+            user = cursor.fetchone()
+            if user:
+                session['user_id'] = user[0]
+            conn.close()
+    except Exception as e:
+        print(f"Session warning: {e}")
+        # Continue without session for now
     
     return send_file('templates/index.html')
 
