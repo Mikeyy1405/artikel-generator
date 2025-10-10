@@ -3872,6 +3872,521 @@ Make sure all keywords are relevant to {niche} and target the {country} market.
         }), 500
 
 # ============================================================================
+# ONBOARDING FLOW API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/onboarding/start', methods=['POST'])
+def api_onboarding_start():
+    """Start automated onboarding flow for new website"""
+    
+    try:
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        data = request.json
+        website_name = data.get('website_name')
+        website_url = data.get('website_url')
+        sitemap_url = data.get('sitemap_url')
+        wordpress_url = data.get('wordpress_url')
+        wordpress_username = data.get('wordpress_username')
+        wordpress_password = data.get('wordpress_password')
+        country = data.get('country', 'International')
+        language = data.get('language', 'English')
+        description = data.get('description', '')
+        
+        if not website_name or not website_url:
+            return jsonify({
+                'success': False,
+                'error': 'Website naam en URL zijn verplicht'
+            }), 400
+        
+        # Normalize URL
+        if not website_url.startswith(('http://', 'https://')):
+            website_url = 'https://' + website_url
+        
+        # Auto-detect sitemap if not provided
+        if not sitemap_url:
+            sitemap_result = find_sitemap(website_url)
+            sitemap_url = sitemap_result.get('sitemap_url') if sitemap_result.get('success') else None
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Add website
+        cursor.execute('''
+            INSERT INTO websites (
+                name, url, sitemap_url, created_at, user_id,
+                wordpress_url, wordpress_username, wordpress_password
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (website_name, website_url, sitemap_url, datetime.now(), user_id,
+              wordpress_url, wordpress_username, wordpress_password))
+        
+        website_id = cursor.lastrowid
+        
+        # Create onboarding session
+        site_data_json = json.dumps({
+            'name': website_name,
+            'domain': website_url,
+            'country': country,
+            'language': language,
+            'description': description
+        })
+        
+        cursor.execute('''
+            INSERT INTO onboarding_sessions (
+                user_id, website_id, current_step, status, site_data, created_at, updated_at
+            )
+            VALUES (?, ?, 'website_added', 'in_progress', ?, ?, ?)
+        ''', (user_id, website_id, site_data_json, datetime.now(), datetime.now()))
+        
+        onboarding_id = cursor.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Onboarding started: ID={onboarding_id}, website_id={website_id}")
+        
+        return jsonify({
+            'success': True,
+            'onboarding_id': onboarding_id,
+            'website_id': website_id,
+            'status': 'in_progress',
+            'current_step': 'website_added',
+            'message': 'Onboarding gestart - keyword research wordt automatisch gestart'
+        })
+        
+    except sqlite3.IntegrityError as e:
+        print(f"❌ IntegrityError in onboarding start: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Deze URL bestaat al in de database'
+        }), 400
+    except Exception as e:
+        print(f"❌ Error starting onboarding: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/onboarding/keyword-research/<int:onboarding_id>', methods=['POST'])
+def api_onboarding_keyword_research(onboarding_id):
+    """Run keyword research as part of onboarding flow"""
+    
+    try:
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get onboarding session
+        cursor.execute('''
+            SELECT website_id, site_data, status 
+            FROM onboarding_sessions 
+            WHERE id = ? AND user_id = ?
+        ''', (onboarding_id, user_id))
+        
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Onboarding sessie niet gevonden'
+            }), 404
+        
+        website_id, site_data_json, status = row
+        
+        if status == 'completed':
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Onboarding al voltooid'
+            }), 400
+        
+        # Update step to keyword_research
+        cursor.execute('''
+            UPDATE onboarding_sessions 
+            SET current_step = 'keyword_research', updated_at = ?
+            WHERE id = ?
+        ''', (datetime.now(), onboarding_id))
+        conn.commit()
+        
+        site_data = json.loads(site_data_json)
+        
+        print(f"🔍 Starting keyword research for onboarding {onboarding_id}")
+        
+        # Extract site info
+        domain = site_data.get('domain', '')
+        country = site_data.get('country', 'International')
+        language = site_data.get('language', 'English')
+        niche = site_data.get('name', '')
+        description = site_data.get('description', '')
+        
+        # Determine language context
+        lang_context = ""
+        if country == 'Nederland':
+            lang_context = "Dutch language, targeting the Netherlands market"
+        elif country == 'België':
+            lang_context = "Dutch/French language, targeting the Belgium market"
+        elif country == 'Duitsland':
+            lang_context = "German language, targeting the German market"
+        elif country == 'Frankrijk':
+            lang_context = "French language, targeting the French market"
+        elif country == 'Spanje':
+            lang_context = "Spanish language, targeting the Spanish market"
+        elif country == 'Italië':
+            lang_context = "Italian language, targeting the Italian market"
+        else:
+            lang_context = "English language, targeting international market"
+        
+        # Run keyword research using existing perplexity_research function
+        print("🔑 Generating 150+ keywords...")
+        keywords_prompt = f"""
+Generate 150 SEO keywords for {domain} ({niche}).
+Language/Market: {lang_context}
+Country: {country}
+
+IMPORTANT: All keywords MUST be in {language} language.
+
+Include these categories:
+
+**Primary Keywords (20 keywords):**
+- High search volume (1000+ monthly searches)
+- High competition
+- Core business terms
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Secondary Keywords (40 keywords):**
+- Medium search volume (500-1000 monthly searches)
+- Medium competition
+- Supporting topics
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Long-tail Keywords (60 keywords):**
+- Low search volume (100-500 monthly searches)
+- Low competition
+- Specific, detailed phrases
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Question Keywords (30 keywords):**
+- "how to", "what is", "why", "when", "where" questions
+- User intent focused
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+For EACH keyword provide in a table format:
+- Keyword phrase (in {language})
+- Search intent (Informational/Commercial/Transactional/Navigational)
+- Difficulty (Easy/Medium/Hard)
+- Priority (High/Medium/Low)
+- Estimated monthly search volume
+
+Make sure all keywords are relevant to {niche} and target the {country} market.
+"""
+        
+        keywords_result = perplexity_research(keywords_prompt)
+        keywords_data = keywords_result.get('summary', 'Geen data beschikbaar') if keywords_result else 'Geen data beschikbaar'
+        
+        # Store keyword research results
+        keyword_research_json = json.dumps({
+            'keywords': keywords_data,
+            'country': country,
+            'language': language,
+            'total_keywords': '150+'
+        })
+        
+        cursor.execute('''
+            UPDATE onboarding_sessions 
+            SET keyword_research_data = ?, current_step = 'keyword_research_completed', updated_at = ?
+            WHERE id = ?
+        ''', (keyword_research_json, datetime.now(), onboarding_id))
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Keyword research completed for onboarding {onboarding_id}")
+        
+        return jsonify({
+            'success': True,
+            'onboarding_id': onboarding_id,
+            'keywords': keywords_data,
+            'total_keywords': '150+',
+            'current_step': 'keyword_research_completed',
+            'message': 'Keyword research voltooid'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in onboarding keyword research: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Update onboarding session with error
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE onboarding_sessions 
+                SET status = 'error', error_message = ?, updated_at = ?
+                WHERE id = ?
+            ''', (str(e), datetime.now(), onboarding_id))
+            conn.commit()
+            conn.close()
+        except:
+            pass
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/onboarding/content-plan/<int:onboarding_id>', methods=['POST'])
+def api_onboarding_content_plan(onboarding_id):
+    """Generate content plan from keyword research"""
+    
+    try:
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        data = request.json
+        num_articles = data.get('num_articles', 10)  # Default: 10 articles
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get onboarding session
+        cursor.execute('''
+            SELECT website_id, site_data, keyword_research_data, status 
+            FROM onboarding_sessions 
+            WHERE id = ? AND user_id = ?
+        ''', (onboarding_id, user_id))
+        
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Onboarding sessie niet gevonden'
+            }), 404
+        
+        website_id, site_data_json, keyword_research_json, status = row
+        
+        if not keyword_research_json:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Eerst keyword research uitvoeren'
+            }), 400
+        
+        # Update step to content_planning
+        cursor.execute('''
+            UPDATE onboarding_sessions 
+            SET current_step = 'content_planning', updated_at = ?
+            WHERE id = ?
+        ''', (datetime.now(), onboarding_id))
+        conn.commit()
+        
+        keyword_data = json.loads(keyword_research_json)
+        keywords_text = keyword_data.get('keywords', '')
+        
+        print(f"📝 Creating content plan for onboarding {onboarding_id}")
+        
+        # Parse keywords from the text (simple extraction)
+        # This is a simplified version - in production you'd want better parsing
+        keyword_lines = [line.strip() for line in keywords_text.split('\n') if line.strip() and '|' in line]
+        
+        # Extract top keywords (limit to num_articles)
+        content_items = []
+        keywords_used = []
+        
+        for line in keyword_lines[:num_articles]:
+            parts = [p.strip() for p in line.split('|')]
+            if len(parts) >= 2:
+                keyword = parts[0]
+                keywords_used.append(keyword)
+                
+                # Create content plan item
+                cursor.execute('''
+                    INSERT INTO content_plans (
+                        user_id, wordpress_site_id, title, keyword, 
+                        description, status, auto_generated, approval_status,
+                        created_at, updated_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, 'draft', 1, 'pending', ?, ?)
+                ''', (
+                    user_id, 
+                    website_id,
+                    f"Artikel over {keyword}",
+                    keyword,
+                    f"Content gebaseerd op keyword: {keyword}",
+                    datetime.now(),
+                    datetime.now()
+                ))
+                
+                content_items.append({
+                    'id': cursor.lastrowid,
+                    'keyword': keyword,
+                    'title': f"Artikel over {keyword}"
+                })
+        
+        # Store content plan data
+        content_plan_json = json.dumps({
+            'content_items': content_items,
+            'total_items': len(content_items)
+        })
+        
+        cursor.execute('''
+            UPDATE onboarding_sessions 
+            SET content_plan_data = ?, current_step = 'content_planning_completed', updated_at = ?
+            WHERE id = ?
+        ''', (content_plan_json, datetime.now(), onboarding_id))
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Content plan created for onboarding {onboarding_id}: {len(content_items)} items")
+        
+        return jsonify({
+            'success': True,
+            'onboarding_id': onboarding_id,
+            'content_items': content_items,
+            'total_items': len(content_items),
+            'current_step': 'content_planning_completed',
+            'message': f'{len(content_items)} content items aangemaakt'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error in onboarding content planning: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Update onboarding session with error
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE onboarding_sessions 
+                SET status = 'error', error_message = ?, updated_at = ?
+                WHERE id = ?
+            ''', (str(e), datetime.now(), onboarding_id))
+            conn.commit()
+            conn.close()
+        except:
+            pass
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/onboarding/complete/<int:onboarding_id>', methods=['POST'])
+def api_onboarding_complete(onboarding_id):
+    """Mark onboarding as completed"""
+    
+    try:
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE onboarding_sessions 
+            SET status = 'completed', current_step = 'completed', 
+                completed_at = ?, updated_at = ?
+            WHERE id = ? AND user_id = ?
+        ''', (datetime.now(), datetime.now(), onboarding_id, user_id))
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Onboarding completed: {onboarding_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Onboarding succesvol afgerond!'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error completing onboarding: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/onboarding/status/<int:onboarding_id>', methods=['GET'])
+def api_onboarding_status(onboarding_id):
+    """Get current status of onboarding flow"""
+    
+    try:
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                website_id, current_step, status, site_data, 
+                keyword_research_data, content_plan_data, error_message,
+                created_at, updated_at, completed_at
+            FROM onboarding_sessions 
+            WHERE id = ? AND user_id = ?
+        ''', (onboarding_id, user_id))
+        
+        row = cursor.fetchone()
+        conn.close()
+        
+        if not row:
+            return jsonify({
+                'success': False,
+                'error': 'Onboarding sessie niet gevonden'
+            }), 404
+        
+        website_id, current_step, status, site_data, keyword_data, content_data, error_msg, created_at, updated_at, completed_at = row
+        
+        # Calculate progress percentage
+        step_progress = {
+            'website_added': 25,
+            'keyword_research': 50,
+            'keyword_research_completed': 60,
+            'content_planning': 75,
+            'content_planning_completed': 90,
+            'completed': 100
+        }
+        
+        progress_percentage = step_progress.get(current_step, 0)
+        
+        return jsonify({
+            'success': True,
+            'onboarding_id': onboarding_id,
+            'website_id': website_id,
+            'current_step': current_step,
+            'status': status,
+            'progress_percentage': progress_percentage,
+            'error_message': error_msg,
+            'created_at': created_at,
+            'updated_at': updated_at,
+            'completed_at': completed_at,
+            'site_data': json.loads(site_data) if site_data else None,
+            'keyword_data': json.loads(keyword_data) if keyword_data else None,
+            'content_data': json.loads(content_data) if content_data else None
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting onboarding status: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+# ============================================================================
 # WEBSITE MANAGEMENT & SITEMAP API ENDPOINTS
 # ============================================================================
 

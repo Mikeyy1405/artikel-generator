@@ -1385,6 +1385,10 @@
                                     style="flex: 1; padding: 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
                                 🔐 Met WordPress Toegang
                             </button>
+                            <button id="tab-onboarding" class="add-method-tab" onclick="openOnboardingWizard()" 
+                                    style="flex: 1; padding: 12px; background: rgba(255,215,0,0.9); color: var(--dark-blue); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(255,215,0,0.3);">
+                                🚀 Guided Setup (Aanbevolen)
+                            </button>
                         </div>
                         
                         <!-- Sitemap Method -->
@@ -4935,6 +4939,263 @@
             URL.revokeObjectURL(url);
         }
         
+        // ============================================================================
+        // ONBOARDING WIZARD FUNCTIONS
+        // ============================================================================
+        
+        let currentOnboardingStep = 1;
+        let onboardingSessionId = null;
+        let onboardingWebsiteId = null;
+        
+        function openOnboardingWizard() {
+            document.getElementById('onboarding-overlay').style.display = 'block';
+            currentOnboardingStep = 1;
+            updateOnboardingUI();
+        }
+        
+        function closeOnboardingWizard() {
+            document.getElementById('onboarding-overlay').style.display = 'none';
+            
+            // Reset form
+            document.getElementById('onboarding-website-name').value = '';
+            document.getElementById('onboarding-website-url').value = '';
+            document.getElementById('onboarding-sitemap-url').value = '';
+            document.getElementById('onboarding-description').value = '';
+            document.getElementById('onboarding-wordpress-url').value = '';
+            document.getElementById('onboarding-wordpress-username').value = '';
+            document.getElementById('onboarding-wordpress-password').value = '';
+            
+            currentOnboardingStep = 1;
+            onboardingSessionId = null;
+            onboardingWebsiteId = null;
+        }
+        
+        function updateOnboardingUI() {
+            // Update progress indicators
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`progress-step-${i}`);
+                if (i < currentOnboardingStep) {
+                    indicator.classList.add('completed');
+                    indicator.classList.remove('active');
+                } else if (i === currentOnboardingStep) {
+                    indicator.classList.add('active');
+                    indicator.classList.remove('completed');
+                } else {
+                    indicator.classList.remove('active', 'completed');
+                }
+            }
+            
+            // Update progress line
+            const progress = ((currentOnboardingStep - 1) / 3) * 100;
+            document.getElementById('progress-line-fill').style.width = progress + '%';
+            
+            // Show/hide steps
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`onboarding-step-${i}`);
+                if (i === currentOnboardingStep) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            }
+            
+            // Update buttons
+            const backBtn = document.getElementById('wizard-back-btn');
+            const nextBtn = document.getElementById('wizard-next-btn');
+            const finishBtn = document.getElementById('wizard-finish-btn');
+            
+            if (currentOnboardingStep === 1) {
+                backBtn.style.display = 'none';
+                nextBtn.style.display = 'block';
+                finishBtn.style.display = 'none';
+            } else if (currentOnboardingStep === 4) {
+                backBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'block';
+            } else {
+                backBtn.style.display = 'none'; // Hide back for automated steps
+                nextBtn.style.display = 'none'; // Hide next for automated steps
+                finishBtn.style.display = 'none';
+            }
+        }
+        
+        async function onboardingNextStep() {
+            if (currentOnboardingStep === 1) {
+                // Validate form
+                const websiteName = document.getElementById('onboarding-website-name').value.trim();
+                const websiteUrl = document.getElementById('onboarding-website-url').value.trim();
+                
+                if (!websiteName || !websiteUrl) {
+                    showNotification('Vul alle verplichte velden in', 'error');
+                    return;
+                }
+                
+                // Start onboarding
+                await startOnboarding();
+            }
+        }
+        
+        function onboardingPreviousStep() {
+            if (currentOnboardingStep > 1 && currentOnboardingStep !== 2 && currentOnboardingStep !== 3) {
+                currentOnboardingStep--;
+                updateOnboardingUI();
+            }
+        }
+        
+        async function startOnboarding() {
+            try {
+                // Collect form data
+                const websiteName = document.getElementById('onboarding-website-name').value.trim();
+                const websiteUrl = document.getElementById('onboarding-website-url').value.trim();
+                const country = document.getElementById('onboarding-country').value;
+                const language = document.getElementById('onboarding-language').value;
+                const sitemapUrl = document.getElementById('onboarding-sitemap-url').value.trim();
+                const description = document.getElementById('onboarding-description').value.trim();
+                const wordpressUrl = document.getElementById('onboarding-wordpress-url').value.trim();
+                const wordpressUsername = document.getElementById('onboarding-wordpress-username').value.trim();
+                const wordpressPassword = document.getElementById('onboarding-wordpress-password').value.trim();
+                
+                // Call API to start onboarding
+                const response = await fetch('/api/onboarding/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        website_name: websiteName,
+                        website_url: websiteUrl,
+                        sitemap_url: sitemapUrl,
+                        country: country,
+                        language: language,
+                        description: description,
+                        wordpress_url: wordpressUrl,
+                        wordpress_username: wordpressUsername,
+                        wordpress_password: wordpressPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    onboardingSessionId = data.onboarding_id;
+                    onboardingWebsiteId = data.website_id;
+                    
+                    // Move to step 2 (keyword research)
+                    currentOnboardingStep = 2;
+                    updateOnboardingUI();
+                    
+                    // Start keyword research
+                    await runKeywordResearch();
+                } else {
+                    showNotification(data.error || 'Fout bij starten onboarding', 'error');
+                }
+            } catch (error) {
+                console.error('Error starting onboarding:', error);
+                showNotification('Fout bij starten onboarding: ' + error.message, 'error');
+            }
+        }
+        
+        async function runKeywordResearch() {
+            try {
+                document.getElementById('keyword-research-status').textContent = '⏳ Keywords genereren...';
+                
+                const response = await fetch(`/api/onboarding/keyword-research/${onboardingSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('keyword-research-status').textContent = `✅ ${data.total_keywords} keywords gegenereerd!`;
+                    
+                    // Wait 2 seconds then move to step 3
+                    setTimeout(() => {
+                        currentOnboardingStep = 3;
+                        updateOnboardingUI();
+                        runContentPlanning();
+                    }, 2000);
+                } else {
+                    document.getElementById('keyword-research-status').textContent = '❌ Fout: ' + data.error;
+                    showNotification(data.error || 'Fout bij keyword research', 'error');
+                }
+            } catch (error) {
+                console.error('Error in keyword research:', error);
+                document.getElementById('keyword-research-status').textContent = '❌ Fout: ' + error.message;
+                showNotification('Fout bij keyword research: ' + error.message, 'error');
+            }
+        }
+        
+        async function runContentPlanning() {
+            try {
+                document.getElementById('content-plan-status').textContent = '⏳ Content plan items aanmaken...';
+                
+                const response = await fetch(`/api/onboarding/content-plan/${onboardingSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ num_articles: 10 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('content-plan-status').textContent = `✅ ${data.total_items} content items aangemaakt!`;
+                    
+                    // Wait 2 seconds then move to step 4
+                    setTimeout(() => {
+                        currentOnboardingStep = 4;
+                        updateOnboardingUI();
+                        showCompletionSummary(data);
+                    }, 2000);
+                } else {
+                    document.getElementById('content-plan-status').textContent = '❌ Fout: ' + data.error;
+                    showNotification(data.error || 'Fout bij content planning', 'error');
+                }
+            } catch (error) {
+                console.error('Error in content planning:', error);
+                document.getElementById('content-plan-status').textContent = '❌ Fout: ' + error.message;
+                showNotification('Fout bij content planning: ' + error.message, 'error');
+            }
+        }
+        
+        function showCompletionSummary(data) {
+            const summaryDiv = document.getElementById('completion-summary');
+            summaryDiv.innerHTML = `
+                <h4 style="margin-bottom: 15px; color: var(--dark-blue);">📊 Samenvatting</h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                        ✅ Website toegevoegd
+                    </li>
+                    <li style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                        ✅ 150+ keywords gegenereerd
+                    </li>
+                    <li style="padding: 10px 0;">
+                        ✅ ${data.total_items} content plan items aangemaakt
+                    </li>
+                </ul>
+            `;
+        }
+        
+        async function finishOnboarding() {
+            try {
+                // Mark onboarding as completed
+                await fetch(`/api/onboarding/complete/${onboardingSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                // Close wizard and refresh
+                closeOnboardingWizard();
+                showNotification('🎉 Onboarding succesvol voltooid!', 'success');
+                
+                // Refresh the page to show new data
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } catch (error) {
+                console.error('Error completing onboarding:', error);
+                showNotification('Fout bij afronden: ' + error.message, 'error');
+            }
+        }
+        
     </script>
     
     <style>
@@ -4959,6 +5220,310 @@
                 opacity: 0;
             }
         }
+        /* ============ Onboarding Wizard Styles ============ */
+        .onboarding-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+        
+        .onboarding-wizard {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+        }
+        
+        .onboarding-header {
+            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
+            color: white;
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .onboarding-progress {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .progress-step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .progress-step-indicator.active {
+            background: white;
+            color: var(--light-blue);
+        }
+        
+        .progress-step-indicator.completed {
+            background: var(--success);
+            color: white;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 0;
+        }
+        
+        .progress-line-fill {
+            height: 100%;
+            background: white;
+            transition: width 0.5s ease;
+        }
+        
+        .onboarding-body {
+            padding: 40px;
+        }
+        
+        .onboarding-step {
+            display: none;
+        }
+        
+        .onboarding-step.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-blue);
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--light-blue);
+        }
+        
+        .loading-step {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--light-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .completion-step {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .completion-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 40px;
+            border-top: 1px solid #e0e0e0;
+        }
     </style>
+    
+    <!-- Onboarding Wizard Modal -->
+    <div id="onboarding-overlay" class="onboarding-overlay" onclick="closeOnboardingWizard()">
+        <div class="onboarding-wizard" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="onboarding-header">
+                <h2 style="margin: 0 0 10px 0;">🚀 Website Setup Wizard</h2>
+                <p style="margin: 0; opacity: 0.9;">Laten we samen jouw website instellen en automatisch keywords en content plannen genereren!</p>
+                
+                <!-- Progress Bar -->
+                <div class="onboarding-progress">
+                    <div class="progress-line">
+                        <div class="progress-line-fill" id="progress-line-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-step-indicator active" id="progress-step-1">1</div>
+                    <div class="progress-step-indicator" id="progress-step-2">2</div>
+                    <div class="progress-step-indicator" id="progress-step-3">3</div>
+                    <div class="progress-step-indicator" id="progress-step-4">✓</div>
+                </div>
+            </div>
+            
+            <!-- Body -->
+            <div class="onboarding-body">
+                <!-- Step 1: Website Details -->
+                <div id="onboarding-step-1" class="onboarding-step active">
+                    <h3 style="color: var(--dark-blue); margin-bottom: 20px;">📝 Website Details</h3>
+                    
+                    <div class="form-group">
+                        <label>Website Naam *</label>
+                        <input type="text" id="onboarding-website-name" placeholder="Bijv: Mijn Blog" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Website URL *</label>
+                        <input type="text" id="onboarding-website-url" placeholder="https://jouwwebsite.nl" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Land / Markt *</label>
+                        <select id="onboarding-country">
+                            <option value="Nederland">Nederland</option>
+                            <option value="België">België</option>
+                            <option value="Duitsland">Duitsland</option>
+                            <option value="Frankrijk">Frankrijk</option>
+                            <option value="Spanje">Spanje</option>
+                            <option value="Italië">Italië</option>
+                            <option value="International">International</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Taal *</label>
+                        <select id="onboarding-language">
+                            <option value="Dutch">Nederlands</option>
+                            <option value="English">Engels</option>
+                            <option value="German">Duits</option>
+                            <option value="French">Frans</option>
+                            <option value="Spanish">Spaans</option>
+                            <option value="Italian">Italiaans</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Sitemap URL (optioneel)</label>
+                        <input type="text" id="onboarding-sitemap-url" placeholder="https://jouwwebsite.nl/sitemap.xml">
+                        <small style="color: #666; display: block; margin-top: 5px;">💡 Laat leeg voor automatische detectie</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Korte beschrijving (optioneel)</label>
+                        <input type="text" id="onboarding-description" placeholder="Bijv: Een blog over gezonde recepten">
+                    </div>
+                    
+                    <!-- WordPress Credentials (Optional) -->
+                    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="margin: 0 0 15px 0; color: var(--dark-blue);">🔐 WordPress Integratie (Optioneel)</h4>
+                        
+                        <div class="form-group">
+                            <label>WordPress URL</label>
+                            <input type="text" id="onboarding-wordpress-url" placeholder="https://jouwwebsite.nl">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>WordPress Gebruikersnaam</label>
+                            <input type="text" id="onboarding-wordpress-username" placeholder="admin">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Applicatie Wachtwoord</label>
+                            <input type="password" id="onboarding-wordpress-password" placeholder="xxxx xxxx xxxx xxxx">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Keyword Research (Loading) -->
+                <div id="onboarding-step-2" class="onboarding-step">
+                    <div class="loading-step">
+                        <div class="loading-spinner"></div>
+                        <h3 style="color: var(--dark-blue); margin-top: 20px;">🔍 Keyword Research Bezig...</h3>
+                        <p style="color: #666; margin: 10px 0;">We analyseren jouw niche en genereren 150+ relevante keywords</p>
+                        <p id="keyword-research-status" style="color: var(--light-blue); font-weight: 600;">⏳ Gestart...</p>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Content Planning (Loading) -->
+                <div id="onboarding-step-3" class="onboarding-step">
+                    <div class="loading-step">
+                        <div class="loading-spinner"></div>
+                        <h3 style="color: var(--dark-blue); margin-top: 20px;">📝 Content Plan Maken...</h3>
+                        <p style="color: #666; margin: 10px 0;">We creëren automatisch content plan items gebaseerd op de beste keywords</p>
+                        <p id="content-plan-status" style="color: var(--light-blue); font-weight: 600;">⏳ Gestart...</p>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Completion -->
+                <div id="onboarding-step-4" class="onboarding-step">
+                    <div class="completion-step">
+                        <div class="completion-icon">🎉</div>
+                        <h3 style="color: var(--dark-blue); margin-bottom: 15px;">Setup Voltooid!</h3>
+                        <p style="color: #666; margin-bottom: 20px;">Je website is succesvol ingesteld en klaar voor gebruik.</p>
+                        
+                        <div id="completion-summary" style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <!-- Summary will be filled by JavaScript -->
+                        </div>
+                        
+                        <p style="color: #666; margin-top: 20px;">✨ Je kunt nu beginnen met het maken van content!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="wizard-actions">
+                <button class="btn btn-secondary" id="wizard-back-btn" onclick="onboardingPreviousStep()" style="display: none;">
+                    ← Vorige
+                </button>
+                <button class="btn btn-secondary" onclick="closeOnboardingWizard()">
+                    Annuleren
+                </button>
+                <button class="btn btn-primary" id="wizard-next-btn" onclick="onboardingNextStep()">
+                    Volgende →
+                </button>
+                <button class="btn btn-primary" id="wizard-finish-btn" onclick="finishOnboarding()" style="display: none;">
+                    🎉 Naar Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
