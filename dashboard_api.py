@@ -81,14 +81,14 @@ def get_dashboard_stats():
     cursor.execute("SELECT COUNT(*) as count FROM affiliate_links")
     stats['total_affiliate_links'] = cursor.fetchone()['count']
     
-    # Published count (articles with WordPress post_id)
-    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+    # Published count (content plans with status 'published')
+    cursor.execute("SELECT COUNT(*) as count FROM content_plans WHERE status = 'published'")
     stats['published_count'] = cursor.fetchone()['count']
     
     # Published this week
     cursor.execute("""
-        SELECT COUNT(*) as count FROM articles 
-        WHERE wordpress_post_id IS NOT NULL AND created_at >= ?
+        SELECT COUNT(*) as count FROM content_plans 
+        WHERE status = 'published' AND updated_at >= ?
     """, (first_day_of_week.isoformat(),))
     stats['published_this_week'] = cursor.fetchone()['count']
     
@@ -169,9 +169,10 @@ def get_dashboard_stats():
     recent_activity = []
     
     cursor.execute("""
-        SELECT title, created_at, word_count, wordpress_post_id 
-        FROM articles 
-        ORDER BY created_at DESC 
+        SELECT a.title, a.created_at, a.word_count, cp.status 
+        FROM articles a
+        LEFT JOIN content_plans cp ON cp.article_id = a.id
+        ORDER BY a.created_at DESC 
         LIMIT 10
     """)
     
@@ -191,11 +192,13 @@ def get_dashboard_stats():
         else:
             time_str = f"{time_diff.days} dagen geleden"
         
+        is_published = article['status'] == 'published' if article['status'] else False
+        
         activity = {
             'icon': '📝',
             'color': 'linear-gradient(135deg, #00AEEF, #004E92)',
             'title': article['title'][:50] + ('...' if len(article['title']) > 50 else ''),
-            'meta': f"{article['word_count']} woorden" + (' • Gepubliceerd' if article['wordpress_post_id'] else ''),
+            'meta': f"{article['word_count']} woorden" + (' • Gepubliceerd' if is_published else ''),
             'time': time_str
         }
         recent_activity.append(activity)
