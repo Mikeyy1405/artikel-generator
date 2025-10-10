@@ -2593,6 +2593,85 @@ def get_account_stats():
         conn.close()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============================================
+# HELPER FUNCTIONS FOR CONTENT GENERATION
+# ============================================
+
+def get_user_context_for_generation():
+    """
+    Get user profile information to use as context for AI content generation.
+    This provides personalization without including social media links in the content.
+    """
+    if 'user_id' not in session:
+        return None
+    
+    try:
+        user_id = session['user_id']
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT full_name, company_name, website, 
+                   facebook, instagram, twitter, linkedin, youtube, tiktok,
+                   auto_add_images, include_social_links
+            FROM users 
+            WHERE id = ?
+        ''', (user_id,))
+        
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user:
+            return None
+        
+        # Build context string for AI
+        context_parts = []
+        
+        # Add company/brand information
+        if user['company_name']:
+            context_parts.append(f"BEDRIJFSINFORMATIE: Dit artikel is voor {user['company_name']}")
+        
+        if user['website']:
+            context_parts.append(f"Website: {user['website']}")
+        
+        # Add social media presence for context (not for inclusion in content)
+        social_platforms = []
+        if user['facebook']:
+            social_platforms.append('Facebook')
+        if user['instagram']:
+            social_platforms.append('Instagram')
+        if user['twitter']:
+            social_platforms.append('Twitter/X')
+        if user['linkedin']:
+            social_platforms.append('LinkedIn')
+        if user['youtube']:
+            social_platforms.append('YouTube')
+        if user['tiktok']:
+            social_platforms.append('TikTok')
+        
+        if social_platforms:
+            platforms_str = ', '.join(social_platforms)
+            context_parts.append(f"Social media aanwezigheid: {platforms_str}")
+            context_parts.append("BELANGRIJK: Gebruik deze informatie alleen als context. Voeg GEEN social media links toe aan de content, tenzij expliciet gevraagd.")
+        
+        # Add content preferences
+        if user['auto_add_images']:
+            context_parts.append("Voorkeur: Visueel aantrekkelijke content met afbeeldingen")
+        
+        if context_parts:
+            return "CONTEXT VOOR PERSONALISATIE:\n" + "\n".join(context_parts)
+        
+        return None
+        
+    except Exception as e:
+        print(f"⚠️  Error getting user context: {e}")
+        return None
+
+# ============================================
+# API ROUTES - CONTENT GENERATION
+# ============================================
+
 @app.route('/api/generate-topic', methods=['POST'])
 def api_generate_topic():
     """Generate article topic"""
@@ -2707,6 +2786,9 @@ def api_generate_article():
         extra = data.get('extra', '').strip()
         model = data.get('model', 'gpt-4o')
         
+        # Get user context for personalization
+        user_context = get_user_context_for_generation()
+        
         # Validate required fields
         missing_fields = []
         if not onderwerp:
@@ -2725,6 +2807,10 @@ def api_generate_article():
             print(f"❌ Validation error: {error_msg}")
             print(f"📋 Received data: onderwerp={bool(onderwerp)}, anchor1={bool(anchor1)}, url1={bool(url1)}, anchor2={bool(anchor2)}, url2={bool(url2)}")
             return jsonify({"success": False, "error": error_msg}), 400
+        
+        # Add user context to extra information
+        if user_context:
+            extra = f"{extra}\n\n{user_context}" if extra else user_context
         
         article = generate_article(onderwerp, anchor1, url1, anchor2, url2, extra, model)
         
@@ -2776,6 +2862,13 @@ def api_generate_general_article():
         
         if not onderwerp:
             return jsonify({"success": False, "error": "Onderwerp is required"}), 400
+        
+        # Get user context for personalization
+        user_context = get_user_context_for_generation()
+        
+        # Add user context to extra information
+        if user_context:
+            extra = f"{extra}\n\n{user_context}" if extra else user_context
         
         article = generate_general_article(
             onderwerp=onderwerp,
