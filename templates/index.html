@@ -715,6 +715,325 @@
             height: 150px;
             object-fit: cover;
         }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .modal-header {
+            padding: 24px;
+            border-bottom: 2px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 24px;
+            color: var(--dark-blue);
+            margin: 0;
+        }
+        
+        .modal-close {
+            font-size: 32px;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .modal-close:hover {
+            background: var(--gray-200);
+            color: var(--dark-blue);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-blue);
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--light-blue);
+            box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: var(--gray-600);
+        }
+        
+        /* Website Cards in List */
+        .website-list-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s;
+        }
+        
+        .website-list-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .website-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .website-card-info h3 {
+            font-size: 20px;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+        
+        .website-card-info p {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+        
+        .website-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-icon {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-edit {
+            background: var(--light-blue);
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: var(--deep-blue);
+        }
+        
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+        
+        .btn-manage {
+            background: var(--orange);
+            color: white;
+        }
+        
+        .btn-manage:hover {
+            background: var(--dark-orange);
+        }
+        
+        .website-card-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-item-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+        
+        .stat-item-label {
+            font-size: 12px;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .website-card-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+        
+        .website-card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Affiliate Links Table */
+        .affiliate-links-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .affiliate-links-table th {
+            background: var(--gray-100);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark-blue);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .affiliate-links-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+        }
+        
+        .affiliate-links-table tr:hover {
+            background: var(--gray-50);
+        }
+        
+        .affiliate-link-anchor {
+            font-weight: 600;
+            color: var(--dark-blue);
+        }
+        
+        .affiliate-link-url {
+            color: var(--gray-600);
+            font-size: 13px;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Alert Styles */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .alert-success {
+            background: #dcfce7;
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+        }
     </style>
 </head>
 <body>
@@ -974,11 +1293,117 @@
                 </div>
             </div>
             
-            <!-- Other sections remain the same... -->
+            <!-- Website Beheer Section -->
             <div id="website-beheer" class="section">
-                <div style="padding: 30px;">
-                    <h2>🌐 Website Beheer</h2>
-                    <p>Beheer je websites en sitemaps</p>
+                <div class="dashboard-container">
+                    <!-- Header -->
+                    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1>🌐 Website Beheer</h1>
+                            <p>Beheer je websites en sitemaps</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openAddWebsiteModal()">
+                            ➕ Nieuwe Website Toevoegen
+                        </button>
+                    </div>
+                    
+                    <!-- Websites List -->
+                    <div id="websites-list-container">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add/Edit Website Modal -->
+            <div id="website-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="modal-title">Nieuwe Website Toevoegen</h2>
+                        <span class="modal-close" onclick="closeWebsiteModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="website-form">
+                            <input type="hidden" id="website-id">
+                            
+                            <div class="form-group">
+                                <label for="website-name">Website Naam *</label>
+                                <input type="text" id="website-name" class="form-control" placeholder="Bijv: Mijn Blog" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="website-url">Website URL *</label>
+                                <input type="url" id="website-url" class="form-control" placeholder="https://example.com" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sitemap-url">Sitemap URL</label>
+                                <input type="url" id="sitemap-url" class="form-control" placeholder="https://example.com/sitemap.xml">
+                                <small style="color: var(--gray-600); font-size: 12px;">Optioneel - wordt automatisch gezocht als leeg gelaten</small>
+                            </div>
+                            
+                            <div class="modal-footer">
+                                <button type="button" class="btn" style="background: var(--gray-300); color: var(--gray-700);" onclick="closeWebsiteModal()">
+                                    Annuleren
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    💾 Opslaan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Affiliate Links Modal -->
+            <div id="affiliate-modal" class="modal">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h2>🔗 Affiliate Links Beheer</h2>
+                        <span class="modal-close" onclick="closeAffiliateModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div style="margin-bottom: 20px;">
+                            <h3 id="affiliate-website-name" style="color: var(--dark-blue); margin-bottom: 5px;"></h3>
+                            <p style="color: var(--gray-600); font-size: 14px;">Beheer affiliate links voor deze website</p>
+                        </div>
+                        
+                        <button class="btn btn-secondary" onclick="openAddAffiliateLinkForm()" style="margin-bottom: 20px;">
+                            ➕ Nieuwe Affiliate Link
+                        </button>
+                        
+                        <!-- Add Affiliate Link Form (hidden by default) -->
+                        <div id="add-affiliate-form" style="display: none; background: var(--gray-50); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 15px;">Nieuwe Affiliate Link Toevoegen</h4>
+                            <form id="affiliate-link-form">
+                                <input type="hidden" id="affiliate-website-id">
+                                <input type="hidden" id="affiliate-link-id">
+                                
+                                <div class="form-group">
+                                    <label for="affiliate-anchor">Anchor Tekst *</label>
+                                    <input type="text" id="affiliate-anchor" class="form-control" placeholder="Bijv: beste yoga mat" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="affiliate-url">Affiliate URL *</label>
+                                    <input type="url" id="affiliate-url" class="form-control" placeholder="https://partner.com/product?ref=123" required>
+                                </div>
+                                
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" class="btn" style="background: var(--gray-300); color: var(--gray-700);" onclick="closeAddAffiliateLinkForm()">
+                                        Annuleren
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        💾 Opslaan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Affiliate Links List -->
+                        <div id="affiliate-links-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1535,6 +1960,474 @@
                 alert('✅ URL gekopieerd naar klembord!');
             });
         }
+        
+        // ==================== WEBSITE BEHEER FUNCTIONS ====================
+        
+        // Load websites when section is opened
+        function loadWebsites() {
+            fetch('/api/websites')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayWebsites(data.websites);
+                    } else {
+                        showError('Fout bij laden websites: ' + (data.error || 'Onbekende fout'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading websites:', error);
+                    showError('Fout bij laden websites: ' + error.message);
+                });
+        }
+        
+        // Display websites in list
+        function displayWebsites(websites) {
+            const container = document.getElementById('websites-list-container');
+            
+            if (!websites || websites.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌐</div>
+                        <h3>Geen websites toegevoegd</h3>
+                        <p>Voeg je eerste website toe om te beginnen met content generatie</p>
+                        <button class="btn btn-primary" onclick="openAddWebsiteModal()">
+                            ➕ Nieuwe Website Toevoegen
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = websites.map(website => {
+                const lastUpdated = website.last_updated 
+                    ? new Date(website.last_updated).toLocaleDateString('nl-NL')
+                    : 'Nooit';
+                
+                return `
+                    <div class="website-list-card">
+                        <div class="website-card-header">
+                            <div class="website-card-info">
+                                <h3>🌐 ${website.name}</h3>
+                                <p>${website.url}</p>
+                            </div>
+                            <div class="website-card-actions">
+                                <button class="btn-icon btn-manage" onclick="manageAffiliateLinks(${website.id}, '${website.name}')">
+                                    🔗 Affiliate Links
+                                </button>
+                                <button class="btn-icon btn-edit" onclick="editWebsite(${website.id})">
+                                    ✏️ Bewerken
+                                </button>
+                                <button class="btn-icon btn-delete" onclick="deleteWebsite(${website.id}, '${website.name}')">
+                                    🗑️ Verwijderen
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="website-card-stats">
+                            <div class="stat-item">
+                                <div class="stat-item-value">${website.urls_count || 0}</div>
+                                <div class="stat-item-label">Sitemap URLs</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-item-value">${website.affiliate_links_count || 0}</div>
+                                <div class="stat-item-label">Affiliate Links</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-item-value">${lastUpdated}</div>
+                                <div class="stat-item-label">Laatste Update</div>
+                            </div>
+                        </div>
+                        
+                        <div class="website-card-meta">
+                            <span>
+                                📍 Sitemap: ${website.sitemap_url ? '✅ Geconfigureerd' : '⚠️ Niet ingesteld'}
+                            </span>
+                            ${website.sitemap_url ? `
+                                <span>
+                                    <button class="btn btn-secondary btn-small" onclick="refreshSitemap(${website.id})">
+                                        🔄 Sitemap Verversen
+                                    </button>
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Open add website modal
+        function openAddWebsiteModal() {
+            document.getElementById('modal-title').textContent = 'Nieuwe Website Toevoegen';
+            document.getElementById('website-id').value = '';
+            document.getElementById('website-name').value = '';
+            document.getElementById('website-url').value = '';
+            document.getElementById('sitemap-url').value = '';
+            document.getElementById('website-modal').classList.add('active');
+        }
+        
+        // Close website modal
+        function closeWebsiteModal() {
+            document.getElementById('website-modal').classList.remove('active');
+        }
+        
+        // Edit website
+        function editWebsite(websiteId) {
+            fetch(`/api/websites/${websiteId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const website = data.website;
+                        document.getElementById('modal-title').textContent = 'Website Bewerken';
+                        document.getElementById('website-id').value = website.id;
+                        document.getElementById('website-name').value = website.name;
+                        document.getElementById('website-url').value = website.url;
+                        document.getElementById('sitemap-url').value = website.sitemap_url || '';
+                        document.getElementById('website-modal').classList.add('active');
+                    } else {
+                        showError('Fout bij laden website: ' + (data.error || 'Onbekende fout'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading website:', error);
+                    showError('Fout bij laden website: ' + error.message);
+                });
+        }
+        
+        // Delete website
+        function deleteWebsite(websiteId, websiteName) {
+            if (!confirm(`Weet je zeker dat je "${websiteName}" wilt verwijderen?\n\nDit verwijdert ook alle affiliate links van deze website.`)) {
+                return;
+            }
+            
+            fetch(`/api/websites/${websiteId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Website succesvol verwijderd!');
+                    loadWebsites();
+                } else {
+                    showError('Fout bij verwijderen website: ' + (data.error || 'Onbekende fout'));
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting website:', error);
+                showError('Fout bij verwijderen website: ' + error.message);
+            });
+        }
+        
+        // Refresh sitemap
+        function refreshSitemap(websiteId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '🔄 Bezig...';
+            
+            fetch(`/api/websites/${websiteId}/refresh-sitemap`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess(`Sitemap vernieuwd! ${data.urls_count} URLs gevonden.`);
+                    loadWebsites();
+                } else {
+                    showError('Fout bij verversen sitemap: ' + (data.error || 'Onbekende fout'));
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing sitemap:', error);
+                showError('Fout bij verversen sitemap: ' + error.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = '🔄 Sitemap Verversen';
+            });
+        }
+        
+        // Handle website form submission
+        document.getElementById('website-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const websiteId = document.getElementById('website-id').value;
+            const websiteData = {
+                name: document.getElementById('website-name').value,
+                url: document.getElementById('website-url').value,
+                sitemap_url: document.getElementById('sitemap-url').value || null
+            };
+            
+            const method = websiteId ? 'PUT' : 'POST';
+            const url = websiteId ? `/api/websites/${websiteId}` : '/api/websites';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(websiteData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess(websiteId ? 'Website succesvol bijgewerkt!' : 'Website succesvol toegevoegd!');
+                    closeWebsiteModal();
+                    loadWebsites();
+                } else {
+                    showError('Fout bij opslaan website: ' + (data.error || 'Onbekende fout'));
+                }
+            })
+            .catch(error => {
+                console.error('Error saving website:', error);
+                showError('Fout bij opslaan website: ' + error.message);
+            });
+        });
+        
+        // ==================== AFFILIATE LINKS MANAGEMENT ====================
+        
+        let currentWebsiteId = null;
+        
+        // Manage affiliate links
+        function manageAffiliateLinks(websiteId, websiteName) {
+            currentWebsiteId = websiteId;
+            document.getElementById('affiliate-website-name').textContent = websiteName;
+            document.getElementById('affiliate-website-id').value = websiteId;
+            document.getElementById('affiliate-modal').classList.add('active');
+            loadAffiliateLinks(websiteId);
+        }
+        
+        // Close affiliate modal
+        function closeAffiliateModal() {
+            document.getElementById('affiliate-modal').classList.remove('active');
+            closeAddAffiliateLinkForm();
+            currentWebsiteId = null;
+        }
+        
+        // Load affiliate links
+        function loadAffiliateLinks(websiteId) {
+            fetch(`/api/websites/${websiteId}/affiliate-links`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayAffiliateLinks(data.affiliate_links);
+                    } else {
+                        showError('Fout bij laden affiliate links: ' + (data.error || 'Onbekende fout'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading affiliate links:', error);
+                    showError('Fout bij laden affiliate links: ' + error.message);
+                });
+        }
+        
+        // Display affiliate links
+        function displayAffiliateLinks(links) {
+            const container = document.getElementById('affiliate-links-list');
+            
+            if (!links || links.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔗</div>
+                        <h3>Geen affiliate links</h3>
+                        <p>Voeg je eerste affiliate link toe</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <table class="affiliate-links-table">
+                    <thead>
+                        <tr>
+                            <th>Anchor Tekst</th>
+                            <th>URL</th>
+                            <th>Acties</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${links.map(link => `
+                            <tr>
+                                <td>
+                                    <div class="affiliate-link-anchor">${link.anchor_text}</div>
+                                </td>
+                                <td>
+                                    <div class="affiliate-link-url" title="${link.url}">${link.url}</div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn-icon btn-edit btn-small" onclick="editAffiliateLink(${link.id}, '${link.anchor_text.replace(/'/g, "\\'")}', '${link.url.replace(/'/g, "\\'")}')">
+                                            ✏️
+                                        </button>
+                                        <button class="btn-icon btn-delete btn-small" onclick="deleteAffiliateLink(${link.id})">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // Open add affiliate link form
+        function openAddAffiliateLinkForm() {
+            document.getElementById('affiliate-link-id').value = '';
+            document.getElementById('affiliate-anchor').value = '';
+            document.getElementById('affiliate-url').value = '';
+            document.getElementById('add-affiliate-form').style.display = 'block';
+        }
+        
+        // Close add affiliate link form
+        function closeAddAffiliateLinkForm() {
+            document.getElementById('add-affiliate-form').style.display = 'none';
+            document.getElementById('affiliate-link-id').value = '';
+            document.getElementById('affiliate-anchor').value = '';
+            document.getElementById('affiliate-url').value = '';
+        }
+        
+        // Edit affiliate link
+        function editAffiliateLink(linkId, anchorText, url) {
+            document.getElementById('affiliate-link-id').value = linkId;
+            document.getElementById('affiliate-anchor').value = anchorText;
+            document.getElementById('affiliate-url').value = url;
+            document.getElementById('add-affiliate-form').style.display = 'block';
+        }
+        
+        // Delete affiliate link
+        function deleteAffiliateLink(linkId) {
+            if (!confirm('Weet je zeker dat je deze affiliate link wilt verwijderen?')) {
+                return;
+            }
+            
+            fetch(`/api/websites/${currentWebsiteId}/affiliate-links/${linkId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Affiliate link succesvol verwijderd!');
+                    loadAffiliateLinks(currentWebsiteId);
+                    loadWebsites(); // Refresh main list to update counts
+                } else {
+                    showError('Fout bij verwijderen affiliate link: ' + (data.error || 'Onbekende fout'));
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting affiliate link:', error);
+                showError('Fout bij verwijderen affiliate link: ' + error.message);
+            });
+        }
+        
+        // Handle affiliate link form submission
+        document.getElementById('affiliate-link-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const linkId = document.getElementById('affiliate-link-id').value;
+            const linkData = {
+                anchor_text: document.getElementById('affiliate-anchor').value,
+                url: document.getElementById('affiliate-url').value
+            };
+            
+            const method = linkId ? 'PUT' : 'POST';
+            const url = linkId 
+                ? `/api/websites/${currentWebsiteId}/affiliate-links/${linkId}`
+                : `/api/websites/${currentWebsiteId}/affiliate-links`;
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(linkData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess(linkId ? 'Affiliate link succesvol bijgewerkt!' : 'Affiliate link succesvol toegevoegd!');
+                    closeAddAffiliateLinkForm();
+                    loadAffiliateLinks(currentWebsiteId);
+                    loadWebsites(); // Refresh main list to update counts
+                } else {
+                    showError('Fout bij opslaan affiliate link: ' + (data.error || 'Onbekende fout'));
+                }
+            })
+            .catch(error => {
+                console.error('Error saving affiliate link:', error);
+                showError('Fout bij opslaan affiliate link: ' + error.message);
+            });
+        });
+        
+        // ==================== UTILITY FUNCTIONS ====================
+        
+        // Show success message
+        function showSuccess(message) {
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '3000';
+            alert.style.minWidth = '300px';
+            alert.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            alert.textContent = message;
+            
+            document.body.appendChild(alert);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.3s';
+                setTimeout(() => alert.remove(), 300);
+            }, 3000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error';
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '3000';
+            alert.style.minWidth = '300px';
+            alert.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            alert.textContent = message;
+            
+            document.body.appendChild(alert);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.3s';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        }
+        
+        // Update switchSection to load websites when opening website-beheer
+        const originalSwitchSection = switchSection;
+        switchSection = function(sectionId, event) {
+            originalSwitchSection(sectionId, event);
+            
+            if (sectionId === 'website-beheer') {
+                loadWebsites();
+            }
+        };
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            const websiteModal = document.getElementById('website-modal');
+            const affiliateModal = document.getElementById('affiliate-modal');
+            
+            if (event.target === websiteModal) {
+                closeWebsiteModal();
+            }
+            
+            if (event.target === affiliateModal) {
+                closeAffiliateModal();
+            }
+        });
     </script>
 </body>
 </html>
