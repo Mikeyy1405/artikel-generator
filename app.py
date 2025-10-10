@@ -4012,6 +4012,443 @@ def api_refresh_website_sitemap(website_id):
         }), 500
 
 
+# ============================================================================
+# CONTENT PLANNING API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/content-plans', methods=['GET'])
+def get_content_plans():
+    """Get all content plans for the current user"""
+    try:
+        user_id = session.get('user_id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                cp.*,
+                a.title as article_title,
+                ws.site_name as wordpress_site_name
+            FROM content_plans cp
+            LEFT JOIN articles a ON cp.article_id = a.id
+            LEFT JOIN wordpress_sites ws ON cp.wordpress_site_id = ws.id
+            WHERE cp.user_id = ?
+            ORDER BY cp.target_date DESC, cp.created_at DESC
+        ''', (user_id,))
+        
+        plans = []
+        for row in cursor.fetchall():
+            plans.append({
+                'id': row['id'],
+                'title': row['title'],
+                'description': row['description'],
+                'keyword': row['keyword'],
+                'target_date': row['target_date'],
+                'status': row['status'],
+                'article_id': row['article_id'],
+                'article_title': row['article_title'],
+                'wordpress_site_id': row['wordpress_site_id'],
+                'wordpress_site_name': row['wordpress_site_name'],
+                'word_count': row['word_count'],
+                'created_at': row['created_at'],
+                'updated_at': row['updated_at']
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'plans': plans
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting content plans: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/content-plans', methods=['POST'])
+def create_content_plan():
+    """Create a new content plan"""
+    try:
+        user_id = session.get('user_id', 1)
+        data = request.get_json()
+        
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        keyword = data.get('keyword', '').strip()
+        target_date = data.get('target_date')
+        word_count = data.get('word_count', 1000)
+        
+        if not title:
+            return jsonify({
+                'success': False,
+                'error': 'Titel is verplicht'
+            }), 400
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO content_plans 
+            (user_id, title, description, keyword, target_date, word_count, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'draft')
+        ''', (user_id, title, description, keyword, target_date, word_count))
+        
+        plan_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Content plan created: {title}")
+        
+        return jsonify({
+            'success': True,
+            'plan_id': plan_id,
+            'message': 'Content plan succesvol aangemaakt'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error creating content plan: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/content-plans/<int:plan_id>', methods=['PUT'])
+def update_content_plan(plan_id):
+    """Update an existing content plan"""
+    try:
+        user_id = session.get('user_id', 1)
+        data = request.get_json()
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Verify ownership
+        cursor.execute('SELECT id FROM content_plans WHERE id = ? AND user_id = ?', (plan_id, user_id))
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Content plan niet gevonden'
+            }), 404
+        
+        # Build update query dynamically
+        update_fields = []
+        update_values = []
+        
+        if 'title' in data:
+            update_fields.append('title = ?')
+            update_values.append(data['title'])
+        
+        if 'description' in data:
+            update_fields.append('description = ?')
+            update_values.append(data['description'])
+        
+        if 'keyword' in data:
+            update_fields.append('keyword = ?')
+            update_values.append(data['keyword'])
+        
+        if 'target_date' in data:
+            update_fields.append('target_date = ?')
+            update_values.append(data['target_date'])
+        
+        if 'status' in data:
+            update_fields.append('status = ?')
+            update_values.append(data['status'])
+        
+        if 'article_id' in data:
+            update_fields.append('article_id = ?')
+            update_values.append(data['article_id'])
+        
+        if 'wordpress_site_id' in data:
+            update_fields.append('wordpress_site_id = ?')
+            update_values.append(data['wordpress_site_id'])
+        
+        if 'word_count' in data:
+            update_fields.append('word_count = ?')
+            update_values.append(data['word_count'])
+        
+        if not update_fields:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Geen velden om bij te werken'
+            }), 400
+        
+        # Always update updated_at
+        update_fields.append('updated_at = CURRENT_TIMESTAMP')
+        update_values.append(plan_id)
+        
+        query = f"UPDATE content_plans SET {', '.join(update_fields)} WHERE id = ?"
+        cursor.execute(query, update_values)
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Content plan updated: {plan_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Content plan succesvol bijgewerkt'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error updating content plan: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/content-plans/<int:plan_id>', methods=['DELETE'])
+def delete_content_plan(plan_id):
+    """Delete a content plan"""
+    try:
+        user_id = session.get('user_id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Verify ownership
+        cursor.execute('SELECT id FROM content_plans WHERE id = ? AND user_id = ?', (plan_id, user_id))
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Content plan niet gevonden'
+            }), 404
+        
+        cursor.execute('DELETE FROM content_plans WHERE id = ?', (plan_id,))
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Content plan deleted: {plan_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Content plan succesvol verwijderd'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error deleting content plan: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/content-plans/calendar', methods=['GET'])
+def get_content_plans_calendar():
+    """Get content plans grouped by date for calendar view"""
+    try:
+        user_id = session.get('user_id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                cp.*,
+                a.title as article_title,
+                ws.site_name as wordpress_site_name
+            FROM content_plans cp
+            LEFT JOIN articles a ON cp.article_id = a.id
+            LEFT JOIN wordpress_sites ws ON cp.wordpress_site_id = ws.id
+            WHERE cp.user_id = ? AND cp.target_date IS NOT NULL
+            ORDER BY cp.target_date ASC
+        ''', (user_id,))
+        
+        events = []
+        for row in cursor.fetchall():
+            # Format for FullCalendar
+            color = '#3498db'  # Default blue
+            if row['status'] == 'published':
+                color = '#27ae60'  # Green
+            elif row['status'] == 'scheduled':
+                color = '#f39c12'  # Orange
+            
+            events.append({
+                'id': row['id'],
+                'title': row['title'],
+                'start': row['target_date'],
+                'description': row['description'],
+                'keyword': row['keyword'],
+                'status': row['status'],
+                'article_id': row['article_id'],
+                'article_title': row['article_title'],
+                'wordpress_site_id': row['wordpress_site_id'],
+                'wordpress_site_name': row['wordpress_site_name'],
+                'word_count': row['word_count'],
+                'backgroundColor': color,
+                'borderColor': color
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'events': events
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting calendar data: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/content-plans/<int:plan_id>/generate-article', methods=['POST'])
+def generate_article_from_plan(plan_id):
+    """Generate an article from a content plan"""
+    try:
+        user_id = session.get('user_id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get the content plan
+        cursor.execute('''
+            SELECT * FROM content_plans 
+            WHERE id = ? AND user_id = ?
+        ''', (plan_id, user_id))
+        
+        plan = cursor.fetchone()
+        if not plan:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Content plan niet gevonden'
+            }), 404
+        
+        # Get user preferences
+        cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        user = cursor.fetchone()
+        
+        conn.close()
+        
+        # Prepare article generation parameters
+        onderwerp = plan['title']
+        if plan['keyword']:
+            onderwerp = f"{plan['title']} - {plan['keyword']}"
+        
+        word_count = plan['word_count'] or 1000
+        extra = plan['description'] or ""
+        
+        # Use the existing generate_general_article function
+        print(f"🎯 Generating article from content plan: {onderwerp}")
+        
+        result = generate_general_article(
+            onderwerp=onderwerp,
+            word_count=word_count,
+            extra=extra,
+            model="gpt-4o",
+            max_retries=3
+        )
+        
+        if result.get('success'):
+            # Update the content plan with the article_id
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE content_plans 
+                SET article_id = ?, status = 'scheduled', updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (result['article_id'], plan_id))
+            
+            conn.commit()
+            conn.close()
+            
+            print(f"✅ Article generated and linked to content plan {plan_id}")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Error generating article from plan: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/content-plans/stats', methods=['GET'])
+def get_content_plans_stats():
+    """Get statistics about content plans"""
+    try:
+        user_id = session.get('user_id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Total plans
+        cursor.execute('SELECT COUNT(*) FROM content_plans WHERE user_id = ?', (user_id,))
+        total = cursor.fetchone()[0]
+        
+        # By status
+        cursor.execute('''
+            SELECT status, COUNT(*) as count 
+            FROM content_plans 
+            WHERE user_id = ? 
+            GROUP BY status
+        ''', (user_id,))
+        
+        stats = {
+            'total': total,
+            'draft': 0,
+            'scheduled': 0,
+            'published': 0
+        }
+        
+        for row in cursor.fetchall():
+            status, count = row
+            stats[status] = count
+        
+        # Upcoming (next 7 days)
+        cursor.execute('''
+            SELECT COUNT(*) FROM content_plans 
+            WHERE user_id = ? 
+            AND target_date >= date('now') 
+            AND target_date <= date('now', '+7 days')
+            AND status != 'published'
+        ''', (user_id,))
+        stats['upcoming'] = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 if __name__ == '__main__':
     print("🚀 Starting WritgoAI Content Generator v22...")
     print("📍 Server running on http://localhost:5000")

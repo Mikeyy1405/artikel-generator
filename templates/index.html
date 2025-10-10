@@ -9,6 +9,8 @@
     <!-- Quill Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- FullCalendar for Content Planning -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
     <style>
         :root {
@@ -963,14 +965,161 @@
                     <p>Plan je content en beheer je redactionele kalender</p>
                 </div>
                 
-                <div class="section-content">
-                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
-                        <div style="text-align: center; max-width: 500px;">
-                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
-                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
-                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
-                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Plan je content, beheer je redactionele kalender en houd je publicatieschema bij</p>
+                <div class="section-content" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Stats Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 10px;">
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: var(--light-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📝</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="total-plans">0</div>
+                                    <div style="font-size: 13px; color: #666;">Totaal Plannen</div>
+                                </div>
+                            </div>
                         </div>
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: #95a5a6; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📄</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="draft-plans">0</div>
+                                    <div style="font-size: 13px; color: #666;">Concepten</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: var(--orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">⏰</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="scheduled-plans">0</div>
+                                    <div style="font-size: 13px; color: #666;">Gepland</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; background: #27ae60; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">✅</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--dark-blue);" id="published-plans">0</div>
+                                    <div style="font-size: 13px; color: #666;">Gepubliceerd</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View Toggle and Add Button -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="switchPlanningView('calendar')" id="calendar-view-btn" class="btn-primary" style="padding: 10px 20px;">
+                                📅 Kalender
+                            </button>
+                            <button onclick="switchPlanningView('list')" id="list-view-btn" class="btn-secondary" style="padding: 10px 20px;">
+                                📋 Lijst
+                            </button>
+                        </div>
+                        <button onclick="showAddPlanModal()" class="btn-primary" style="padding: 10px 20px;">
+                            ➕ Nieuw Plan
+                        </button>
+                    </div>
+
+                    <!-- Calendar View -->
+                    <div id="calendar-view" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div id="content-calendar"></div>
+                    </div>
+
+                    <!-- List View -->
+                    <div id="list-view" style="display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #e0e0e0;">
+                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--dark-blue);">Titel</th>
+                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--dark-blue);">Zoekwoord</th>
+                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--dark-blue);">Datum</th>
+                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--dark-blue);">Status</th>
+                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--dark-blue);">Acties</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plans-table-body">
+                                    <tr>
+                                        <td colspan="5" style="padding: 40px; text-align: center; color: #999;">
+                                            Geen content plannen gevonden. Klik op "Nieuw Plan" om te beginnen.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add/Edit Plan Modal -->
+            <div id="plan-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 16px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                    <div style="padding: 24px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: var(--dark-blue); font-size: 20px;" id="modal-title">Nieuw Content Plan</h3>
+                        <button onclick="closePlanModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 32px; height: 32px;">&times;</button>
+                    </div>
+                    <div style="padding: 24px;">
+                        <form id="plan-form" onsubmit="savePlan(event)">
+                            <input type="hidden" id="plan-id" value="">
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Titel *</label>
+                                <input type="text" id="plan-title" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Beschrijving</label>
+                                <textarea id="plan-description" rows="3" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Zoekwoord</label>
+                                <input type="text" id="plan-keyword" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Publicatiedatum</label>
+                                    <input type="date" id="plan-target-date" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Aantal Woorden</label>
+                                    <input type="number" id="plan-word-count" value="1000" min="100" step="100" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark-blue);">Status</label>
+                                <select id="plan-status" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                    <option value="draft">Concept</option>
+                                    <option value="scheduled">Gepland</option>
+                                    <option value="published">Gepubliceerd</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <button type="button" onclick="closePlanModal()" class="btn-secondary" style="padding: 12px 24px;">
+                                    Annuleren
+                                </button>
+                                <button type="submit" class="btn-primary" style="padding: 12px 24px;">
+                                    Opslaan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Details Modal -->
+            <div id="plan-details-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 16px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                    <div style="padding: 24px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: var(--dark-blue); font-size: 20px;" id="details-title">Content Plan Details</h3>
+                        <button onclick="closePlanDetailsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 32px; height: 32px;">&times;</button>
+                    </div>
+                    <div style="padding: 24px;" id="plan-details-content">
+                        <!-- Details will be populated here -->
                     </div>
                 </div>
             </div>
@@ -3315,6 +3464,445 @@
                 showNotification('Er ging iets mis bij uitloggen', 'error');
             }
         }
+
+        // ============================================================================
+        // CONTENT PLANNING FUNCTIONS
+        // ============================================================================
+
+        let contentCalendar = null;
+        let allContentPlans = [];
+
+        // Initialize content planning when section is loaded
+        async function initContentPlanning() {
+            await loadContentPlans();
+            await loadContentStats();
+            initCalendar();
+        }
+
+        // Load all content plans
+        async function loadContentPlans() {
+            try {
+                const response = await fetch('/api/content-plans', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load content plans');
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    allContentPlans = data.plans;
+                    updateListView();
+                    if (contentCalendar) {
+                        loadCalendarEvents();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading content plans:', error);
+                showNotification('Fout bij laden van content plannen', 'error');
+            }
+        }
+
+        // Load content planning statistics
+        async function loadContentStats() {
+            try {
+                const response = await fetch('/api/content-plans/stats', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load stats');
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('total-plans').textContent = stats.total || 0;
+                    document.getElementById('draft-plans').textContent = stats.draft || 0;
+                    document.getElementById('scheduled-plans').textContent = stats.scheduled || 0;
+                    document.getElementById('published-plans').textContent = stats.published || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Initialize FullCalendar
+        function initCalendar() {
+            const calendarEl = document.getElementById('content-calendar');
+            if (!calendarEl || contentCalendar) return;
+
+            contentCalendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                locale: 'nl',
+                buttonText: {
+                    today: 'Vandaag',
+                    month: 'Maand',
+                    week: 'Week',
+                    list: 'Lijst'
+                },
+                events: [],
+                eventClick: function(info) {
+                    showPlanDetails(info.event.id);
+                },
+                height: 'auto'
+            });
+
+            contentCalendar.render();
+            loadCalendarEvents();
+        }
+
+        // Load calendar events
+        async function loadCalendarEvents() {
+            if (!contentCalendar) return;
+
+            try {
+                const response = await fetch('/api/content-plans/calendar', {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load calendar events');
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    contentCalendar.removeAllEvents();
+                    contentCalendar.addEventSource(data.events);
+                }
+            } catch (error) {
+                console.error('Error loading calendar events:', error);
+            }
+        }
+
+        // Switch between calendar and list view
+        function switchPlanningView(view) {
+            const calendarView = document.getElementById('calendar-view');
+            const listView = document.getElementById('list-view');
+            const calendarBtn = document.getElementById('calendar-view-btn');
+            const listBtn = document.getElementById('list-view-btn');
+
+            if (view === 'calendar') {
+                calendarView.style.display = 'block';
+                listView.style.display = 'none';
+                calendarBtn.className = 'btn-primary';
+                listBtn.className = 'btn-secondary';
+                if (contentCalendar) {
+                    contentCalendar.updateSize();
+                }
+            } else {
+                calendarView.style.display = 'none';
+                listView.style.display = 'block';
+                calendarBtn.className = 'btn-secondary';
+                listBtn.className = 'btn-primary';
+            }
+        }
+
+        // Update list view
+        function updateListView() {
+            const tbody = document.getElementById('plans-table-body');
+            
+            if (allContentPlans.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="padding: 40px; text-align: center; color: #999;">
+                            Geen content plannen gevonden. Klik op "Nieuw Plan" om te beginnen.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = allContentPlans.map(plan => {
+                const statusColors = {
+                    'draft': '#95a5a6',
+                    'scheduled': '#f39c12',
+                    'published': '#27ae60'
+                };
+                const statusLabels = {
+                    'draft': 'Concept',
+                    'scheduled': 'Gepland',
+                    'published': 'Gepubliceerd'
+                };
+                
+                return `
+                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 12px;">
+                            <div style="font-weight: 600; color: var(--dark-blue);">${plan.title}</div>
+                            ${plan.description ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${plan.description.substring(0, 60)}${plan.description.length > 60 ? '...' : ''}</div>` : ''}
+                        </td>
+                        <td style="padding: 12px;">
+                            ${plan.keyword ? `<span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${plan.keyword}</span>` : '-'}
+                        </td>
+                        <td style="padding: 12px;">
+                            ${plan.target_date ? new Date(plan.target_date).toLocaleDateString('nl-NL') : '-'}
+                        </td>
+                        <td style="padding: 12px;">
+                            <span style="background: ${statusColors[plan.status]}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                ${statusLabels[plan.status]}
+                            </span>
+                        </td>
+                        <td style="padding: 12px;">
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="showPlanDetails(${plan.id})" style="padding: 6px 12px; background: var(--light-blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                    👁️ Bekijk
+                                </button>
+                                <button onclick="editPlan(${plan.id})" style="padding: 6px 12px; background: var(--orange); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                    ✏️ Bewerk
+                                </button>
+                                <button onclick="deletePlan(${plan.id})" style="padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Show add plan modal
+        function showAddPlanModal() {
+            document.getElementById('modal-title').textContent = 'Nieuw Content Plan';
+            document.getElementById('plan-id').value = '';
+            document.getElementById('plan-title').value = '';
+            document.getElementById('plan-description').value = '';
+            document.getElementById('plan-keyword').value = '';
+            document.getElementById('plan-target-date').value = '';
+            document.getElementById('plan-word-count').value = '1000';
+            document.getElementById('plan-status').value = 'draft';
+            document.getElementById('plan-modal').style.display = 'flex';
+        }
+
+        // Edit plan
+        function editPlan(planId) {
+            const plan = allContentPlans.find(p => p.id === planId);
+            if (!plan) return;
+
+            document.getElementById('modal-title').textContent = 'Content Plan Bewerken';
+            document.getElementById('plan-id').value = plan.id;
+            document.getElementById('plan-title').value = plan.title;
+            document.getElementById('plan-description').value = plan.description || '';
+            document.getElementById('plan-keyword').value = plan.keyword || '';
+            document.getElementById('plan-target-date').value = plan.target_date || '';
+            document.getElementById('plan-word-count').value = plan.word_count || 1000;
+            document.getElementById('plan-status').value = plan.status;
+            document.getElementById('plan-modal').style.display = 'flex';
+        }
+
+        // Close plan modal
+        function closePlanModal() {
+            document.getElementById('plan-modal').style.display = 'none';
+        }
+
+        // Save plan
+        async function savePlan(event) {
+            event.preventDefault();
+
+            const planId = document.getElementById('plan-id').value;
+            const planData = {
+                title: document.getElementById('plan-title').value,
+                description: document.getElementById('plan-description').value,
+                keyword: document.getElementById('plan-keyword').value,
+                target_date: document.getElementById('plan-target-date').value,
+                word_count: parseInt(document.getElementById('plan-word-count').value),
+                status: document.getElementById('plan-status').value
+            };
+
+            try {
+                const url = planId ? `/api/content-plans/${planId}` : '/api/content-plans';
+                const method = planId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(planData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(planId ? 'Content plan bijgewerkt' : 'Content plan aangemaakt', 'success');
+                    closePlanModal();
+                    await loadContentPlans();
+                    await loadContentStats();
+                } else {
+                    showNotification(data.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving plan:', error);
+                showNotification('Er ging iets mis bij opslaan', 'error');
+            }
+        }
+
+        // Delete plan
+        async function deletePlan(planId) {
+            if (!confirm('Weet je zeker dat je dit content plan wilt verwijderen?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/content-plans/${planId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Content plan verwijderd', 'success');
+                    await loadContentPlans();
+                    await loadContentStats();
+                } else {
+                    showNotification(data.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting plan:', error);
+                showNotification('Er ging iets mis bij verwijderen', 'error');
+            }
+        }
+
+        // Show plan details
+        function showPlanDetails(planId) {
+            const plan = allContentPlans.find(p => p.id === parseInt(planId));
+            if (!plan) return;
+
+            const statusColors = {
+                'draft': '#95a5a6',
+                'scheduled': '#f39c12',
+                'published': '#27ae60'
+            };
+            const statusLabels = {
+                'draft': 'Concept',
+                'scheduled': 'Gepland',
+                'published': 'Gepubliceerd'
+            };
+
+            document.getElementById('details-title').textContent = plan.title;
+            document.getElementById('plan-details-content').innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">Status</div>
+                        <span style="background: ${statusColors[plan.status]}; color: white; padding: 6px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; display: inline-block;">
+                            ${statusLabels[plan.status]}
+                        </span>
+                    </div>
+
+                    ${plan.description ? `
+                    <div>
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">Beschrijving</div>
+                        <div style="color: #666; line-height: 1.6;">${plan.description}</div>
+                    </div>
+                    ` : ''}
+
+                    ${plan.keyword ? `
+                    <div>
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">Zoekwoord</div>
+                        <span style="background: #e3f2fd; color: #1976d2; padding: 6px 12px; border-radius: 6px; font-size: 14px; display: inline-block;">${plan.keyword}</span>
+                    </div>
+                    ` : ''}
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        ${plan.target_date ? `
+                        <div>
+                            <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">Publicatiedatum</div>
+                            <div style="color: #666;">${new Date(plan.target_date).toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        </div>
+                        ` : ''}
+
+                        <div>
+                            <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">Aantal Woorden</div>
+                            <div style="color: #666;">${plan.word_count || 1000} woorden</div>
+                        </div>
+                    </div>
+
+                    ${plan.article_title ? `
+                    <div>
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">Gekoppeld Artikel</div>
+                        <div style="color: #666;">${plan.article_title}</div>
+                    </div>
+                    ` : ''}
+
+                    ${plan.wordpress_site_name ? `
+                    <div>
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 8px;">WordPress Site</div>
+                        <div style="color: #666;">${plan.wordpress_site_name}</div>
+                    </div>
+                    ` : ''}
+
+                    <div style="display: flex; gap: 10px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                        ${!plan.article_id ? `
+                        <button onclick="generateArticleFromPlan(${plan.id})" class="btn-primary" style="padding: 12px 24px; flex: 1;">
+                            ✍️ Genereer Artikel
+                        </button>
+                        ` : ''}
+                        <button onclick="editPlan(${plan.id}); closePlanDetailsModal();" class="btn-secondary" style="padding: 12px 24px; flex: 1;">
+                            ✏️ Bewerken
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('plan-details-modal').style.display = 'flex';
+        }
+
+        // Close plan details modal
+        function closePlanDetailsModal() {
+            document.getElementById('plan-details-modal').style.display = 'none';
+        }
+
+        // Generate article from plan
+        async function generateArticleFromPlan(planId) {
+            if (!confirm('Wil je een artikel genereren voor dit content plan?')) {
+                return;
+            }
+
+            closePlanDetailsModal();
+            showNotification('Artikel wordt gegenereerd...', 'info');
+
+            try {
+                const response = await fetch(`/api/content-plans/${planId}/generate-article`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Artikel succesvol gegenereerd!', 'success');
+                    await loadContentPlans();
+                    await loadContentStats();
+                    
+                    // Switch to content writer section to show the generated article
+                    switchSection('content-writer');
+                } else {
+                    showNotification(data.error || 'Er ging iets mis bij genereren', 'error');
+                }
+            } catch (error) {
+                console.error('Error generating article:', error);
+                showNotification('Er ging iets mis bij genereren', 'error');
+            }
+        }
+
+        // Initialize content planning when switching to that section
+        const originalSwitchSection = window.switchSection;
+        window.switchSection = function(sectionId, event) {
+            originalSwitchSection(sectionId, event);
+            
+            if (sectionId === 'content-planning' && !contentCalendar) {
+                setTimeout(() => {
+                    initContentPlanning();
+                }, 100);
+            }
+        };
         
     </script>
     
