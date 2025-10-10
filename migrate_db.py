@@ -46,6 +46,32 @@ def migrate():
             cursor.execute(f'ALTER TABLE {table} ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1')
             print(f"✅ Added user_id to {table}")
     
+    # Add new user profile columns
+    user_columns = [
+        ('company', 'TEXT'),
+        ('website', 'TEXT'),
+        ('facebook', 'TEXT'),
+        ('instagram', 'TEXT'),
+        ('twitter', 'TEXT'),
+        ('linkedin', 'TEXT'),
+        ('youtube', 'TEXT'),
+        ('tiktok', 'TEXT'),
+        ('include_socials', 'BOOLEAN DEFAULT 1'),
+        ('auto_images', 'BOOLEAN DEFAULT 1'),
+        ('auto_internal_links', 'BOOLEAN DEFAULT 1'),
+        ('seo_optimize', 'BOOLEAN DEFAULT 1'),
+        ('default_tone', 'TEXT DEFAULT "professional"')
+    ]
+    
+    for column_name, column_type in user_columns:
+        try:
+            cursor.execute(f"SELECT {column_name} FROM users LIMIT 1")
+            print(f"✓ users.{column_name} already exists")
+        except sqlite3.OperationalError:
+            print(f"📝 Adding {column_name} to users...")
+            cursor.execute(f'ALTER TABLE users ADD COLUMN {column_name} {column_type}')
+            print(f"✅ Added {column_name} to users")
+    
     # Create superuser if not exists
     cursor.execute('SELECT COUNT(*) FROM users WHERE email = ?', ('info@writgo.nl',))
     if cursor.fetchone()[0] == 0:
