@@ -127,6 +127,19 @@ def init_db():
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             full_name TEXT,
+            company TEXT,
+            website TEXT,
+            facebook TEXT,
+            instagram TEXT,
+            twitter TEXT,
+            linkedin TEXT,
+            youtube TEXT,
+            tiktok TEXT,
+            include_socials BOOLEAN DEFAULT 1,
+            auto_images BOOLEAN DEFAULT 1,
+            auto_internal_links BOOLEAN DEFAULT 1,
+            seo_optimize BOOLEAN DEFAULT 1,
+            default_tone TEXT DEFAULT 'professional',
             is_superuser BOOLEAN DEFAULT 0,
             is_active BOOLEAN DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1851,15 +1864,201 @@ def get_me():
     if user:
         return jsonify({
             'success': True,
-            'user': {
-                'id': user['id'],
-                'email': user['email'],
-                'full_name': user['full_name'],
-                'is_superuser': bool(user['is_superuser'])
-            }
+            'user': user
         })
     else:
         return jsonify({'success': False, 'error': 'Not logged in'}), 401
+
+@app.route('/account')
+def account_page():
+    """Serve the account page"""
+    return send_file('templates/account.html')
+
+@app.route('/api/account/profile', methods=['PUT'])
+def update_profile():
+    """Update user profile"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.json
+    full_name = data.get('full_name')
+    company = data.get('company')
+    website = data.get('website')
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET full_name = ?, company = ?, website = ?
+            WHERE id = ?
+        ''', (full_name, company, website, user['id']))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Profiel bijgewerkt'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/account/socials', methods=['PUT'])
+def update_socials():
+    """Update social media links"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.json
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET facebook = ?, instagram = ?, twitter = ?, 
+                linkedin = ?, youtube = ?, tiktok = ?,
+                include_socials = ?
+            WHERE id = ?
+        ''', (
+            data.get('facebook'),
+            data.get('instagram'),
+            data.get('twitter'),
+            data.get('linkedin'),
+            data.get('youtube'),
+            data.get('tiktok'),
+            data.get('include_socials', True),
+            user['id']
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Social media bijgewerkt'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/account/preferences', methods=['PUT'])
+def update_preferences():
+    """Update content preferences"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.json
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET auto_images = ?, auto_internal_links = ?, 
+                seo_optimize = ?, default_tone = ?
+            WHERE id = ?
+        ''', (
+            data.get('auto_images', True),
+            data.get('auto_internal_links', True),
+            data.get('seo_optimize', True),
+            data.get('default_tone', 'professional'),
+            user['id']
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Voorkeuren bijgewerkt'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/account/password', methods=['PUT'])
+def update_password():
+    """Update user password"""
+    import hashlib
+    
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.json
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    
+    if not current_password or not new_password:
+        return jsonify({'success': False, 'error': 'Alle velden zijn verplicht'}), 400
+    
+    current_hash = hashlib.sha256(current_password.encode()).hexdigest()
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Verify current password
+    cursor.execute('SELECT password_hash FROM users WHERE id = ?', (user['id'],))
+    result = cursor.fetchone()
+    
+    if not result or result[0] != current_hash:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Huidig wachtwoord is onjuist'}), 401
+    
+    # Update password
+    new_hash = hashlib.sha256(new_password.encode()).hexdigest()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET password_hash = ?
+            WHERE id = ?
+        ''', (new_hash, user['id']))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Wachtwoord gewijzigd'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/account/stats', methods=['GET'])
+def get_account_stats():
+    """Get account statistics"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        # Count articles
+        cursor.execute('SELECT COUNT(*) FROM articles WHERE user_id = ?', (user['id'],))
+        articles_count = cursor.fetchone()[0]
+        
+        # Count websites
+        cursor.execute('SELECT COUNT(*) FROM websites WHERE user_id = ?', (user['id'],))
+        websites_count = cursor.fetchone()[0]
+        
+        # Count keywords (approximate from articles)
+        cursor.execute('SELECT COUNT(*) * 5 FROM articles WHERE user_id = ?', (user['id'],))
+        keywords_count = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'articles': articles_count,
+                'websites': websites_count,
+                'keywords': keywords_count
+            }
+        })
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/generate-topic', methods=['POST'])
 def api_generate_topic():
