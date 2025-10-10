@@ -552,139 +552,115 @@
                 </div>
                 
                 <div class="section-content" style="overflow-y: auto;">
-                    <div style="padding: 30px; max-width: 1400px; margin: 0 auto;">
+                    <div style="padding: 30px; max-width: 1200px; margin: 0 auto;">
                         
-                        <!-- Welcome Section -->
-                        <div style="background: linear-gradient(135deg, var(--deep-blue), var(--light-blue)); padding: 40px; border-radius: 16px; color: white; margin-bottom: 30px; box-shadow: 0 8px 24px rgba(0,174,239,0.3);">
-                            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
-                                <div style="font-size: 48px;">🚀</div>
-                                <div>
-                                    <h1 style="margin: 0; font-size: 32px; font-weight: 700;">WritgoAI Dashboard</h1>
-                                    <p style="margin: 5px 0 0 0; font-size: 16px; opacity: 0.9;">Welkom terug! Hier is je content overzicht</p>
+                        <!-- Header -->
+                        <div style="margin-bottom: 40px;">
+                            <h1 style="color: var(--dark-blue); font-size: 28px; font-weight: 700; margin: 0 0 8px 0;">Dashboard</h1>
+                            <p style="color: #64748b; font-size: 16px; margin: 0;">Overzicht van je content en statistieken</p>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px;">
+                            
+                            <!-- Articles Card -->
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <div style="width: 48px; height: 48px; background: var(--light-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📝</div>
+                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
                                 </div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="posts-count">0</div>
+                                <div style="color: #64748b; font-size: 14px;">Artikelen</div>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; opacity: 0.8;">
-                                <span>🕐</span>
-                                <span id="last-sync-time">Laatste sync: Vandaag om 14:30</span>
+
+                            <!-- Keywords Card -->
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <div style="width: 48px; height: 48px; background: var(--orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">🔍</div>
+                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
+                                </div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="total-keywords">0</div>
+                                <div style="color: #64748b; font-size: 14px;">Keywords</div>
+                            </div>
+
+                            <!-- Websites Card -->
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <div style="width: 48px; height: 48px; background: var(--deep-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">🌐</div>
+                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
+                                </div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="websites-count">0</div>
+                                <div style="color: #64748b; font-size: 14px;">Websites</div>
+                            </div>
+
+                            <!-- Research Card -->
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <div style="width: 48px; height: 48px; background: #6366f1; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📊</div>
+                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
+                                </div>
+                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="research-count">0</div>
+                                <div style="color: #64748b; font-size: 14px;">Onderzoeken</div>
                             </div>
                         </div>
 
-                        <!-- Quick Stats Grid -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                            <!-- Posts Card -->
-                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                                <div style="font-size: 36px; margin-bottom: 10px;">📝</div>
-                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="posts-count">0</div>
-                                <div style="font-size: 14px; opacity: 0.9;">Totaal Posts</div>
-                            </div>
-
-                            <!-- Pages Card -->
-                            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(240,147,251,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                                <div style="font-size: 36px; margin-bottom: 10px;">📄</div>
-                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="pages-count">0</div>
-                                <div style="font-size: 14px; opacity: 0.9;">Totaal Pagina's</div>
-                            </div>
-
-                            <!-- Categories Card -->
-                            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(79,172,254,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                                <div style="font-size: 36px; margin-bottom: 10px;">📁</div>
-                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="categories-count">0</div>
-                                <div style="font-size: 14px; opacity: 0.9;">Categorieën</div>
-                            </div>
-
-                            <!-- Tags Card -->
-                            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 25px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(250,112,154,0.3); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-                                <div style="font-size: 36px; margin-bottom: 10px;">🏷️</div>
-                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;" id="tags-count">0</div>
-                                <div style="font-size: 14px; opacity: 0.9;">Tags</div>
-                            </div>
-                        </div>
-
-                        <!-- Two Column Layout -->
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 30px;">
+                        <!-- Main Content Grid -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-bottom: 40px;">
                             
                             <!-- Recent Articles -->
-                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                                    <h3 style="margin: 0; color: var(--dark-blue); font-size: 20px;">📰 Recente Artikelen</h3>
-                                    <button onclick="switchSection('saved-articles')" style="padding: 8px 16px; background: var(--light-blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">Bekijk Alles</button>
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+                                <div style="display: flex; align-items: center; justify-content: between; margin-bottom: 20px;">
+                                    <h3 style="color: var(--dark-blue); font-size: 18px; font-weight: 600; margin: 0;">Recente Artikelen</h3>
+                                    <button onclick="switchSection('saved-articles')" style="padding: 8px 16px; background: var(--light-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; margin-left: auto;">Bekijk Alles</button>
                                 </div>
                                 <div id="recent-articles-list">
-                                    <!-- Will be populated by JavaScript -->
-                                    <div style="text-align: center; padding: 40px; color: #999;">
-                                        <div style="font-size: 48px; margin-bottom: 10px;">📝</div>
-                                        <p>Nog geen artikelen. Start met schrijven!</p>
+                                    <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                                        <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px;">📝</div>
+                                        <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 500;">Nog geen artikelen</p>
+                                        <p style="margin: 0; font-size: 14px;">Start met het schrijven van je eerste artikel</p>
+                                        <button onclick="switchSection('content-writer')" style="margin-top: 16px; padding: 10px 20px; background: var(--light-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                                            Nieuw Artikel
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Keyword Overview -->
-                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                                <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">🔍 Keyword Overzicht</h3>
+                            <!-- Quick Actions -->
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+                                <h3 style="color: var(--dark-blue); font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Quick Actions</h3>
                                 
-                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; margin-bottom: 15px; text-align: center;">
-                                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">Totaal Keywords</div>
-                                    <div style="font-size: 32px; font-weight: 700;" id="total-keywords">0</div>
-                                </div>
+                                <div style="space-y: 12px;">
+                                    <button onclick="switchSection('keyword-research')" style="width: 100%; padding: 16px; background: var(--light-blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='#0099d4'" onmouseout="this.style.background='var(--light-blue)'">
+                                        <span style="font-size: 18px;">🔍</span>
+                                        <span>Keyword Research</span>
+                                    </button>
 
-                                <div style="text-align: center; padding: 40px 20px; color: #999;">
-                                    <div style="font-size: 48px; margin-bottom: 10px;">🔍</div>
-                                    <p style="margin: 0; font-size: 14px;">Nog geen keywords. Start met keyword research!</p>
-                                    <button onclick="switchSection('keyword-research', event)" style="margin-top: 15px; padding: 10px 20px; background: linear-gradient(135deg, var(--light-blue), var(--deep-blue)); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">
-                                        Start Keyword Research
+                                    <button onclick="switchSection('content-writer')" style="width: 100%; padding: 16px; background: var(--orange); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='#e55a1a'" onmouseout="this.style.background='var(--orange)'">
+                                        <span style="font-size: 18px;">✍️</span>
+                                        <span>Schrijf Artikel</span>
+                                    </button>
+
+                                    <button onclick="switchSection('sitemap-management')" style="width: 100%; padding: 16px; background: var(--deep-blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='#003d7a'" onmouseout="this.style.background='var(--deep-blue)'">
+                                        <span style="font-size: 18px;">🗺️</span>
+                                        <span>Sitemap Beheer</span>
+                                    </button>
+
+                                    <button onclick="switchSection('saved-articles')" style="width: 100%; padding: 16px; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;" onmouseover="this.style.background='#5855eb'" onmouseout="this.style.background='#6366f1'">
+                                        <span style="font-size: 18px;">📚</span>
+                                        <span>Opgeslagen Artikelen</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Content Gaps & Quick Actions -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                        <!-- Recent Activity -->
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+                            <h3 style="color: var(--dark-blue); font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Recente Activiteit</h3>
                             
-                            <!-- Content Gaps -->
-                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                                <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">🎯 Content Gaps</h3>
-                                
-                                <div style="text-align: center; padding: 40px 20px; color: #999;">
-                                    <div style="font-size: 48px; margin-bottom: 10px;">🎯</div>
-                                    <p style="margin: 0; font-size: 14px;">Nog geen content gaps gedetecteerd.</p>
-                                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #bbb;">Start met keyword research om gaps te ontdekken!</p>
-                                </div>
-                            </div>
-
-                            <!-- Quick Actions -->
-                            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                                <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">⚡ Quick Actions</h3>
-                                
-                                <button onclick="switchSection('keyword-research')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, var(--deep-blue), var(--light-blue)); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                    <span style="font-size: 24px;">🔍</span>
-                                    <span>Start Automatisch Onderzoek</span>
-                                </button>
-
-                                <button onclick="switchSection('content-writer')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                    <span style="font-size: 24px;">✍️</span>
-                                    <span>Schrijf Nieuw Artikel</span>
-                                </button>
-
-                                <button onclick="switchSection('keyword-research')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                    <span style="font-size: 24px;">📊</span>
-                                    <span>Bekijk Alle Keywords</span>
-                                </button>
-
-                                <button onclick="switchSection('content-planning')" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                    <span style="font-size: 24px;">📈</span>
-                                    <span>Content Planning</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Activity Timeline -->
-                        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                            <h3 style="margin: 0 0 20px 0; color: var(--dark-blue); font-size: 20px;">📅 Recente Activiteit</h3>
-                            
-                            <div style="text-align: center; padding: 40px 20px; color: #999;">
-                                <div style="font-size: 48px; margin-bottom: 10px;">📅</div>
-                                <p style="margin: 0; font-size: 14px;">Nog geen activiteit.</p>
-                                <p style="margin: 10px 0 0 0; font-size: 12px; color: #bbb;">Je activiteiten worden hier weergegeven!</p>
+                            <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                                <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px;">📅</div>
+                                <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 500;">Nog geen activiteit</p>
+                                <p style="margin: 0; font-size: 14px;">Je activiteiten worden hier weergegeven</p>
                             </div>
                         </div>
 
