@@ -1715,6 +1715,11 @@ def generate_dalle_image(prompt):
         }
 
 # API ENDPOINTS
+@app.route('/login')
+def login_page():
+    """Serve the login page"""
+    return send_file('templates/login.html')
+
 @app.route('/')
 def index():
     """Serve the main HTML page"""
@@ -1777,6 +1782,61 @@ def login():
     else:
         conn.close()
         return jsonify({'success': False, 'error': 'Ongeldige inloggegevens'}), 401
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """Register endpoint"""
+    import hashlib
+    
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not name or not email or not password:
+        return jsonify({'success': False, 'error': 'Alle velden zijn verplicht'}), 400
+    
+    if len(password) < 8:
+        return jsonify({'success': False, 'error': 'Wachtwoord moet minimaal 8 tekens zijn'}), 400
+    
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Check if email already exists
+    cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+    if cursor.fetchone():
+        conn.close()
+        return jsonify({'success': False, 'error': 'Dit e-mailadres is al geregistreerd'}), 400
+    
+    # Create user
+    try:
+        cursor.execute('''
+            INSERT INTO users (email, password_hash, full_name, is_superuser, is_active)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (email, password_hash, name, 0, 1))
+        user_id = cursor.lastrowid
+        
+        # Auto-login
+        session['user_id'] = user_id
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user_id,
+                'email': email,
+                'full_name': name,
+                'is_superuser': False
+            }
+        })
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': f'Registratie mislukt: {str(e)}'}), 500
 
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
