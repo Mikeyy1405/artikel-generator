@@ -6,6 +6,14 @@
     <title>Betaling - WritgoAI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --dark-blue: #0C1E43;
+            --light-blue: #00AEEF;
+            --deep-blue: #004E92;
+            --orange: #FFA62B;
+            --dark-orange: #E36C1E;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +22,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -32,7 +40,7 @@
         }
 
         .payment-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             color: white;
             padding: 40px 30px;
             text-align: center;
@@ -70,7 +78,7 @@
         .plan-price {
             font-size: 48px;
             font-weight: 700;
-            color: #667eea;
+            color: var(--light-blue);
             margin-bottom: 5px;
         }
 
@@ -93,7 +101,7 @@
 
         .plan-features li:before {
             content: "✓";
-            color: #667eea;
+            color: var(--light-blue);
             font-weight: bold;
             font-size: 20px;
             margin-right: 10px;
@@ -102,7 +110,7 @@
         .payment-button {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -130,7 +138,7 @@
         }
 
         .back-link a {
-            color: #667eea;
+            color: var(--light-blue);
             text-decoration: none;
             font-weight: 500;
         }
@@ -165,7 +173,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid var(--light-blue);
             border-radius: 50%;
             width: 40px;
             height: 40px;

@@ -6,6 +6,14 @@
     <title>Betaling Geannuleerd - WritgoAI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --dark-blue: #0C1E43;
+            --light-blue: #00AEEF;
+            --deep-blue: #004E92;
+            --orange: #FFA62B;
+            --dark-orange: #E36C1E;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +22,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -61,7 +69,7 @@
         .button {
             display: inline-block;
             padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             color: white;
             text-decoration: none;
             border-radius: 12px;
@@ -77,7 +85,7 @@
 
         .button.secondary {
             background: #f8f9fa;
-            color: #667eea;
+            color: var(--light-blue);
         }
 
         .button.secondary:hover {

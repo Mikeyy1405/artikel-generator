@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mijn Account - WritgoAI</title>
     <style>
+        :root {
+            --dark-blue: #0C1E43;
+            --light-blue: #00AEEF;
+            --deep-blue: #004E92;
+            --orange: #FFA62B;
+            --dark-orange: #E36C1E;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -36,7 +44,7 @@
         .logo {
             font-size: 24px;
             font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -67,7 +75,7 @@
 
         .btn-logout {
             padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -155,7 +163,7 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--light-blue);
             background: white;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
@@ -193,7 +201,7 @@
         .checkbox-label strong {
             display: block;
             margin-bottom: 4px;
-            color: #667eea;
+            color: var(--light-blue);
         }
 
         .social-input-group {
@@ -209,7 +217,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             color: white;
             border-radius: 8px;
             font-size: 18px;
@@ -223,7 +231,7 @@
         .btn-primary {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -236,7 +244,7 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 174, 239, 0.4);
         }
 
         .btn-primary:disabled {
@@ -277,7 +285,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%);
             padding: 20px;
             border-radius: 12px;
             color: white;
@@ -297,7 +305,7 @@
 
         .info-box {
             background: #e8f4f8;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--light-blue);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -409,7 +417,7 @@
 
         .btn-invoice {
             padding: 6px 12px;
-            background: #667eea;
+            background: var(--light-blue);
             color: white;
             border: none;
             border-radius: 6px;
@@ -421,7 +429,7 @@
         }
 
         .btn-invoice:hover {
-            background: #5568d3;
+            background: var(--deep-blue);
             transform: translateY(-1px);
         }
 
