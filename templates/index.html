@@ -4648,7 +4648,7 @@
                 `;
                 return;
             }
-
+        }
 
         function handleBlogWebsiteChange() {
             const select = document.getElementById('blog-website-select');
@@ -4885,8 +4885,57 @@
             if (!currentBlogData) {
                 showNotification('Geen artikel om te publiceren', 'error');
                 return;
-
-</script>
+            }
+            
+            if (!confirm('Wil je dit artikel publiceren naar WordPress?')) {
+                return;
+            }
+            
+            try {
+                const websiteId = document.getElementById('blog-website-select').value;
+                const topic = document.getElementById('blog-topic').value.trim();
+                
+                const response = await fetch('/api/publish-to-wordpress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        website_id: websiteId,
+                        title: topic,
+                        content: currentBlogData.html_content || currentBlogData.content,
+                        status: 'draft'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Artikel succesvol gepubliceerd naar WordPress!', 'success');
+                } else {
+                    throw new Error(data.error || 'Publicatie mislukt');
+                }
+            } catch (error) {
+                console.error('Error publishing to WordPress:', error);
+                showNotification(`Fout bij publiceren: ${error.message}`, 'error');
+            }
+        }
+        
+        // Helper function to download file
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+    </script>
     
     <style>
         @keyframes slideIn {
