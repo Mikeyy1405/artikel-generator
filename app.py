@@ -2593,6 +2593,82 @@ def get_account_stats():
         conn.close()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/account/writing-style', methods=['POST'])
+def update_writing_style():
+    """Update user's writing style preferences"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.json
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET writing_tone = ?,
+                target_audience = ?,
+                writing_style = ?,
+                writing_examples = ?
+            WHERE id = ?
+        ''', (
+            data.get('writing_tone'),
+            data.get('target_audience'),
+            data.get('writing_style'),
+            data.get('writing_examples'),
+            user['id']
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Writing style updated successfully'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/account/affiliate', methods=['POST'])
+def update_affiliate_settings():
+    """Update user's affiliate feed settings"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.json
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET bol_client_id = ?,
+                bol_client_secret = ?,
+                tradetracker_id = ?,
+                tradetracker_api_key = ?,
+                daisycon_id = ?,
+                custom_affiliate_links = ?
+            WHERE id = ?
+        ''', (
+            data.get('bol_client_id'),
+            data.get('bol_client_secret'),
+            data.get('tradetracker_id'),
+            data.get('tradetracker_api_key'),
+            data.get('daisycon_id'),
+            data.get('custom_affiliate_links'),
+            user['id']
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Affiliate settings updated successfully'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============================================
 # HELPER FUNCTIONS FOR CONTENT GENERATION
 # ============================================

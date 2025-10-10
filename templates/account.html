@@ -680,6 +680,131 @@
                 </form>
             </div>
         </div>
+
+        <!-- Writing Style Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>✍️ Eigen Schrijfstijl</h2>
+                <p>Definieer jouw unieke schrijfstijl voor consistente content</p>
+            </div>
+            <div class="card-body">
+                <form onsubmit="handleWritingStyleUpdate(event)">
+                    <div class="form-group">
+                        <label for="writing_tone">Schrijftoon</label>
+                        <select id="writing_tone" style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: #fafafa;">
+                            <option value="professioneel">Professioneel</option>
+                            <option value="casual">Casual & Toegankelijk</option>
+                            <option value="vriendelijk">Vriendelijk & Persoonlijk</option>
+                            <option value="formeel">Formeel & Zakelijk</option>
+                            <option value="enthousiast">Enthousiast & Energiek</option>
+                            <option value="informatief">Informatief & Educatief</option>
+                            <option value="inspirerend">Inspirerend & Motiverend</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="target_audience">Doelgroep</label>
+                        <input type="text" id="target_audience" placeholder="Bijv: Jonge professionals, ouders, ondernemers, studenten">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="writing_style">Schrijfstijl Beschrijving</label>
+                        <textarea id="writing_style" rows="4" placeholder="Beschrijf jouw schrijfstijl in detail. Bijv: Ik schrijf in korte, krachtige zinnen. Gebruik veel voorbeelden en praktische tips. Vermijd jargon en schrijf toegankelijk..." style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: #fafafa; resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="writing_examples">Voorbeeldteksten (optioneel)</label>
+                        <textarea id="writing_examples" rows="6" placeholder="Plak hier voorbeelden van jouw eigen teksten die de AI als referentie kan gebruiken..." style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: #fafafa; resize: vertical;"></textarea>
+                        <small style="color: #666; font-size: 13px; display: block; margin-top: 8px;">
+                            💡 Tip: Voeg 2-3 paragrafen toe van jouw beste content. De AI leert hiervan jouw stijl.
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="writing-style-btn">
+                        Schrijfstijl Opslaan
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Affiliate Feeds Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🔗 Affiliate Links & Feeds</h2>
+                <p>Koppel jouw affiliate netwerken voor automatische productlinks</p>
+            </div>
+            <div class="card-body">
+                <form onsubmit="handleAffiliateUpdate(event)">
+                    <!-- Bol.com -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid var(--light-blue);">
+                        <h3 style="margin: 0 0 15px 0; color: var(--deep-blue); font-size: 18px;">
+                            🛒 Bol.com Partner
+                        </h3>
+                        <div class="form-group">
+                            <label for="bol_client_id">Client ID</label>
+                            <input type="text" id="bol_client_id" placeholder="Jouw Bol.com Client ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="bol_client_secret">Client Secret</label>
+                            <input type="password" id="bol_client_secret" placeholder="Jouw Bol.com Client Secret">
+                        </div>
+                        <small style="color: #666; font-size: 13px;">
+                            📖 <a href="https://partnerblog.bol.com/nl/documentatie/open-api/" target="_blank" style="color: var(--light-blue);">Hoe krijg ik mijn Bol.com API credentials?</a>
+                        </small>
+                    </div>
+
+                    <!-- TradeTracker -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid var(--orange);">
+                        <h3 style="margin: 0 0 15px 0; color: var(--dark-orange); font-size: 18px;">
+                            📊 TradeTracker
+                        </h3>
+                        <div class="form-group">
+                            <label for="tradetracker_id">Site ID</label>
+                            <input type="text" id="tradetracker_id" placeholder="Jouw TradeTracker Site ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="tradetracker_api_key">API Key</label>
+                            <input type="password" id="tradetracker_api_key" placeholder="Jouw TradeTracker API Key">
+                        </div>
+                        <small style="color: #666; font-size: 13px;">
+                            📖 <a href="https://tradetracker.com/nl/affiliate/api" target="_blank" style="color: var(--orange);">TradeTracker API documentatie</a>
+                        </small>
+                    </div>
+
+                    <!-- Daisycon -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid var(--deep-blue);">
+                        <h3 style="margin: 0 0 15px 0; color: var(--deep-blue); font-size: 18px;">
+                            🌼 Daisycon
+                        </h3>
+                        <div class="form-group">
+                            <label for="daisycon_id">Publisher ID</label>
+                            <input type="text" id="daisycon_id" placeholder="Jouw Daisycon Publisher ID">
+                        </div>
+                        <small style="color: #666; font-size: 13px;">
+                            📖 <a href="https://www.daisycon.com/nl/publishers/" target="_blank" style="color: var(--deep-blue);">Daisycon Publisher Info</a>
+                        </small>
+                    </div>
+
+                    <!-- Custom Affiliate Links -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #28a745;">
+                        <h3 style="margin: 0 0 15px 0; color: #28a745; font-size: 18px;">
+                            ✨ Eigen Affiliate Links
+                        </h3>
+                        <div class="form-group">
+                            <label for="custom_affiliate_links">Custom Links (één per regel)</label>
+                            <textarea id="custom_affiliate_links" rows="6" placeholder="Voeg jouw eigen affiliate links toe, één per regel:&#10;&#10;Amazon: https://amzn.to/jouwlink&#10;Coolblue: https://partner.coolblue.nl/...&#10;Andere: https://..." style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; resize: vertical; font-family: monospace;"></textarea>
+                            <small style="color: #666; font-size: 13px; display: block; margin-top: 8px;">
+                                💡 Formaat: Naam: URL (één link per regel)
+                            </small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="affiliate-btn">
+                        Affiliate Instellingen Opslaan
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -736,6 +861,20 @@
             document.getElementById('auto_internal_links').checked = user.auto_internal_links !== false;
             document.getElementById('seo_optimize').checked = user.seo_optimize !== false;
             document.getElementById('default_tone').value = user.default_tone || 'professional';
+
+            // Writing Style
+            document.getElementById('writing_tone').value = user.writing_tone || 'professioneel';
+            document.getElementById('target_audience').value = user.target_audience || '';
+            document.getElementById('writing_style').value = user.writing_style || '';
+            document.getElementById('writing_examples').value = user.writing_examples || '';
+
+            // Affiliate Feeds
+            document.getElementById('bol_client_id').value = user.bol_client_id || '';
+            document.getElementById('bol_client_secret').value = user.bol_client_secret || '';
+            document.getElementById('tradetracker_id').value = user.tradetracker_id || '';
+            document.getElementById('tradetracker_api_key').value = user.tradetracker_api_key || '';
+            document.getElementById('daisycon_id').value = user.daisycon_id || '';
+            document.getElementById('custom_affiliate_links').value = user.custom_affiliate_links || '';
 
             // Account info
             document.getElementById('created-at').textContent = user.created_at ? new Date(user.created_at).toLocaleDateString('nl-NL') : '-';
@@ -1090,6 +1229,86 @@
             setTimeout(() => {
                 alert.className = 'alert';
             }, 5000);
+        }
+
+        async function handleWritingStyleUpdate(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('writing-style-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Opslaan... <span class="loading"></span>';
+
+            try {
+                const response = await fetch('/api/account/writing-style', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        writing_tone: document.getElementById('writing_tone').value,
+                        target_audience: document.getElementById('target_audience').value,
+                        writing_style: document.getElementById('writing_style').value,
+                        writing_examples: document.getElementById('writing_examples').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('✅ Schrijfstijl succesvol opgeslagen!', 'success');
+                    await loadUserData();
+                } else {
+                    showAlert(data.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating writing style:', error);
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Schrijfstijl Opslaan';
+            }
+        }
+
+        async function handleAffiliateUpdate(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('affiliate-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Opslaan... <span class="loading"></span>';
+
+            try {
+                const response = await fetch('/api/account/affiliate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        bol_client_id: document.getElementById('bol_client_id').value,
+                        bol_client_secret: document.getElementById('bol_client_secret').value,
+                        tradetracker_id: document.getElementById('tradetracker_id').value,
+                        tradetracker_api_key: document.getElementById('tradetracker_api_key').value,
+                        daisycon_id: document.getElementById('daisycon_id').value,
+                        custom_affiliate_links: document.getElementById('custom_affiliate_links').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('✅ Affiliate instellingen succesvol opgeslagen!', 'success');
+                    await loadUserData();
+                } else {
+                    showAlert(data.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating affiliate settings:', error);
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Affiliate Instellingen Opslaan';
+            }
         }
     </script>
 </body>
