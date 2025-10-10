@@ -537,6 +537,11 @@
             z-index: 999;
             opacity: 0;
             transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .mobile-overlay.active {
+            pointer-events: auto;
         }
         
         /* Mobile Styles */
@@ -1406,11 +1411,19 @@
         // Toggle mobile menu
         function toggleMobileMenu() {
             document.body.classList.toggle('mobile-menu-open');
+            const overlay = document.getElementById('mobile-overlay');
+            if (overlay) {
+                overlay.classList.toggle('active');
+            }
         }
         
         // Close mobile menu
         function closeMobileMenu() {
             document.body.classList.remove('mobile-menu-open');
+            const overlay = document.getElementById('mobile-overlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
         }
         
         // Initialize mobile menu handlers
@@ -1462,6 +1475,11 @@
             observer.observe(document.body, {
                 attributes: true
             });
+            
+            // Ensure overlay is hidden on desktop on page load
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
         });
         
         // ========================================
@@ -2915,9 +2933,10 @@
         });
         
         // Refresh dashboard when switching to it
-        const originalSwitchSection = switchSection;
+        // Wrap switchSection to add dashboard and sitemap loading
+        const baseSwitchSection = switchSection;
         switchSection = function(sectionId, event) {
-            originalSwitchSection(sectionId, event);
+            baseSwitchSection(sectionId, event);
             if (sectionId === 'dashboard') {
                 setTimeout(loadDashboardData, 100);
             } else if (sectionId === 'website-beheer') {
@@ -3893,9 +3912,10 @@
         }
 
         // Initialize content planning when switching to that section
-        const originalSwitchSection = window.switchSection;
-        window.switchSection = function(sectionId, event) {
-            originalSwitchSection(sectionId, event);
+        // Extend switchSection to initialize content planning calendar
+        const previousSwitchSection = switchSection;
+        switchSection = function(sectionId, event) {
+            previousSwitchSection(sectionId, event);
             
             if (sectionId === 'content-planning' && !contentCalendar) {
                 setTimeout(() => {
