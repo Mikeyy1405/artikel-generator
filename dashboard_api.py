@@ -149,11 +149,12 @@ def get_dashboard_stats():
         'data': words_per_week
     }
     
-    # Articles per website
+    # Articles per website (using content_plans which has wordpress_site_id)
     cursor.execute("""
-        SELECT w.name, COUNT(a.id) as count 
+        SELECT w.name, COUNT(cp.id) as count 
         FROM websites w 
-        LEFT JOIN articles a ON a.website_id = w.id 
+        LEFT JOIN content_plans cp ON cp.wordpress_site_id = w.id 
+        WHERE cp.article_id IS NOT NULL OR cp.wordpress_post_id IS NOT NULL
         GROUP BY w.id, w.name
         ORDER BY count DESC
         LIMIT 6
@@ -208,10 +209,11 @@ def get_dashboard_stats():
             w.id,
             w.name,
             w.url,
-            COUNT(DISTINCT a.id) as article_count,
-            SUM(a.word_count) as total_words
+            COUNT(DISTINCT cp.id) as article_count,
+            COALESCE(SUM(cp.word_count), 0) as total_words
         FROM websites w
-        LEFT JOIN articles a ON a.website_id = w.id
+        LEFT JOIN content_plans cp ON cp.wordpress_site_id = w.id
+        WHERE cp.article_id IS NOT NULL OR cp.wordpress_post_id IS NOT NULL
         GROUP BY w.id, w.name, w.url
         ORDER BY article_count DESC
         LIMIT 6

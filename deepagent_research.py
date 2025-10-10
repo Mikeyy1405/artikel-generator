@@ -6,6 +6,7 @@ Uses Abacus.AI's DeepAgent for keyword research and content planning
 import os
 import json
 import requests
+import time
 from datetime import datetime
 
 # OpenAI as fallback
@@ -293,89 +294,104 @@ def deepagent_content_planning(keywords_data, domain, niche, num_articles=10, po
     Returns:
         dict: Content plan with article topics and structure
     """
-    print(f"📋 [DEEPAGENT] Starting content planning for {domain}")
+    start_time = datetime.now()
+    print(f"📋 [DEEPAGENT] Starting content planning for {domain} at {start_time.strftime('%H:%M:%S')}")
     
+    # Truncate keywords_data if too long to prevent timeout
+    max_keywords_length = 2000  # Reduced from 3000 for faster processing
+    if len(keywords_data) > max_keywords_length:
+        print(f"⚠️ [DEEPAGENT] Truncating keywords data from {len(keywords_data)} to {max_keywords_length} characters")
+        keywords_data = keywords_data[:max_keywords_length] + "..."
+    
+    # Ultra-simplified prompt for maximum speed
     prompt = f"""
-Create a comprehensive content plan based on the following keyword research:
+{num_articles} article plan for {domain} ({niche}, {posting_schedule})
 
-**Website Information:**
-- Domain: {domain}
-- Niche: {niche}
-- Number of Articles: {num_articles}
-- Posting Schedule: {posting_schedule}
+Keywords: {keywords_data}
 
-**Keyword Research Data:**
-{keywords_data}
+For each article provide:
+1. Title (SEO)
+2. Keyword
+3. Type
+4. 3-section outline
 
-**Content Plan Requirements:**
-
-Generate exactly {num_articles} article ideas that:
-1. Cover different keyword categories (primary, secondary, long-tail, questions)
-2. Target different stages of the buyer journey
-3. Mix content types (how-to guides, listicles, comparisons, case studies, etc.)
-4. Are optimized for SEO and user engagement
-5. Build upon each other for topical authority
-
-**For EACH article provide:**
-- Title (compelling and SEO-optimized)
-- Primary Keyword(s)
-- Secondary Keywords (3-5)
-- Content Type (Guide/Listicle/Comparison/Review/Tutorial/etc.)
-- Target Audience
-- Search Intent
-- Estimated Word Count
-- Content Outline (H2/H3 structure with 5-7 sections)
-- SEO Tips (meta description suggestion, internal linking opportunities)
-- Priority (High/Medium/Low)
-
-**Output Format:**
-Provide a structured content calendar that can be easily parsed and implemented.
-Number each article clearly (Article 1, Article 2, etc.)
+Format: Numbered list (1., 2., 3...)
+Be extremely concise.
 """
     
-    try:
-        print(f"🤖 [DEEPAGENT] Calling OpenAI for content planning...")
-        
-        if not client:
-            raise Exception("OpenAI API key not configured")
-        
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an expert content strategist and SEO specialist. Create detailed, actionable content plans that drive organic traffic and engagement."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
+    max_retries = 3
+    retry_delay = 2
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"🤖 [DEEPAGENT] Content planning API call {attempt}/{max_retries}...")
+            print(f"📊 [DEEPAGENT] Prompt length: {len(prompt)} chars")
+            
+            if not client:
+                error_msg = "OpenAI API key not configured"
+                print(f"❌ [DEEPAGENT] {error_msg}")
+                raise Exception(error_msg)
+            
+            # Use faster model and increased timeout
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # Faster model
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Expert content strategist. Ultra-concise plans."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.3,
+                max_tokens=1000,  # Further reduced for speed
+                timeout=120  # Increased from 20 to 120 seconds
+            )
+            
+            content_plan_text = response.choices[0].message.content
+            
+            elapsed_time = (datetime.now() - start_time).total_seconds()
+            print(f"✅ [DEEPAGENT] Content planning completed in {elapsed_time:.2f} seconds")
+            print(f"📊 [DEEPAGENT] Response length: {len(content_plan_text)} chars")
+            
+            return {
+                'success': True,
+                'content_plan': content_plan_text,
+                'num_articles': num_articles,
+                'domain': domain,
+                'niche': niche,
+                'posting_schedule': posting_schedule,
+                'generated_at': datetime.now().isoformat(),
+                'generation_time': elapsed_time
+            }
+            
+        except Exception as e:
+            elapsed_time = (datetime.now() - start_time).total_seconds()
+            error_type = type(e).__name__
+            print(f"❌ [DEEPAGENT] Attempt {attempt} failed after {elapsed_time:.2f}s: {error_type}: {str(e)}")
+            
+            if attempt < max_retries:
+                wait_time = retry_delay * (2 ** (attempt - 1))  # Exponential backoff
+                print(f"🔄 [DEEPAGENT] Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            else:
+                print(f"❌ [DEEPAGENT] All {max_retries} attempts failed after {elapsed_time:.2f}s total")
+                return {
+                    'success': False,
+                    'error': str(e),
+                    'error_type': error_type,
+                    'content_plan': None,
+                    'generation_time': elapsed_time
                 }
-            ],
-            temperature=0.4,
-            max_tokens=4000
-        )
-        
-        content_plan_text = response.choices[0].message.content
-        
-        print(f"✅ [DEEPAGENT] Content planning completed successfully")
-        
-        return {
-            'success': True,
-            'content_plan': content_plan_text,
-            'num_articles': num_articles,
-            'domain': domain,
-            'niche': niche,
-            'posting_schedule': posting_schedule,
-            'generated_at': datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        print(f"❌ [DEEPAGENT] Content planning failed: {e}")
-        return {
-            'success': False,
-            'error': str(e),
-            'content_plan': None
-        }
+    
+    # Fallback return (should never reach here)
+    return {
+        'success': False,
+        'error': 'Maximum retries exceeded',
+        'content_plan': None
+    }
 
 
 def deepagent_web_search(query, num_results=10):
