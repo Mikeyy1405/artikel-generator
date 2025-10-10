@@ -13,3 +13,4 @@ psycopg2-binary==2.9.9
 deep_translator==1.11.4
 beautifulsoup4==4.12.3
 lxml==5.1.0
+html2text==2020.1.16

@@ -58,6 +58,9 @@ from keyword_research_utils import (
     extract_topics, extract_keywords, identify_gaps, generate_keywords_from_gaps
 )
 
+# Import blog generator modules
+from blog_generator import BlogGenerator
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'writgo-ai-secret-key-2025-change-in-production')
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -382,6 +385,19 @@ if OPENAI_API_KEY:
     print("✅ OpenAI API key loaded")
 else:
     print("⚠️  OpenAI API key not found")
+    
+# Initialize Blog Generator
+blog_generator = None
+if PIXABAY_API_KEY:
+    try:
+        blog_generator = BlogGenerator(
+            pixabay_api_key=PIXABAY_API_KEY,
+            pexels_api_key=None,  # Can be added later
+            unsplash_access_key=None  # Can be added later
+        )
+        print("✅ Blog Generator initialized")
+    except Exception as e:
+        print(f"⚠️  Could not initialize Blog Generator: {e}")
 
 # Initialize Anthropic client
 anthropic_client = None
@@ -4460,7 +4476,7 @@ def get_content_plans_calendar():
 
 @app.route('/api/content-plans/<int:plan_id>/generate-article', methods=['POST'])
 def generate_article_from_plan(plan_id):
-    """Generate an article from a content plan"""
+    """Generate an article from a content plan using automatic blog generator"""
     try:
         user_id = session.get('user_id', 1)
         
@@ -4482,46 +4498,105 @@ def generate_article_from_plan(plan_id):
                 'error': 'Content plan niet gevonden'
             }), 404
         
-        # Get user preferences
-        cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
-        user = cursor.fetchone()
+        # Get WordPress site info if linked
+        wordpress_site_id = plan['wordpress_site_id']
+        website_url = None
+        sitemap_url = None
+        affiliate_config = {}
+        
+        if wordpress_site_id:
+            cursor.execute('SELECT * FROM wordpress_sites WHERE id = ?', (wordpress_site_id,))
+            wp_site = cursor.fetchone()
+            if wp_site:
+                website_url = wp_site['site_url']
+                sitemap_url = wp_site['sitemap_url']
+                
+                # Get affiliate links for this site
+                cursor.execute('SELECT * FROM affiliate_links WHERE site_id = ?', (wordpress_site_id,))
+                affiliate_links = cursor.fetchall()
+                
+                # Build affiliate config
+                for link in affiliate_links:
+                    platform = link['anchor_text'].lower()
+                    affiliate_config[platform] = {
+                        'url': link['url'],
+                        'anchor_text': link['anchor_text']
+                    }
+        
+        # If no WordPress site, try to get from websites table
+        if not website_url:
+            cursor.execute('SELECT * FROM websites WHERE user_id = ? ORDER BY created_at DESC LIMIT 1', (user_id,))
+            website = cursor.fetchone()
+            if website:
+                website_url = website['url']
+                sitemap_url = website['sitemap_url']
         
         conn.close()
         
         # Prepare article generation parameters
-        onderwerp = plan['title']
+        topic = plan['title']
         if plan['keyword']:
-            onderwerp = f"{plan['title']} - {plan['keyword']}"
+            topic = f"{plan['title']} - {plan['keyword']}"
         
         word_count = plan['word_count'] or 1000
-        extra = plan['description'] or ""
+        extra_context = plan['description'] or ""
         
-        # Use the existing generate_general_article function
-        print(f"🎯 Generating article from content plan: {onderwerp}")
+        print(f"🎯 Generating automatic blog from content plan: {topic}")
+        print(f"   Website: {website_url}")
+        print(f"   Word count: {word_count}")
         
-        result = generate_general_article(
-            onderwerp=onderwerp,
-            word_count=word_count,
-            extra=extra,
-            model="gpt-4o",
-            max_retries=3
-        )
-        
-        if result.get('success'):
-            # Update the content plan with the article_id
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
+        # Check if blog generator is available
+        if not blog_generator:
+            print("⚠️  Blog generator not available, falling back to standard generation")
+            result = generate_general_article(
+                onderwerp=topic,
+                word_count=word_count,
+                extra=extra_context,
+                model="gpt-4o",
+                max_retries=3
+            )
+        else:
+            # Use the new automatic blog generator
+            result = blog_generator.generate_blog(
+                topic=topic,
+                word_count=word_count,
+                website_url=website_url or "https://example.com",
+                sitemap_url=sitemap_url,
+                affiliate_config=affiliate_config,
+                extra_context=extra_context,
+                model="gpt-4o"
+            )
             
-            cursor.execute('''
-                UPDATE content_plans 
-                SET article_id = ?, status = 'scheduled', updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-            ''', (result['article_id'], plan_id))
-            
-            conn.commit()
-            conn.close()
-            
-            print(f"✅ Article generated and linked to content plan {plan_id}")
+            if result.get('success'):
+                # Save the article to database
+                content_html = result['content']
+                content_text = result['markdown']
+                
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    INSERT INTO articles 
+                    (user_id, title, content_html, content_text, article_type, word_count, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'blog', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ''', (user_id, topic, content_html, content_text, result['metadata']['word_count']))
+                
+                article_id = cursor.lastrowid
+                
+                # Update the content plan
+                cursor.execute('''
+                    UPDATE content_plans 
+                    SET article_id = ?, status = 'scheduled', updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ''', (article_id, plan_id))
+                
+                conn.commit()
+                conn.close()
+                
+                result['article_id'] = article_id
+                result['message'] = 'Blog succesvol gegenereerd met afbeeldingen en links'
+                
+                print(f"✅ Automatic blog generated and saved (ID: {article_id})")
         
         return jsonify(result)
         
