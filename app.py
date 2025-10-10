@@ -4635,6 +4635,177 @@ def api_website_detail(website_id):
             }), 500
 
 
+@app.route('/api/websites/<int:website_id>/schedule', methods=['GET', 'PUT'])
+def api_website_schedule(website_id):
+    """Get or update posting schedule for a specific website"""
+    
+    if request.method == 'GET':
+        try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Get schedule settings - filter by user_id for security
+            cursor.execute('''
+                SELECT posting_schedule, posting_days, posting_time, auto_publish, last_post_date
+                FROM websites
+                WHERE id = ? AND user_id = ?
+            ''', (website_id, user_id))
+            
+            row = cursor.fetchone()
+            conn.close()
+            
+            if not row:
+                return jsonify({
+                    'success': False,
+                    'error': 'Website niet gevonden'
+                }), 404
+            
+            return jsonify({
+                'success': True,
+                'schedule': {
+                    'posting_schedule': row[0] or 'weekly',
+                    'posting_days': row[1],
+                    'posting_time': row[2] or '09:00',
+                    'auto_publish': bool(row[3]),
+                    'last_post_date': row[4]
+                }
+            })
+            
+        except Exception as e:
+            print(f"❌ Error fetching website schedule: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    elif request.method == 'PUT':
+        try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
+            data = request.json
+            posting_schedule = data.get('posting_schedule', 'weekly')
+            posting_days = data.get('posting_days')  # JSON string
+            posting_time = data.get('posting_time', '09:00')
+            auto_publish = data.get('auto_publish', False)
+            
+            # Validate schedule using automation_utils
+            from automation_utils import validate_posting_schedule
+            is_valid, error_message = validate_posting_schedule(posting_schedule, posting_days)
+            
+            if not is_valid:
+                return jsonify({
+                    'success': False,
+                    'error': error_message
+                }), 400
+            
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Update schedule settings - only if website belongs to user
+            cursor.execute('''
+                UPDATE websites
+                SET posting_schedule = ?, posting_days = ?, posting_time = ?, auto_publish = ?
+                WHERE id = ? AND user_id = ?
+            ''', (posting_schedule, posting_days, posting_time, 1 if auto_publish else 0, website_id, user_id))
+            
+            if cursor.rowcount == 0:
+                conn.close()
+                return jsonify({
+                    'success': False,
+                    'error': 'Website niet gevonden of geen toegang'
+                }), 404
+            
+            conn.commit()
+            conn.close()
+            
+            print(f"✅ Schedule updated for website {website_id}: {posting_schedule}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Posting schema succesvol bijgewerkt'
+            })
+            
+        except Exception as e:
+            print(f"❌ Error updating website schedule: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+
+
+@app.route('/api/websites/schedules', methods=['GET'])
+def api_all_website_schedules():
+    """Get posting schedules for all websites of current user"""
+    
+    try:
+        # Get current user
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get all websites with schedule settings
+        cursor.execute('''
+            SELECT id, name, url, posting_schedule, posting_days, posting_time, auto_publish, last_post_date
+            FROM websites
+            WHERE user_id = ?
+            ORDER BY name
+        ''', (user_id,))
+        
+        websites = []
+        for row in cursor.fetchall():
+            website_data = {
+                'id': row[0],
+                'name': row[1],
+                'url': row[2],
+                'posting_schedule': row[3] or 'weekly',
+                'posting_days': row[4],
+                'posting_time': row[5] or '09:00',
+                'auto_publish': bool(row[6]),
+                'last_post_date': row[7]
+            }
+            
+            # Add calculated fields using automation_utils
+            from automation_utils import get_schedule_description, get_next_post_date, calculate_monthly_posts
+            website_data['schedule_description'] = get_schedule_description(
+                website_data['posting_schedule'], 
+                website_data['posting_days']
+            )
+            website_data['monthly_posts'] = calculate_monthly_posts(website_data['posting_schedule'])
+            
+            # Calculate next post date
+            next_post = get_next_post_date(website_data)
+            if next_post:
+                website_data['next_post_date'] = next_post.strftime('%Y-%m-%d %H:%M')
+            
+            websites.append(website_data)
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'websites': websites
+        })
+        
+    except Exception as e:
+        print(f"❌ Error fetching all website schedules: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/websites/<int:website_id>/refresh-sitemap', methods=['POST'])
 def api_refresh_website_sitemap(website_id):
     """Refresh sitemap URLs for a specific website"""
