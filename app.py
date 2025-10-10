@@ -4592,6 +4592,291 @@ def get_content_plans_stats():
         }), 500
 
 
+# ============================================================================
+# AFFILIATE MANAGEMENT API ENDPOINTS
+# ============================================================================
+
+from affiliate_manager import AffiliateManager
+
+# Initialize affiliate manager
+affiliate_manager = AffiliateManager(DB_PATH)
+
+@app.route('/api/websites/<int:website_id>/affiliate-links', methods=['GET', 'POST'])
+def api_affiliate_links(website_id):
+    """Get all affiliate links or add a new one for a website"""
+    
+    if request.method == 'GET':
+        try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
+            # Verify website belongs to user
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+            if not cursor.fetchone():
+                conn.close()
+                return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+            conn.close()
+            
+            # Get affiliate links
+            links = affiliate_manager.get_affiliate_links(website_id, active_only=False)
+            
+            return jsonify({
+                'success': True,
+                'links': links
+            })
+            
+        except Exception as e:
+            print(f"❌ Error fetching affiliate links: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
+            # Verify website belongs to user
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+            if not cursor.fetchone():
+                conn.close()
+                return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+            conn.close()
+            
+            data = request.json
+            anchor_text = data.get('anchor_text')
+            url = data.get('url')
+            category = data.get('category')
+            priority = data.get('priority', 0)
+            link_type = data.get('link_type', 'direct')
+            notes = data.get('notes')
+            
+            if not anchor_text or not url:
+                return jsonify({'success': False, 'error': 'Anchor text en URL zijn verplicht'}), 400
+            
+            result = affiliate_manager.add_affiliate_link(
+                website_id=website_id,
+                anchor_text=anchor_text,
+                url=url,
+                category=category,
+                priority=priority,
+                link_type=link_type,
+                notes=notes
+            )
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"❌ Error adding affiliate link: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/websites/<int:website_id>/affiliate-links/<int:link_id>', methods=['PUT', 'DELETE'])
+def api_affiliate_link_detail(website_id, link_id):
+    """Update or delete a specific affiliate link"""
+    
+    # Verify website belongs to user
+    user = get_current_user()
+    user_id = user.get('id', 1)
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+    if not cursor.fetchone():
+        conn.close()
+        return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+    conn.close()
+    
+    if request.method == 'PUT':
+        try:
+            data = request.json
+            result = affiliate_manager.update_affiliate_link(link_id, **data)
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"❌ Error updating affiliate link: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            result = affiliate_manager.delete_affiliate_link(link_id)
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"❌ Error deleting affiliate link: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/websites/<int:website_id>/affiliate-feeds', methods=['GET', 'POST'])
+def api_affiliate_feeds(website_id):
+    """Get all affiliate feeds or add a new one for a website"""
+    
+    if request.method == 'GET':
+        try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
+            # Verify website belongs to user
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+            if not cursor.fetchone():
+                conn.close()
+                return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+            conn.close()
+            
+            # Get affiliate feeds
+            feeds = affiliate_manager.get_affiliate_feeds(website_id, active_only=False)
+            
+            return jsonify({
+                'success': True,
+                'feeds': feeds
+            })
+            
+        except Exception as e:
+            print(f"❌ Error fetching affiliate feeds: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
+            # Verify website belongs to user
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+            if not cursor.fetchone():
+                conn.close()
+                return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+            conn.close()
+            
+            data = request.json
+            feed_name = data.get('feed_name')
+            feed_url = data.get('feed_url')
+            feed_type = data.get('feed_type', 'xml')
+            update_frequency = data.get('update_frequency', 'daily')
+            notes = data.get('notes')
+            
+            if not feed_name or not feed_url:
+                return jsonify({'success': False, 'error': 'Feed naam en URL zijn verplicht'}), 400
+            
+            result = affiliate_manager.add_affiliate_feed(
+                website_id=website_id,
+                feed_name=feed_name,
+                feed_url=feed_url,
+                feed_type=feed_type,
+                update_frequency=update_frequency,
+                notes=notes
+            )
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"❌ Error adding affiliate feed: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/websites/<int:website_id>/affiliate-feeds/<int:feed_id>', methods=['PUT', 'DELETE'])
+def api_affiliate_feed_detail(website_id, feed_id):
+    """Update or delete a specific affiliate feed"""
+    
+    # Verify website belongs to user
+    user = get_current_user()
+    user_id = user.get('id', 1)
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+    if not cursor.fetchone():
+        conn.close()
+        return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+    conn.close()
+    
+    if request.method == 'PUT':
+        try:
+            data = request.json
+            result = affiliate_manager.update_affiliate_feed(feed_id, **data)
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"❌ Error updating affiliate feed: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            result = affiliate_manager.delete_affiliate_feed(feed_id)
+            return jsonify(result)
+            
+        except Exception as e:
+            print(f"❌ Error deleting affiliate feed: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/websites/<int:website_id>/affiliate-feeds/<int:feed_id>/import', methods=['POST'])
+def api_import_feed(website_id, feed_id):
+    """Import products from an affiliate feed"""
+    
+    try:
+        # Verify website belongs to user
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+        conn.close()
+        
+        result = affiliate_manager.import_feed_products(feed_id)
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Error importing feed: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/websites/<int:website_id>/affiliate-links/relevant', methods=['POST'])
+def api_get_relevant_links(website_id):
+    """Get relevant affiliate links for a specific topic"""
+    
+    try:
+        # Verify website belongs to user
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({'success': False, 'error': 'Website niet gevonden'}), 404
+        conn.close()
+        
+        data = request.json
+        topic = data.get('topic', '')
+        max_links = data.get('max_links', 5)
+        
+        links = affiliate_manager.get_relevant_links(website_id, topic, max_links)
+        
+        return jsonify({
+            'success': True,
+            'links': links
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting relevant links: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("🚀 Starting WritgoAI Content Generator v22...")
     print("📍 Server running on http://localhost:5000")

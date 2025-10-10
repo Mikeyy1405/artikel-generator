@@ -810,11 +810,11 @@
             <!-- Sitemap Management Section -->
             <div id="website-beheer" class="section">
                 <div class="section-header">
-                    <h2>🌐 Sitemap Beheer</h2>
-                    <p>Beheer je website sitemaps - automatisch dagelijks geüpdatet</p>
+                    <h2>🌐 Website Beheer</h2>
+                    <p>Beheer je websites, sitemaps en affiliate links - flexibel voor elke niche</p>
                 </div>
                 
-                <div class="section-content" style="display: block; max-width: 1200px; margin: 0 auto;">
+                <div class="section-content" style="display: block; max-width: 1400px; margin: 0 auto;">
                     
                     <!-- Add New Website -->
                     <div style="background: linear-gradient(135deg, var(--light-blue) 0%, var(--deep-blue) 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
@@ -882,29 +882,184 @@
                         </div>
                     </div>
                     
-                    <!-- Saved Sitemaps Grid -->
+                    <!-- Website Selector & Management Tabs -->
+                    <div id="website-management-container" style="display: none;">
+                        <!-- Website Selector -->
+                        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--dark-blue);">Selecteer Website:</label>
+                            <select id="selected-website" onchange="loadWebsiteManagement()" 
+                                    style="width: 100%; padding: 12px; border: 2px solid var(--light-blue); border-radius: 8px; font-size: 16px; cursor: pointer;">
+                                <option value="">-- Selecteer een website --</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Management Tabs -->
+                        <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+                            <!-- Tab Headers -->
+                            <div style="display: flex; border-bottom: 2px solid #f0f0f0;">
+                                <button class="website-tab active" onclick="switchWebsiteTab('sitemap')" 
+                                        style="flex: 1; padding: 15px; background: white; border: none; border-bottom: 3px solid var(--light-blue); font-weight: 600; color: var(--light-blue); cursor: pointer; transition: all 0.3s;">
+                                    📄 Sitemap
+                                </button>
+                                <button class="website-tab" onclick="switchWebsiteTab('affiliate-links')" 
+                                        style="flex: 1; padding: 15px; background: white; border: none; border-bottom: 3px solid transparent; font-weight: 600; color: #666; cursor: pointer; transition: all 0.3s;">
+                                    🔗 Affiliate Links
+                                </button>
+                                <button class="website-tab" onclick="switchWebsiteTab('affiliate-feeds')" 
+                                        style="flex: 1; padding: 15px; background: white; border: none; border-bottom: 3px solid transparent; font-weight: 600; color: #666; cursor: pointer; transition: all 0.3s;">
+                                    📦 Product Feeds
+                                </button>
+                            </div>
+                            
+                            <!-- Tab Content -->
+                            <div style="padding: 30px;">
+                                <!-- Sitemap Tab -->
+                                <div id="tab-sitemap" class="website-tab-content">
+                                    <div id="sitemap-info"></div>
+                                </div>
+                                
+                                <!-- Affiliate Links Tab -->
+                                <div id="tab-affiliate-links" class="website-tab-content" style="display: none;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                        <h3 style="margin: 0; color: var(--dark-blue);">🔗 Affiliate Links</h3>
+                                        <button onclick="showAddAffiliateLinkForm()" class="btn btn-primary" style="padding: 10px 20px;">
+                                            ➕ Link Toevoegen
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Add Link Form (hidden by default) -->
+                                    <div id="add-affiliate-link-form" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                        <h4 style="margin-top: 0;">Nieuwe Affiliate Link</h4>
+                                        <div style="display: grid; gap: 15px;">
+                                            <div>
+                                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Anchor Text *</label>
+                                                <input type="text" id="new-link-anchor" placeholder="Bijv: Boek je hotel" 
+                                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                            </div>
+                                            <div>
+                                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Affiliate URL *</label>
+                                                <input type="text" id="new-link-url" placeholder="https://..." 
+                                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div>
+                                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Categorie</label>
+                                                    <input type="text" id="new-link-category" placeholder="Bijv: hotels, producten" 
+                                                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                                </div>
+                                                <div>
+                                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Prioriteit (0-100)</label>
+                                                    <input type="number" id="new-link-priority" value="10" min="0" max="100" 
+                                                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Notities</label>
+                                                <textarea id="new-link-notes" placeholder="Interne notities..." rows="2" 
+                                                          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;"></textarea>
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <button onclick="saveAffiliateLink()" class="btn btn-primary" style="padding: 10px 20px;">
+                                                    💾 Opslaan
+                                                </button>
+                                                <button onclick="cancelAddAffiliateLink()" class="btn btn-secondary" style="padding: 10px 20px;">
+                                                    ❌ Annuleren
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Links List -->
+                                    <div id="affiliate-links-list"></div>
+                                </div>
+                                
+                                <!-- Affiliate Feeds Tab -->
+                                <div id="tab-affiliate-feeds" class="website-tab-content" style="display: none;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                        <h3 style="margin: 0; color: var(--dark-blue);">📦 Product Feeds</h3>
+                                        <button onclick="showAddAffiliateFeedForm()" class="btn btn-primary" style="padding: 10px 20px;">
+                                            ➕ Feed Toevoegen
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Add Feed Form (hidden by default) -->
+                                    <div id="add-affiliate-feed-form" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                        <h4 style="margin-top: 0;">Nieuwe Product Feed</h4>
+                                        <div style="display: grid; gap: 15px;">
+                                            <div>
+                                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Feed Naam *</label>
+                                                <input type="text" id="new-feed-name" placeholder="Bijv: Bol.com Products" 
+                                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                            </div>
+                                            <div>
+                                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Feed URL *</label>
+                                                <input type="text" id="new-feed-url" placeholder="https://..." 
+                                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div>
+                                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Feed Type</label>
+                                                    <select id="new-feed-type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                                        <option value="xml">XML</option>
+                                                        <option value="json">JSON</option>
+                                                        <option value="csv">CSV</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Update Frequentie</label>
+                                                    <select id="new-feed-frequency" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                                                        <option value="hourly">Elk uur</option>
+                                                        <option value="daily" selected>Dagelijks</option>
+                                                        <option value="weekly">Wekelijks</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Notities</label>
+                                                <textarea id="new-feed-notes" placeholder="Interne notities..." rows="2" 
+                                                          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;"></textarea>
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <button onclick="saveAffiliateFeed()" class="btn btn-primary" style="padding: 10px 20px;">
+                                                    💾 Opslaan & Importeren
+                                                </button>
+                                                <button onclick="cancelAddAffiliateFeed()" class="btn btn-secondary" style="padding: 10px 20px;">
+                                                    ❌ Annuleren
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Feeds List -->
+                                    <div id="affiliate-feeds-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Saved Sitemaps Grid (shown when no website selected) -->
                     <div id="saved-sitemaps-container">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="color: var(--dark-blue); margin: 0;">📚 Opgeslagen Sitemaps</h3>
+                            <h3 style="color: var(--dark-blue); margin: 0;">📚 Opgeslagen Websites</h3>
                             <button class="btn btn-secondary" onclick="refreshAllSitemaps()" style="padding: 8px 20px;">
                                 🔄 Alles Verversen
                             </button>
                         </div>
                         
-                        <div id="sitemaps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
-                            <!-- Sitemap cards will be inserted here -->
+                        <div id="websites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+                            <!-- Website cards will be inserted here -->
                         </div>
                         
                         <div id="no-sitemaps-message" style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 12px; display: none;">
                             <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
-                            <h3 style="color: #666; margin-bottom: 10px;">Geen sitemaps opgeslagen</h3>
+                            <h3 style="color: #666; margin-bottom: 10px;">Geen websites opgeslagen</h3>
                             <p style="color: #999;">Voeg je eerste website toe om te beginnen!</p>
                         </div>
                     </div>
                     
                 </div>
             </div>
-            
+
             <!-- Keyword Research Section -->
             <div id="keyword-research" class="section">
                 <div class="section-header">
@@ -2945,6 +3100,537 @@
         };
 
         // ============================================================================
+
+        // ============================================================================
+        // AFFILIATE MANAGEMENT FUNCTIONS
+        // ============================================================================
+        
+        let currentSelectedWebsite = null;
+        let currentAffiliateLinks = [];
+        let currentAffiliateFeeds = [];
+        
+        // Load website management when a website is selected
+        async function loadWebsiteManagement() {
+            const websiteId = document.getElementById('selected-website').value;
+            
+            if (!websiteId) {
+                document.getElementById('website-management-container').style.display = 'none';
+                document.getElementById('saved-sitemaps-container').style.display = 'block';
+                return;
+            }
+            
+            currentSelectedWebsite = parseInt(websiteId);
+            document.getElementById('website-management-container').style.display = 'block';
+            document.getElementById('saved-sitemaps-container').style.display = 'none';
+            
+            // Load data for all tabs
+            await loadSitemapInfo(websiteId);
+            await loadAffiliateLinks(websiteId);
+            await loadAffiliateFeeds(websiteId);
+        }
+        
+        // Switch between website management tabs
+        function switchWebsiteTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.website-tab').forEach(tab => {
+                tab.style.borderBottomColor = 'transparent';
+                tab.style.color = '#666';
+            });
+            event.target.style.borderBottomColor = 'var(--light-blue)';
+            event.target.style.color = 'var(--light-blue)';
+            
+            // Update tab content
+            document.querySelectorAll('.website-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById('tab-' + tabName).style.display = 'block';
+        }
+        
+        // Load sitemap info for selected website
+        async function loadSitemapInfo(websiteId) {
+            try {
+                const response = await fetch(`/api/websites/${websiteId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const website = data.website;
+                    const sitemapInfo = document.getElementById('sitemap-info');
+                    
+                    sitemapInfo.innerHTML = `
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <h4 style="margin-top: 0;">Sitemap Informatie</h4>
+                            <div style="display: grid; gap: 10px;">
+                                <div><strong>Website:</strong> ${website.name}</div>
+                                <div><strong>URL:</strong> <a href="${website.url}" target="_blank">${website.url}</a></div>
+                                <div><strong>Sitemap URL:</strong> ${website.sitemap_url || 'Niet gevonden'}</div>
+                                <div><strong>Aantal URLs:</strong> ${website.urls_count || 0}</div>
+                                <div><strong>Laatst geüpdatet:</strong> ${website.last_updated ? new Date(website.last_updated).toLocaleString('nl-NL') : 'Nog niet geladen'}</div>
+                            </div>
+                            <button onclick="refreshSitemap(${websiteId})" class="btn btn-primary" style="margin-top: 15px; padding: 10px 20px;">
+                                🔄 Sitemap Verversen
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading sitemap info:', error);
+            }
+        }
+        
+        // ============================================================================
+        // AFFILIATE LINKS MANAGEMENT
+        // ============================================================================
+        
+        // Load affiliate links for selected website
+        async function loadAffiliateLinks(websiteId) {
+            try {
+                const response = await fetch(`/api/websites/${websiteId}/affiliate-links`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentAffiliateLinks = data.links;
+                    renderAffiliateLinks();
+                }
+            } catch (error) {
+                console.error('Error loading affiliate links:', error);
+                showNotification('Fout bij laden van affiliate links', 'error');
+            }
+        }
+        
+        // Render affiliate links list
+        function renderAffiliateLinks() {
+            const container = document.getElementById('affiliate-links-list');
+            
+            if (currentAffiliateLinks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">🔗</div>
+                        <h4 style="color: #666; margin-bottom: 10px;">Geen affiliate links</h4>
+                        <p style="color: #999;">Voeg je eerste affiliate link toe om te beginnen</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600;">Anchor Text</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600;">URL</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 600;">Categorie</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Prioriteit</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Status</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Acties</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${currentAffiliateLinks.map(link => `
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 12px;">${link.anchor_text}</td>
+                                    <td style="padding: 12px;">
+                                        <a href="${link.url}" target="_blank" style="color: var(--light-blue); text-decoration: none; font-size: 13px;">
+                                            ${link.url.substring(0, 50)}${link.url.length > 50 ? '...' : ''}
+                                        </a>
+                                    </td>
+                                    <td style="padding: 12px;">
+                                        <span style="background: #e6f2ff; color: var(--light-blue); padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                            ${link.category || 'Geen'}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="font-weight: 600; color: ${link.priority >= 50 ? '#22c55e' : link.priority >= 20 ? '#f59e0b' : '#6b7280'};">
+                                            ${link.priority}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                                            <input type="checkbox" ${link.is_active ? 'checked' : ''} 
+                                                   onchange="toggleAffiliateLinkStatus(${link.id}, this.checked)"
+                                                   style="opacity: 0; width: 0; height: 0;">
+                                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${link.is_active ? '#22c55e' : '#ccc'}; transition: .4s; border-radius: 24px;">
+                                                <span style="position: absolute; content: ''; height: 18px; width: 18px; left: ${link.is_active ? '23px' : '3px'}; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                                            </span>
+                                        </label>
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <button onclick="editAffiliateLink(${link.id})" 
+                                                style="background: none; border: none; color: var(--light-blue); cursor: pointer; padding: 5px 10px; font-size: 16px;"
+                                                title="Bewerken">
+                                            ✏️
+                                        </button>
+                                        <button onclick="deleteAffiliateLink(${link.id})" 
+                                                style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 5px 10px; font-size: 16px;"
+                                                title="Verwijderen">
+                                            🗑️
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        // Show add affiliate link form
+        function showAddAffiliateLinkForm() {
+            document.getElementById('add-affiliate-link-form').style.display = 'block';
+            document.getElementById('new-link-anchor').value = '';
+            document.getElementById('new-link-url').value = '';
+            document.getElementById('new-link-category').value = '';
+            document.getElementById('new-link-priority').value = '10';
+            document.getElementById('new-link-notes').value = '';
+        }
+        
+        // Cancel add affiliate link
+        function cancelAddAffiliateLink() {
+            document.getElementById('add-affiliate-link-form').style.display = 'none';
+        }
+        
+        // Save affiliate link
+        async function saveAffiliateLink() {
+            const anchorText = document.getElementById('new-link-anchor').value.trim();
+            const url = document.getElementById('new-link-url').value.trim();
+            const category = document.getElementById('new-link-category').value.trim();
+            const priority = parseInt(document.getElementById('new-link-priority').value);
+            const notes = document.getElementById('new-link-notes').value.trim();
+            
+            if (!anchorText || !url) {
+                showNotification('Anchor text en URL zijn verplicht', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-links`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        anchor_text: anchorText,
+                        url: url,
+                        category: category,
+                        priority: priority,
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Affiliate link succesvol toegevoegd', 'success');
+                    cancelAddAffiliateLink();
+                    await loadAffiliateLinks(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij toevoegen van link', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving affiliate link:', error);
+                showNotification('Fout bij opslaan van link', 'error');
+            }
+        }
+        
+        // Toggle affiliate link status
+        async function toggleAffiliateLinkStatus(linkId, isActive) {
+            try {
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-links/${linkId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: isActive })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Status bijgewerkt', 'success');
+                    await loadAffiliateLinks(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij updaten van status', 'error');
+                }
+            } catch (error) {
+                console.error('Error toggling link status:', error);
+                showNotification('Fout bij updaten van status', 'error');
+            }
+        }
+        
+        // Delete affiliate link
+        async function deleteAffiliateLink(linkId) {
+            if (!confirm('Weet je zeker dat je deze affiliate link wilt verwijderen?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-links/${linkId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Affiliate link verwijderd', 'success');
+                    await loadAffiliateLinks(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij verwijderen van link', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting affiliate link:', error);
+                showNotification('Fout bij verwijderen van link', 'error');
+            }
+        }
+        
+        // ============================================================================
+        // AFFILIATE FEEDS MANAGEMENT
+        // ============================================================================
+        
+        // Load affiliate feeds for selected website
+        async function loadAffiliateFeeds(websiteId) {
+            try {
+                const response = await fetch(`/api/websites/${websiteId}/affiliate-feeds`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentAffiliateFeeds = data.feeds;
+                    renderAffiliateFeeds();
+                }
+            } catch (error) {
+                console.error('Error loading affiliate feeds:', error);
+                showNotification('Fout bij laden van feeds', 'error');
+            }
+        }
+        
+        // Render affiliate feeds list
+        function renderAffiliateFeeds() {
+            const container = document.getElementById('affiliate-feeds-list');
+            
+            if (currentAffiliateFeeds.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
+                        <h4 style="color: #666; margin-bottom: 10px;">Geen product feeds</h4>
+                        <p style="color: #999;">Voeg je eerste product feed toe om te beginnen</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="display: grid; gap: 20px;">
+                    ${currentAffiliateFeeds.map(feed => `
+                        <div style="background: white; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 8px 0; color: var(--dark-blue);">${feed.feed_name}</h4>
+                                    <a href="${feed.feed_url}" target="_blank" style="color: var(--light-blue); font-size: 13px; text-decoration: none;">
+                                        ${feed.feed_url.substring(0, 60)}${feed.feed_url.length > 60 ? '...' : ''}
+                                    </a>
+                                </div>
+                                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                                    <input type="checkbox" ${feed.is_active ? 'checked' : ''} 
+                                           onchange="toggleAffiliateFeedStatus(${feed.id}, this.checked)"
+                                           style="opacity: 0; width: 0; height: 0;">
+                                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${feed.is_active ? '#22c55e' : '#ccc'}; transition: .4s; border-radius: 24px;">
+                                        <span style="position: absolute; content: ''; height: 18px; width: 18px; left: ${feed.is_active ? '23px' : '3px'}; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                                    </span>
+                                </label>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                                <div>
+                                    <div style="color: #666; font-size: 12px; margin-bottom: 4px;">Type</div>
+                                    <div style="font-weight: 600; text-transform: uppercase;">${feed.feed_type}</div>
+                                </div>
+                                <div>
+                                    <div style="color: #666; font-size: 12px; margin-bottom: 4px;">Frequentie</div>
+                                    <div style="font-weight: 600;">${feed.update_frequency}</div>
+                                </div>
+                                <div>
+                                    <div style="color: #666; font-size: 12px; margin-bottom: 4px;">Producten</div>
+                                    <div style="font-weight: 600; color: var(--light-blue);">${feed.product_count || 0}</div>
+                                </div>
+                                <div>
+                                    <div style="color: #666; font-size: 12px; margin-bottom: 4px;">Laatst geüpdatet</div>
+                                    <div style="font-weight: 600; font-size: 12px;">
+                                        ${feed.last_updated ? new Date(feed.last_updated).toLocaleDateString('nl-NL') : 'Nooit'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${feed.notes ? `
+                                <div style="background: #fff3cd; border-left: 3px solid #ffc107; padding: 10px; margin-bottom: 15px; font-size: 13px;">
+                                    📝 ${feed.notes}
+                                </div>
+                            ` : ''}
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="importAffiliateFeed(${feed.id})" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">
+                                    🔄 Importeren
+                                </button>
+                                <button onclick="deleteAffiliateFeed(${feed.id})" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px; background: #ef4444; color: white;">
+                                    🗑️ Verwijderen
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Show add affiliate feed form
+        function showAddAffiliateFeedForm() {
+            document.getElementById('add-affiliate-feed-form').style.display = 'block';
+            document.getElementById('new-feed-name').value = '';
+            document.getElementById('new-feed-url').value = '';
+            document.getElementById('new-feed-type').value = 'xml';
+            document.getElementById('new-feed-frequency').value = 'daily';
+            document.getElementById('new-feed-notes').value = '';
+        }
+        
+        // Cancel add affiliate feed
+        function cancelAddAffiliateFeed() {
+            document.getElementById('add-affiliate-feed-form').style.display = 'none';
+        }
+        
+        // Save affiliate feed
+        async function saveAffiliateFeed() {
+            const feedName = document.getElementById('new-feed-name').value.trim();
+            const feedUrl = document.getElementById('new-feed-url').value.trim();
+            const feedType = document.getElementById('new-feed-type').value;
+            const updateFrequency = document.getElementById('new-feed-frequency').value;
+            const notes = document.getElementById('new-feed-notes').value.trim();
+            
+            if (!feedName || !feedUrl) {
+                showNotification('Feed naam en URL zijn verplicht', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('Feed wordt toegevoegd en geïmporteerd...', 'info');
+                
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-feeds`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feed_name: feedName,
+                        feed_url: feedUrl,
+                        feed_type: feedType,
+                        update_frequency: updateFrequency,
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const importResult = data.import_result;
+                    if (importResult && importResult.success) {
+                        showNotification(`Feed toegevoegd! ${importResult.products_imported} producten geïmporteerd`, 'success');
+                    } else {
+                        showNotification('Feed toegevoegd, maar import mislukt. Probeer handmatig te importeren.', 'warning');
+                    }
+                    cancelAddAffiliateFeed();
+                    await loadAffiliateFeeds(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij toevoegen van feed', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving affiliate feed:', error);
+                showNotification('Fout bij opslaan van feed', 'error');
+            }
+        }
+        
+        // Import affiliate feed
+        async function importAffiliateFeed(feedId) {
+            try {
+                showNotification('Feed wordt geïmporteerd...', 'info');
+                
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-feeds/${feedId}/import`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`${data.products_imported} producten succesvol geïmporteerd`, 'success');
+                    await loadAffiliateFeeds(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij importeren van feed', 'error');
+                }
+            } catch (error) {
+                console.error('Error importing feed:', error);
+                showNotification('Fout bij importeren van feed', 'error');
+            }
+        }
+        
+        // Toggle affiliate feed status
+        async function toggleAffiliateFeedStatus(feedId, isActive) {
+            try {
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-feeds/${feedId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: isActive })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Status bijgewerkt', 'success');
+                    await loadAffiliateFeeds(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij updaten van status', 'error');
+                }
+            } catch (error) {
+                console.error('Error toggling feed status:', error);
+                showNotification('Fout bij updaten van status', 'error');
+            }
+        }
+        
+        // Delete affiliate feed
+        async function deleteAffiliateFeed(feedId) {
+            if (!confirm('Weet je zeker dat je deze feed wilt verwijderen? Alle geïmporteerde producten worden ook verwijderd.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/websites/${currentSelectedWebsite}/affiliate-feeds/${feedId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Feed verwijderd', 'success');
+                    await loadAffiliateFeeds(currentSelectedWebsite);
+                } else {
+                    showNotification(data.error || 'Fout bij verwijderen van feed', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting feed:', error);
+                showNotification('Fout bij verwijderen van feed', 'error');
+            }
+        }
+        
+        // Update loadWebsites to also populate the selector
+        async function loadWebsitesForManagement() {
+            try {
+                const response = await fetch('/api/websites');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allWebsites = data.websites;
+                    
+                    // Populate website selector
+                    const selector = document.getElementById('selected-website');
+                    selector.innerHTML = '<option value="">-- Selecteer een website --</option>' +
+                        allWebsites.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+                    
+                    // Also render cards
+                    renderWebsiteCards();
+                }
+            } catch (error) {
+                console.error('Error loading websites:', error);
+            }
+        }
+
         // SITEMAP MANAGEMENT FUNCTIONS
         // ============================================================================
         
@@ -2963,6 +3649,14 @@
                 
                 if (data.success) {
                     allWebsites = data.websites;
+                    
+                    // Populate website selector for management
+                    const selector = document.getElementById('selected-website');
+                    if (selector) {
+                        selector.innerHTML = '<option value="">-- Selecteer een website --</option>' +
+                            allWebsites.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+                    }
+                    
                     renderWebsiteCards();
                 }
             } catch (error) {
