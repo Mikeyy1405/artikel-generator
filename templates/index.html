@@ -507,7 +507,7 @@
             
             
             <div class="menu-item" onclick="switchSection('website-beheer', event)">
-                🌐 Website & Sitemap Beheer
+                🌐 Website Beheer
             </div>
             
             <div class="menu-item" onclick="switchSection('keyword-research', event)">
@@ -675,3 +675,2476 @@
             </div>
 
             <!-- Sitemap Management Section -->
+            <div id="website-beheer" class="section">
+                <div class="section-header">
+                    <h2>🌐 Sitemap Beheer</h2>
+                    <p>Beheer je website sitemaps - automatisch dagelijks geüpdatet</p>
+                </div>
+                
+                <div class="section-content" style="display: block; max-width: 1200px; margin: 0 auto;">
+                    
+                    <!-- Add New Website -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: white; margin-bottom: 20px; font-size: 24px;">➕ Nieuwe Website Toevoegen</h3>
+                        
+                        <!-- Method Selection Tabs -->
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <button id="tab-sitemap" class="add-method-tab active" onclick="switchAddMethod('sitemap')" 
+                                    style="flex: 1; padding: 12px; background: white; color: #667eea; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                📄 Alleen Sitemap
+                            </button>
+                            <button id="tab-credentials" class="add-method-tab" onclick="switchAddMethod('credentials')" 
+                                    style="flex: 1; padding: 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                🔐 Met WordPress Toegang
+                            </button>
+                        </div>
+                        
+                        <!-- Sitemap Method -->
+                        <div id="add-method-sitemap" class="add-method-content">
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: end;">
+                                <div>
+                                    <label style="color: white; display: block; margin-bottom: 8px; font-weight: 500;">Website URL</label>
+                                    <input type="text" id="new-sitemap-url" placeholder="https://jouwwebsite.nl" 
+                                           style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 16px;">
+                                    <small style="color: rgba(255,255,255,0.8); display: block; margin-top: 5px;">
+                                        💡 De tool zoekt automatisch naar sitemap.xml, wp-sitemap.xml, etc.
+                                    </small>
+                                </div>
+                                <button class="btn btn-primary" onclick="fetchAndSaveSitemap()" 
+                                        style="background: white; color: #667eea; padding: 12px 30px; font-weight: 600; border: none; height: fit-content;">
+                                    🔍 Sitemap Ophalen
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- WordPress Credentials Method -->
+                        <div id="add-method-credentials" class="add-method-content" style="display: none;">
+                            <div style="display: grid; gap: 15px;">
+                                <div>
+                                    <label style="color: white; display: block; margin-bottom: 8px; font-weight: 500;">Website URL</label>
+                                    <input type="text" id="wp-website-url" placeholder="https://jouwwebsite.nl" 
+                                           style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 16px;">
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div>
+                                        <label style="color: white; display: block; margin-bottom: 8px; font-weight: 500;">WordPress Gebruikersnaam</label>
+                                        <input type="text" id="wp-username" placeholder="admin" 
+                                               style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 16px;">
+                                    </div>
+                                    <div>
+                                        <label style="color: white; display: block; margin-bottom: 8px; font-weight: 500;">Applicatie Wachtwoord</label>
+                                        <input type="password" id="wp-app-password" placeholder="xxxx xxxx xxxx xxxx" 
+                                               style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 16px;">
+                                    </div>
+                                </div>
+                                <small style="color: rgba(255,255,255,0.9); display: block;">
+                                    🔐 <strong>Applicatie wachtwoord aanmaken:</strong><br>
+                                    WordPress Dashboard → Gebruikers → Profiel → Applicatie Wachtwoorden → Nieuw wachtwoord toevoegen
+                                </small>
+                                <button class="btn btn-primary" onclick="addWebsiteWithCredentials()" 
+                                        style="background: white; color: #667eea; padding: 12px 30px; font-weight: 600; border: none; width: fit-content; margin-top: 10px;">
+                                    ✅ Website Toevoegen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Saved Sitemaps Grid -->
+                    <div id="saved-sitemaps-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="color: var(--dark-blue); margin: 0;">📚 Opgeslagen Sitemaps</h3>
+                            <button class="btn btn-secondary" onclick="refreshAllSitemaps()" style="padding: 8px 20px;">
+                                🔄 Alles Verversen
+                            </button>
+                        </div>
+                        
+                        <div id="sitemaps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+                            <!-- Sitemap cards will be inserted here -->
+                        </div>
+                        
+                        <div id="no-sitemaps-message" style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 12px; display: none;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+                            <h3 style="color: #666; margin-bottom: 10px;">Geen sitemaps opgeslagen</h3>
+                            <p style="color: #999;">Voeg je eerste website toe om te beginnen!</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Keyword Research Section -->
+            <div id="keyword-research" class="section">
+                <div class="section-header">
+                    <h2>🔍 Automatisch Zoekwoordonderzoek</h2>
+                    <p>Powered by Perplexity AI - 150+ keywords automatisch gegenereerd</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="input-panel">
+                        <div class="alert alert-info" style="margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 10px;">✨ Volledig Automatisch!</h4>
+                            <p style="font-size: 14px; line-height: 1.6;">
+                                Keyword onderzoek gebeurt nu volledig automatisch. 
+                                Klik op <strong>"Start Automatisch Onderzoek"</strong> in het dashboard rechts.
+                            </p>
+                            <p style="font-size: 14px; line-height: 1.6; margin-top: 10px;">
+                                We genereren 150+ keywords specifiek voor jouw site en land, inclusief:
+                            </p>
+                            <ul style="font-size: 13px; margin-left: 20px; margin-top: 8px;">
+                                <li>Site analyse</li>
+                                <li>Concurrenten (uit jouw land)</li>
+                                <li>Content gaps</li>
+                                <li>150+ keywords in jouw taal</li>
+                            </ul>
+                        </div>
+                        
+                        <div id="website-status-alert" style="margin-top: 15px;">
+                            <div class="alert alert-warning">
+                                ⚠️ <strong>Let op:</strong> Voeg eerst een website toe in "Website Beheer" voordat je keyword onderzoek start
+                            </div>
+                        </div>
+                        
+                        <!-- Research Progress -->
+                        <div id="research-progress" style="display: none; margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
+                            <h4 style="margin-bottom: 10px;">⏳ Perplexity Onderzoek Bezig...</h4>
+                            <div class="progress-steps">
+                                <div id="step-1" class="progress-step">
+                                    <span class="spinner">⏳</span> Site analyse...
+                                </div>
+                                <div id="step-2" class="progress-step">
+                                    <span class="spinner">⏳</span> Concurrenten identificeren...
+                                </div>
+                                <div id="step-3" class="progress-step">
+                                    <span class="spinner">⏳</span> Content gaps analyseren...
+                                </div>
+                                <div id="step-4" class="progress-step">
+                                    <span class="spinner">⏳</span> Keywords genereren...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-area">
+                        <div id="keyword-output" style="padding: 20px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Planning Section -->
+            <div id="content-planning" class="section">
+                <div class="section-header">
+                    <h2>📅 Contentplanning</h2>
+                    <p>Plan je content en beheer je redactionele kalender</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Plan je content, beheer je redactionele kalender en houd je publicatieschema bij</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Writer Section -->
+            <div id="content-writer" class="section">
+                <div class="section-header">
+                    <h2>✍️ Content Writer</h2>
+                    <p>Genereer hoogwaardige content met AI</p>
+                </div>
+                
+                <div class="section-content">
+                    <!-- Input Panel -->
+                    <div class="input-panel">
+                        <div class="form-group">
+                            <label>Content Type</label>
+                            <select id="content-type" onchange="handleContentTypeChange()">
+                                <option value="general">Algemeen Artikel</option>
+                                <option value="seo">SEO Artikel</option>
+                                <option value="list">Lijst Artikel</option>
+                                <option value="youtube">YouTube Artikel</option>
+                                <option value="linkbuilding">Linkbuilding</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Onderwerp</label>
+                            <input type="text" id="content-topic" placeholder="Bijv: Beste yoga oefeningen voor beginners">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Aantal Woorden</label>
+                            <input type="number" id="content-words" value="500" min="100" max="5000">
+                        </div>
+                        
+                        <!-- Perplexity Research -->
+                        <div class="form-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="perplexity-research">
+                                <label for="perplexity-research">🔍 Perplexity Research</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Extra Options -->
+                        <div class="form-group">
+                            <label>Extra Opties</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-lists">
+                                    <label for="include-lists">Lijsten toevoegen</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-tables">
+                                    <label for="include-tables">Tabellen toevoegen</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-faq">
+                                    <label for="include-faq">FAQ sectie</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="include-conclusion" checked>
+                                    <label for="include-conclusion">Conclusie</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Image Source -->
+                        <div class="form-group">
+                            <label>Afbeeldingen</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="radio" name="content-image-source" value="pixabay" checked>
+                                    <label>Pixabay (gratis)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="radio" name="content-image-source" value="dalle">
+                                    <label>DALL-E (AI)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="radio" name="content-image-source" value="none">
+                                    <label>Geen afbeeldingen</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sitemap URL -->
+                        <div class="form-group">
+                            <label>Sitemap URL (optioneel)</label>
+                            <input type="text" id="sitemap-url" placeholder="https://example.com/sitemap.xml">
+                        </div>
+                        
+                        <!-- List Article Fields -->
+                        <div id="list-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Aantal Items</label>
+                                <input type="number" id="content-list-items" value="10" min="3" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label>Woorden per Item</label>
+                                <input type="number" id="content-list-words" value="100" min="50" max="500">
+                            </div>
+                        </div>
+                        
+                        <!-- YouTube Fields -->
+                        <div id="youtube-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>YouTube URL</label>
+                                <input type="text" id="content-youtube-url" placeholder="https://youtube.com/watch?v=...">
+                            </div>
+                        </div>
+                        
+                        <!-- Linkbuilding Fields -->
+                        <div id="linkbuilding-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>Anchor Text 1</label>
+                                <input type="text" id="content-lb-anchor1" placeholder="Bijv: yoga mat">
+                            </div>
+                            <div class="form-group">
+                                <label>URL 1</label>
+                                <input type="text" id="content-lb-url1" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Anchor Text 2</label>
+                                <input type="text" id="content-lb-anchor2" placeholder="Bijv: meditatie kussen">
+                            </div>
+                            <div class="form-group">
+                                <label>URL 2</label>
+                                <input type="text" id="content-lb-url2" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Extra Context</label>
+                                <textarea id="content-lb-context" rows="3" placeholder="Extra informatie..."></textarea>
+                            </div>
+                            <button class="btn btn-secondary btn-small" onclick="autoGenerateTopicInline()" style="width: 100%; margin-bottom: 15px;">
+                                🎯 Auto-genereer Onderwerp
+                            </button>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="generateContent()" style="width: 100%; margin-top: 20px;">
+                            ✨ Genereer Content
+                        </button>
+                    </div>
+                    
+                    <!-- Editor Area -->
+                    <div class="editor-area">
+                        <div class="editor-toolbar">
+                            <button class="btn btn-secondary btn-small" onclick="copyToClipboard()">
+                                📋 Kopieer
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="downloadHTML()">
+                                💾 Download HTML
+                            </button>
+                            <span style="margin-left: auto; color: #666; font-size: 14px;" id="word-counter">
+                                0 woorden
+                            </span>
+                        </div>
+                        <div class="editor-container">
+                            <div id="editor"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Media Library Section -->
+            <div id="media-library" class="section">
+                <div class="section-header">
+                    <h2>🖼️ Media Bibliotheek</h2>
+                    <p>Zoek en beheer afbeeldingen en video's</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; padding: 30px; overflow-y: auto;">
+                        <div class="tabs">
+                            <button class="tab active" onclick="showTab('img-pixabay')">📷 Afbeeldingen</button>
+                            <button class="tab" onclick="showTab('img-dalle')">🎨 AI Afbeeldingen</button>
+                        </div>
+                        
+                        <!-- Pixabay Images Tab -->
+                        <div id="img-pixabay" class="tab-content active">
+                            <h3 style="margin-bottom: 20px;">Pixabay Afbeeldingen</h3>
+                            
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <div style="flex: 1;">
+                                    <input type="text" id="pixabay-query" placeholder="Bijv: business meeting, yoga, nature" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" onclick="searchPixabay()">🔍 Zoeken</button>
+                                </div>
+                            </div>
+                            
+                            <div id="pixabay-results"></div>
+                            
+                            <h3 style="margin-top: 40px; margin-bottom: 20px;">Pixabay Video's</h3>
+                            
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <div style="flex: 1;">
+                                    <input type="text" id="pixabay-video-query" placeholder="Bijv: nature landscape, city timelapse" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" onclick="searchPixabayVideos()">🔍 Zoeken</button>
+                                </div>
+                            </div>
+                            
+                            <div id="pixabay-video-results"></div>
+                        </div>
+                        
+                        <!-- DALL-E Tab -->
+                        <div id="img-dalle" class="tab-content">
+                            <h3 style="margin-bottom: 20px;">DALL-E AI Afbeeldingen</h3>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Beschrijving (Engels)</label>
+                                <textarea id="dalle-prompt" rows="4" placeholder="Bijv: A modern minimalist yoga studio with natural lighting and plants" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-family: inherit;"></textarea>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="generateDalleImage()">🎨 Genereer Afbeelding</button>
+                            
+                            <div id="dalle-results"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WordPress Section (placeholder) -->
+            <div id="wordpress" class="section">
+                <div class="section-header">
+                    <h2>📤 WordPress Publicatie</h2>
+                    <p>WordPress functionaliteit (niet geïmplementeerd in deze versie)</p>
+                </div>
+            </div>
+            
+            <!-- Social Media Section -->
+            <div id="social-media" class="section">
+                <div class="section-header">
+                    <h2>📱 Social Media</h2>
+                    <p>Deel je content op social media platforms</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Deel automatisch je content op Facebook, Twitter, LinkedIn en meer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Articles Section -->
+            <div id="saved-articles" class="section">
+                <div class="section-header">
+                    <h2>💾 Opgeslagen Artikelen</h2>
+                    <p>Beheer je opgeslagen content</p>
+                </div>
+                
+                <div class="section-content">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+                        <div style="text-align: center; max-width: 500px;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                            <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--dark-blue);">Binnenkort Beschikbaar</h3>
+                            <p style="font-size: 16px; color: #666;">Deze functie komt beschikbaar in Fase 2</p>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">Bewaar en beheer al je gegenereerde artikelen op één plek</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Loading Spinner -->
+    <div id="content-loading" class="loading">
+        <div class="spinner"></div>
+        <p>Content genereren...</p>
+    </div>
+    
+    <script>
+        // Initialize Quill editor
+        const editors = {};
+        
+        function initEditor(containerId) {
+            const editor = new Quill(`#${containerId}`, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline'],
+                        ['link'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['clean']
+                    ]
+                }
+            });
+            return editor;
+        }
+        
+        editors['content-writer'] = initEditor('editor');
+        
+        let currentSection = 'dashboard';
+        
+        function switchSection(sectionId, event) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from all menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Add active to clicked menu item
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // If no event (programmatic call), find and activate the menu item
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(sectionId)) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+            
+            currentSection = sectionId;
+        }
+        
+        function getCurrentEditor() {
+            return editors[currentSection];
+        }
+        
+        function togglePerplexity() {
+            const checkbox = document.getElementById('perplexity-research');
+            const container = document.getElementById('perplexity-container');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                container.classList.add('active');
+            } else {
+                container.classList.remove('active');
+            }
+        }
+        
+        function handleContentTypeChange() {
+            const contentType = document.getElementById('content-type').value;
+            
+            document.getElementById('list-fields').style.display = 'none';
+            document.getElementById('youtube-fields').style.display = 'none';
+            document.getElementById('linkbuilding-fields').style.display = 'none';
+            
+            if (contentType === 'list') {
+                document.getElementById('list-fields').style.display = 'block';
+            } else if (contentType === 'youtube') {
+                document.getElementById('youtube-fields').style.display = 'block';
+            } else if (contentType === 'linkbuilding') {
+                document.getElementById('linkbuilding-fields').style.display = 'block';
+            }
+        }
+        
+        async function autoGenerateTopicInline() {
+            const anchor1 = document.getElementById('content-lb-anchor1').value;
+            const anchor2 = document.getElementById('content-lb-anchor2').value;
+            
+            if (!anchor1 || !anchor2) {
+                alert('Vul beide anchor texts in');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/generate-topic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        anchor1: anchor1,
+                        anchor2: anchor2,
+                        model: 'gpt-4o'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('content-topic').value = data.topic;
+                    alert('Onderwerp automatisch gegenereerd!');
+                } else {
+                    alert('Fout bij genereren onderwerp: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('Fout: ' + error.message);
+            }
+        }
+        
+        async function generateContent() {
+            const contentType = document.getElementById('content-type').value;
+            const topic = document.getElementById('content-topic').value;
+            const words = document.getElementById('content-words').value;
+            const perplexityResearch = document.getElementById('perplexity-research').checked;
+            const imageSource = document.querySelector('input[name="content-image-source"]:checked').value;
+            const sitemapUrl = document.getElementById('sitemap-url').value.trim();
+            
+            // Get checkbox values
+            const includeLists = document.getElementById('include-lists').checked;
+            const includeTables = document.getElementById('include-tables').checked;
+            const includeFaq = document.getElementById('include-faq').checked;
+            const includeConclusion = document.getElementById('include-conclusion').checked;
+            
+            if (!topic) {
+                alert('Vul het onderwerp in');
+                return;
+            }
+            
+            const loading = document.getElementById('content-loading');
+            loading.classList.add('active');
+            
+            let requestBody = {
+                onderwerp: topic,
+                word_count: parseInt(words),
+                include_lists: includeLists,
+                include_tables: includeTables,
+                include_faq: includeFaq,
+                include_conclusion: includeConclusion,
+                pixabay_images: imageSource === 'pixabay' ? 1 : 0,
+                dalle_images: imageSource === 'dalle' ? 2 : 0
+            };
+            
+            if (sitemapUrl) {
+                requestBody.sitemap_url = sitemapUrl;
+            }
+            
+            let endpoint = '/api/generate-general-article';
+            
+            if (contentType === 'seo') {
+                requestBody.extra = `SEO geoptimaliseerd artikel. AI moet automatisch een optimale SEO titel en meta beschrijving genereren.`;
+                if (perplexityResearch) {
+                    requestBody.perplexity_research = true;
+                }
+            } else if (contentType === 'list') {
+                const items = document.getElementById('content-list-items').value;
+                const wordsPerItem = document.getElementById('content-list-words').value;
+                
+                requestBody.word_count = parseInt(items) * parseInt(wordsPerItem);
+                requestBody.extra = `Lijst artikel met ${items} items van elk ${wordsPerItem} woorden`;
+                
+                if (perplexityResearch) {
+                    requestBody.perplexity_research = true;
+                }
+            } else if (contentType === 'youtube') {
+                const youtubeUrl = document.getElementById('content-youtube-url').value;
+                
+                if (!youtubeUrl) {
+                    alert('Vul de YouTube URL in');
+                    loading.classList.remove('active');
+                    return;
+                }
+                
+                requestBody.extra = `YouTube URL: ${youtubeUrl}`;
+                requestBody.youtube_video = true;
+                
+                if (perplexityResearch) {
+                    requestBody.perplexity_research = true;
+                }
+            } else if (contentType === 'linkbuilding') {
+                const url1 = document.getElementById('content-lb-url1').value;
+                const anchor1 = document.getElementById('content-lb-anchor1').value;
+                const url2 = document.getElementById('content-lb-url2').value;
+                const anchor2 = document.getElementById('content-lb-anchor2').value;
+                const context = document.getElementById('content-lb-context').value;
+                
+                if (!url1 || !anchor1 || !url2 || !anchor2) {
+                    alert('Vul alle linkbuilding velden in');
+                    loading.classList.remove('active');
+                    return;
+                }
+                
+                endpoint = '/api/generate-article';
+                requestBody = {
+                    onderwerp: topic,
+                    anchor1: anchor1,
+                    url1: url1,
+                    anchor2: anchor2,
+                    url2: url2,
+                    extra: context,
+                    model: 'gpt-4o'
+                };
+            }
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const editor = getCurrentEditor();
+                    editor.root.innerHTML = data.article;
+                    
+                    document.getElementById('word-counter').textContent = `${data.word_count} woorden`;
+                    
+                    alert('✅ Content succesvol gegenereerd!');
+                } else {
+                    alert('❌ Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+        
+        function copyToClipboard() {
+            const editor = getCurrentEditor();
+            const html = editor.root.innerHTML;
+            
+            navigator.clipboard.writeText(html).then(() => {
+                alert('✅ Content gekopieerd naar klembord!');
+            }).catch(err => {
+                alert('❌ Fout bij kopiëren: ' + err);
+            });
+        }
+        
+        function downloadHTML() {
+            const editor = getCurrentEditor();
+            const html = editor.root.innerHTML;
+            
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'article.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Pixabay Images Search
+        async function searchPixabay() {
+            const query = document.getElementById('pixabay-query').value;
+            if (!query) {
+                alert('Vul een zoekterm in!');
+                return;
+            }
+            
+            const results = document.getElementById('pixabay-results');
+            results.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Afbeeldingen zoeken...</p></div>';
+            
+            try {
+                const response = await fetch('/api/search-images', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, per_page: 20 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
+                        <div class="image-grid">
+                            ${data.images.map(img => `
+                                <div class="image-item" onclick="selectImage('${img.url}')">
+                                    <img src="${img.preview}" alt="Pixabay image">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = '<div class="alert alert-info">Geen afbeeldingen gevonden.</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // Pixabay Videos Search
+        async function searchPixabayVideos() {
+            const query = document.getElementById('pixabay-video-query').value;
+            if (!query) {
+                alert('Vul een zoekterm in!');
+                return;
+            }
+            
+            const results = document.getElementById('pixabay-video-results');
+            results.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Video\'s zoeken...</p></div>';
+            
+            try {
+                const response = await fetch('/api/search-videos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, per_page: 12 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.videos && data.videos.length > 0) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">${data.total} resultaten gevonden</h3>
+                        <div class="video-grid">
+                            ${data.videos.map(video => `
+                                <div class="video-item" onclick="selectVideo('${video.url}')">
+                                    <video src="${video.preview}" controls></video>
+                                    <div style="padding: 10px;">
+                                        <small style="color: #666;">Klik om URL te kopiëren</small>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = '<div class="alert alert-info">Geen video\'s gevonden.</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // DALL-E Image Generation
+        async function generateDalleImage() {
+            const prompt = document.getElementById('dalle-prompt').value;
+            if (!prompt) {
+                alert('Vul een beschrijving in!');
+                return;
+            }
+            
+            const results = document.getElementById('dalle-results');
+            results.innerHTML = '<div class="loading active"><div class="spinner"></div><p>AI afbeelding genereren...</p></div>';
+            
+            try {
+                const response = await fetch('/api/generate-dalle-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.image_url) {
+                    results.innerHTML = `
+                        <h3 style="margin-top:20px;">Gegenereerde Afbeelding</h3>
+                        <div style="margin-top: 20px;">
+                            <img src="${data.image_url}" alt="DALL-E Generated" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-secondary btn-small" onclick="copyImageUrl('${data.image_url}')">📋 Kopieer URL</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error || 'Onbekende fout'}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        function selectImage(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Afbeelding URL gekopieerd!');
+            });
+        }
+        
+        function selectVideo(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Video URL gekopieerd!');
+            });
+        }
+        
+        function copyImageUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Afbeelding URL gekopieerd!');
+            });
+        }
+        
+        // Website Scraper Function
+        // NEW: WordPress REST API Integration
+        // Multi-Site Management
+        let sites = [];
+        let activeSiteId = null;
+
+        function loadSites() {
+            const sitesData = localStorage.getItem('sites');
+            if (sitesData) {
+                sites = JSON.parse(sitesData);
+                activeSiteId = localStorage.getItem('active_site_id');
+                
+                if (sites.length > 0) {
+                    // Load active site
+                    if (activeSiteId) {
+                        loadActiveSite();
+                    }
+                }
+            }
+        }
+
+        function loadActiveSite() {
+            const site = sites.find(s => s.id === activeSiteId);
+            if (!site) return;
+            
+            // Update dashboard stats in main dashboard section
+            const postsCount = document.getElementById('posts-count');
+            const pagesCount = document.getElementById('pages-count');
+            const categoriesCount = document.getElementById('categories-count');
+            const tagsCount = document.getElementById('tags-count');
+            
+            if (postsCount) postsCount.textContent = site.posts_count;
+            if (pagesCount) pagesCount.textContent = site.pages_count;
+            if (categoriesCount) categoriesCount.textContent = site.categories.length;
+            if (tagsCount) tagsCount.textContent = site.tags.length;
+            
+            // Also update old site info display
+            displaySiteInfo(site);
+        }
+
+        function addSite(siteData) {
+            // Add to sites array
+            sites.push(siteData);
+            
+            // Set as active
+            activeSiteId = siteData.id;
+            
+            // Save
+            localStorage.setItem('sites', JSON.stringify(sites));
+            localStorage.setItem('active_site_id', activeSiteId);
+            
+            // Reload
+            loadSites();
+        }
+
+        async function addWordPressSite() {
+            const wpUrl = document.getElementById('wp-url').value.trim();
+            const username = document.getElementById('wp-username').value.trim();
+            const appPassword = document.getElementById('wp-app-password').value.trim();
+            
+            if (!wpUrl || !username || !appPassword) {
+                alert('⚠️ Vul alle velden in');
+                return;
+            }
+            
+            // Show loading in scraper output
+            const output = document.getElementById('scraper-output');
+            output.innerHTML = '<div class="alert alert-info">🔗 WordPress site aan het toevoegen...</div>';
+            
+            try {
+                const response = await fetch('/api/add-wordpress-site', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        wp_url: wpUrl,
+                        username: username,
+                        app_password: appPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Save credentials in localStorage
+                    localStorage.setItem('wp_credentials', JSON.stringify(data.credentials));
+                    
+                    // Add site to multi-site array
+                    addSite(data.site_data);
+                    
+                    // Clear output
+                    output.innerHTML = '';
+                    
+                    alert('✅ WordPress site succesvol toegevoegd!');
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="alert alert-error">❌ Fout bij toevoegen site: ${error.message}</div>`;
+            }
+        }
+        
+        function displaySiteInfo(siteData) {
+            // Show site info section
+            document.getElementById('site-info').style.display = 'block';
+            
+            // Fill in data
+            document.getElementById('site-name').textContent = siteData.name;
+            document.getElementById('site-url').textContent = siteData.url;
+            document.getElementById('site-description').textContent = siteData.description || 'Geen beschrijving';
+            
+            // Stats
+            document.getElementById('posts-count').textContent = siteData.posts_count;
+            document.getElementById('pages-count').textContent = siteData.pages_count;
+            document.getElementById('categories-count').textContent = siteData.categories.length;
+            document.getElementById('tags-count').textContent = siteData.tags.length;
+            
+            // Categories
+            const categoriesList = document.getElementById('categories-list');
+            categoriesList.innerHTML = siteData.categories
+                .map(c => `<span style="padding: 6px 12px; background: var(--light-blue); color: white; border-radius: 16px; font-size: 13px;">${c.name} (${c.count})</span>`)
+                .join('');
+            
+            // Tags
+            const tagsList = document.getElementById('tags-list');
+            tagsList.innerHTML = siteData.tags
+                .map(t => `<span style="padding: 6px 12px; background: var(--orange); color: white; border-radius: 16px; font-size: 13px;">${t.name} (${t.count})</span>`)
+                .join('');
+            
+            // Recent posts
+            const recentPostsList = document.getElementById('recent-posts-list');
+            recentPostsList.innerHTML = siteData.recent_posts
+                .map(p => `
+                    <div style="padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                        <a href="${p.link}" target="_blank" style="color: var(--light-blue); text-decoration: none; font-weight: 500;">${p.title}</a>
+                        <small style="display: block; color: #999; margin-top: 5px;">${new Date(p.date).toLocaleDateString('nl-NL')}</small>
+                    </div>
+                `)
+                .join('');
+        }
+        
+        // Check if site data exists on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const siteData = localStorage.getItem('wp_site_data');
+            if (siteData) {
+                try {
+                    displaySiteInfo(JSON.parse(siteData));
+                } catch (e) {
+                    console.error('Error loading site data:', e);
+                }
+            }
+        });
+
+        async function scrapeWebsite() {
+            const siteUrl = document.getElementById('scraper-site-url').value.trim();
+            const output = document.getElementById('scraper-output');
+            
+            if (!siteUrl) {
+                output.innerHTML = '<div class="alert alert-error">❌ Vul een WordPress site URL in</div>';
+                return;
+            }
+            
+            output.innerHTML = '<div class="alert alert-info">🔍 Website aan het inladen...</div>';
+            
+            try {
+                const response = await fetch('/api/scrape-website', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_url: siteUrl })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ Website succesvol ingeladen!<br>
+                            <strong>${data.pages_found || 0}</strong> pagina's gevonden
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <h3>Gevonden Pagina's:</h3>
+                            <ul style="list-style: none; padding: 0;">
+                                ${(data.pages || []).slice(0, 10).map(page => `
+                                    <li style="padding: 8px; border-bottom: 1px solid #e0e0e0;">
+                                        <a href="${page.url}" target="_blank" style="color: var(--light-blue);">${page.title || page.url}</a>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            ${data.pages_found > 10 ? `<p style="color: #666; margin-top: 10px;">... en ${data.pages_found - 10} meer</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error || 'Onbekende fout'}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================================
+        // SITEMAP MANAGEMENT FUNCTIONS
+        // ============================================================================
+        
+        // Load all saved sitemaps on page load
+        async function loadSavedSitemaps() {
+            try {
+                const response = await fetch('/api/get-sitemaps');
+                const data = await response.json();
+                
+                if (data.success && data.websites) {
+                    displaySitemaps(data.websites);
+                }
+            } catch (error) {
+                console.error('Error loading sitemaps:', error);
+            }
+        }
+        
+        // Display sitemaps in grid
+        function displaySitemaps(websites) {
+            const grid = document.getElementById('sitemaps-grid');
+            const noMessage = document.getElementById('no-sitemaps-message');
+            
+            if (!websites || websites.length === 0) {
+                grid.innerHTML = '';
+                noMessage.style.display = 'block';
+                return;
+            }
+            
+            noMessage.style.display = 'none';
+            
+            grid.innerHTML = websites.map(site => {
+                const lastUpdated = new Date(site.last_updated).toLocaleString('nl-NL', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const statusColor = site.status === 'success' ? '#10b981' : '#ef4444';
+                const statusIcon = site.status === 'success' ? '✅' : '❌';
+                const hasWpAccess = site.has_wp_access || false;
+                
+                return `
+                    <div class="sitemap-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 5px 0; color: var(--dark-blue); font-size: 18px;">
+                                    🌐 ${extractDomain(site.website_url)}
+                                </h4>
+                                <a href="${site.website_url}" target="_blank" style="color: #666; font-size: 14px; text-decoration: none;">
+                                    ${site.website_url}
+                                </a>
+                                ${hasWpAccess ? '<div style="margin-top: 5px;"><span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">🔐 WordPress Toegang</span></div>' : ''}
+                            </div>
+                            <div style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                ${statusIcon} ${site.status}
+                            </div>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                            <div style="font-size: 36px; font-weight: bold; color: white;">${site.total_count}</div>
+                            <div style="color: rgba(255,255,255,0.9); font-size: 14px;">URLs in sitemap</div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; font-size: 13px; color: #666;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 3px;">Laatste Update</div>
+                                <div>🕐 ${lastUpdated}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="border-top: 1px solid #e0e0e0; padding-top: 15px; margin-top: 15px;">
+                            ${site.total_count > 0 ? `
+                                <button onclick="toggleUrlList('${site.id}')" class="btn btn-secondary" style="width: 100%; margin-bottom: 8px; padding: 8px;">
+                                    📋 Bekijk URLs (${site.total_count})
+                                </button>
+                                <div id="url-list-${site.id}" style="display: none; max-height: 200px; overflow-y: auto; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                                    ${site.urls.slice(0, 50).map(url => `
+                                        <div style="padding: 5px 0; border-bottom: 1px solid #e0e0e0; font-size: 13px;">
+                                            <a href="${url.url}" target="_blank" style="color: var(--light-blue); text-decoration: none;">
+                                                ${url.title || url.url}
+                                            </a>
+                                        </div>
+                                    `).join('')}
+                                    ${site.total_count > 50 ? `<div style="padding: 10px 0; text-align: center; color: #666;">... en ${site.total_count - 50} meer</div>` : ''}
+                                </div>
+                            ` : `
+                                <div style="text-align: center; padding: 10px; background: #fff3cd; border-radius: 6px; margin-bottom: 8px;">
+                                    <small style="color: #856404;">⚠️ Geen sitemap URLs - Voeg sitemap toe of gebruik voor keyword onderzoek</small>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px;">
+                            <button onclick="startKeywordResearchForWebsite('${site.website_url}')" class="btn btn-primary" style="padding: 10px; font-size: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                🔍 Keyword Onderzoek Starten
+                            </button>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <button onclick="refreshSingleSitemap('${site.id}')" class="btn btn-primary" style="padding: 8px; font-size: 13px;">
+                                    🔄 Verversen
+                                </button>
+                                <button onclick="deleteSitemap('${site.id}')" class="btn btn-danger" style="padding: 8px; font-size: 13px; background: #ef4444;">
+                                    🗑️ Verwijderen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add hover effect
+            document.querySelectorAll('.sitemap-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                });
+            });
+        }
+        
+        // Extract domain from URL
+        function extractDomain(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.hostname.replace('www.', '');
+            } catch {
+                return url;
+            }
+        }
+        
+        // Toggle URL list visibility
+        function toggleUrlList(siteId) {
+            const urlList = document.getElementById(`url-list-${siteId}`);
+            if (urlList.style.display === 'none') {
+                urlList.style.display = 'block';
+            } else {
+                urlList.style.display = 'none';
+            }
+        }
+        
+        // Start keyword research for a specific website
+        async function startKeywordResearchForWebsite(websiteUrl) {
+            // Switch to keyword research section
+            switchSection('keyword-research');
+            
+            const output = document.getElementById('keyword-output');
+            const progressDiv = document.getElementById('research-progress');
+            
+            // Show progress
+            progressDiv.style.display = 'block';
+            output.innerHTML = '<div class="alert alert-info">🔍 Automatisch keyword onderzoek starten voor ' + websiteUrl + '...</div>';
+            
+            // Animate progress steps
+            const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+            let currentStep = 0;
+            const progressInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    const stepEl = document.getElementById(steps[currentStep]);
+                    if (stepEl) {
+                        stepEl.style.background = '#e3f2fd';
+                        const spinner = stepEl.querySelector('.spinner');
+                        if (spinner) spinner.textContent = '✅';
+                    }
+                    currentStep++;
+                }
+            }, 5000);
+            
+            try {
+                // Detect country and language from URL
+                const domain = extractDomain(websiteUrl);
+                const tld = domain.split('.').pop().toLowerCase();
+                
+                let country = 'International';
+                let language = 'English';
+                
+                if (tld === 'nl') {
+                    country = 'Nederland';
+                    language = 'Dutch';
+                } else if (tld === 'be') {
+                    country = 'België';
+                    language = 'Dutch';
+                } else if (tld === 'de') {
+                    country = 'Duitsland';
+                    language = 'German';
+                } else if (tld === 'fr') {
+                    country = 'Frankrijk';
+                    language = 'French';
+                } else if (tld === 'es') {
+                    country = 'Spanje';
+                    language = 'Spanish';
+                } else if (tld === 'it') {
+                    country = 'Italië';
+                    language = 'Italian';
+                }
+                
+                const response = await fetch('/api/keyword-research', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        site_data: {
+                            url: websiteUrl,
+                            domain: domain,
+                            name: domain,
+                            country: country,
+                            language: language,
+                            description: 'Website voor keyword onderzoek'
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
+                
+                // Reset progress steps
+                steps.forEach(step => {
+                    const stepEl = document.getElementById(step);
+                    if (stepEl) {
+                        stepEl.style.background = '';
+                        const spinner = stepEl.querySelector('.spinner');
+                        if (spinner) spinner.textContent = '⏳';
+                    }
+                });
+                
+                if (data.success) {
+                    // Display results
+                    let html = '';
+                    
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 10px;">✅ Onderzoek Voltooid!</h3>
+                            <p><strong>${data.total_keywords} keywords</strong> gegenereerd voor <strong>${extractDomain(websiteUrl)}</strong></p>
+                            <p>Land: ${data.country} | Taal: ${data.language}</p>
+                        </div>
+                    `;
+                    
+                    // Site Analysis Section
+                    if (data.site_analysis) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--light-blue);">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">📊 Site Analyse</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.site_analysis}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Competitors Section
+                    if (data.competitors) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--orange);">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🎯 Concurrenten (${data.country})</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.competitors}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Content Gaps Section
+                    if (data.content_gaps) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #ffebee; border-radius: 8px; border-left: 4px solid #f44336;">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">💡 Content Gaps</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.content_gaps}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Keywords Section
+                    if (data.keywords) {
+                        html += `
+                            <div style="margin-bottom: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                                <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🔑 ${data.total_keywords} Keywords (${data.language})</h3>
+                                <div style="white-space: pre-wrap; line-height: 1.8;">
+                                    ${data.keywords}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    output.innerHTML = html;
+                    
+                    alert(`✅ ${data.total_keywords} keywords gegenereerd!`);
+                } else {
+                    output.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4>❌ Fout bij keyword onderzoek</h4>
+                            <p>${data.error || 'Onbekende fout'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
+                output.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4>❌ Fout</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Switch between add methods
+        function switchAddMethod(method) {
+            // Update tabs
+            document.getElementById('tab-sitemap').classList.toggle('active', method === 'sitemap');
+            document.getElementById('tab-credentials').classList.toggle('active', method === 'credentials');
+            
+            // Update tab styles
+            if (method === 'sitemap') {
+                document.getElementById('tab-sitemap').style.background = 'white';
+                document.getElementById('tab-sitemap').style.color = '#667eea';
+                document.getElementById('tab-credentials').style.background = 'rgba(255,255,255,0.2)';
+                document.getElementById('tab-credentials').style.color = 'white';
+            } else {
+                document.getElementById('tab-sitemap').style.background = 'rgba(255,255,255,0.2)';
+                document.getElementById('tab-sitemap').style.color = 'white';
+                document.getElementById('tab-credentials').style.background = 'white';
+                document.getElementById('tab-credentials').style.color = '#667eea';
+            }
+            
+            // Show/hide content
+            document.getElementById('add-method-sitemap').style.display = method === 'sitemap' ? 'block' : 'none';
+            document.getElementById('add-method-credentials').style.display = method === 'credentials' ? 'block' : 'none';
+        }
+        
+        // Add website with WordPress credentials
+        async function addWebsiteWithCredentials() {
+            const websiteUrl = document.getElementById('wp-website-url').value.trim();
+            const username = document.getElementById('wp-username').value.trim();
+            const appPassword = document.getElementById('wp-app-password').value.trim();
+            
+            if (!websiteUrl || !username || !appPassword) {
+                alert('❌ Vul alle velden in');
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Bezig...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/add-website-credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        website_url: websiteUrl,
+                        username: username,
+                        app_password: appPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    document.getElementById('wp-website-url').value = '';
+                    document.getElementById('wp-username').value = '';
+                    document.getElementById('wp-app-password').value = '';
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Fetch and save new sitemap
+        async function fetchAndSaveSitemap() {
+            const urlInput = document.getElementById('new-sitemap-url');
+            const websiteUrl = urlInput.value.trim();
+            
+            if (!websiteUrl) {
+                alert('❌ Vul een website URL in');
+                return;
+            }
+            
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Bezig...';
+            button.disabled = true;
+            
+            try {
+                // First, fetch the sitemap
+                const scrapeResponse = await fetch('/api/scrape-website', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_url: websiteUrl })
+                });
+                
+                const scrapeData = await scrapeResponse.json();
+                
+                if (!scrapeData.success) {
+                    alert('❌ Fout bij ophalen sitemap: ' + (scrapeData.error || 'Onbekende fout'));
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    return;
+                }
+                
+                // Now save it
+                const saveResponse = await fetch('/api/save-sitemap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        website_url: websiteUrl,
+                        sitemap_url: scrapeData.site_data.url,
+                        urls: scrapeData.pages
+                    })
+                });
+                
+                const saveData = await saveResponse.json();
+                
+                if (saveData.success) {
+                    alert(`✅ Sitemap opgeslagen! ${saveData.total_count} URLs gevonden.`);
+                    urlInput.value = '';
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout bij opslaan: ' + (saveData.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Refresh single sitemap
+        async function refreshSingleSitemap(siteId) {
+            if (!confirm('Sitemap verversen? Dit kan even duren.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/refresh-sitemap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_id: siteId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}\n${data.total_count} URLs gevonden.`);
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            }
+        }
+        
+        // Refresh all sitemaps
+        async function refreshAllSitemaps() {
+            if (!confirm('Alle sitemaps verversen? Dit kan even duren.')) {
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Bezig...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/refresh-all-sitemaps', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.total_refreshed} sitemaps succesvol ververst!`);
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout bij verversen');
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Delete sitemap
+        async function deleteSitemap(siteId) {
+            if (!confirm('Weet je zeker dat je deze sitemap wilt verwijderen?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete-sitemap/${siteId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Sitemap verwijderd');
+                    loadSavedSitemaps(); // Reload the grid
+                } else {
+                    alert('❌ Fout: ' + (data.error || 'Onbekende fout'));
+                }
+            } catch (error) {
+                alert('❌ Fout: ' + error.message);
+            }
+        }
+        
+        // Automatic Keyword Research
+        async function startAutomaticResearch() {
+            const site = sites.find(s => s.id === activeSiteId);
+            if (!site) {
+                alert('⚠️ Geen actieve site. Voeg eerst een website toe.');
+                return;
+            }
+            
+            // Switch to keyword research tab
+            switchSection('keyword-research');
+            
+            const output = document.getElementById('keyword-output');
+            const progressDiv = document.getElementById('research-progress');
+            
+            // Show progress
+            progressDiv.style.display = 'block';
+            output.innerHTML = '<div class="alert alert-info">🔍 Automatisch keyword onderzoek starten voor ' + site.name + '...</div>';
+            
+            // Animate progress steps
+            const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+            let currentStep = 0;
+            const progressInterval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    document.getElementById(steps[currentStep]).style.background = '#e3f2fd';
+                    document.getElementById(steps[currentStep]).querySelector('.spinner').textContent = '✅';
+                    currentStep++;
+                }
+            }, 5000);
+            
+            try {
+                const response = await fetch('/api/keyword-research', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        site_data: site
+                    })
+                });
+                
+                const data = await response.json();
+                
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
+                
+                // Reset progress steps
+                steps.forEach(step => {
+                    document.getElementById(step).style.background = '';
+                    document.getElementById(step).querySelector('.spinner').textContent = '⏳';
+                });
+                
+                if (data.success) {
+                    // Save keywords to site
+                    site.keywords = data.keywords;
+                    site.keyword_count = data.total_keywords;
+                    
+                    // Update sites
+                    const index = sites.findIndex(s => s.id === activeSiteId);
+                    sites[index] = site;
+                    localStorage.setItem('sites', JSON.stringify(sites));
+                    
+                    // Update dashboard
+                    document.getElementById('keywords-count').textContent = data.total_keywords;
+                    
+                    // Display results
+                    let html = '';
+                    
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 10px;">✅ Onderzoek Voltooid!</h3>
+                            <p><strong>${data.total_keywords} keywords</strong> gegenereerd voor <strong>${site.name}</strong></p>
+                            <p>Land: ${data.country} | Taal: ${data.language}</p>
+                        </div>
+                    `;
+                    
+                    // Site Analysis Section
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--light-blue);">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">📊 Site Analyse</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.site_analysis)}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Competitors Section
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--orange);">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🎯 Concurrenten (${data.country})</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.competitors)}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Content Gaps Section
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #ffebee; border-radius: 8px; border-left: 4px solid #f44336;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">💡 Content Gaps</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.content_gaps)}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Keywords Section
+                    html += `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                            <h3 style="color: var(--dark-blue); margin-bottom: 15px;">🔑 ${data.total_keywords} Keywords (${data.language})</h3>
+                            <div style="white-space: pre-wrap; line-height: 1.8;">
+                                ${formatPerplexityResponse(data.keywords)}
+                            </div>
+                        </div>
+                    `;
+                    
+                    output.innerHTML = html;
+                    
+                    alert(`✅ ${data.total_keywords} keywords gegenereerd voor ${site.name}!`);
+                } else {
+                    output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error}</div>`;
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                progressDiv.style.display = 'none';
+                output.innerHTML = `<div class="alert alert-error">❌ Fout: ${error.message}</div>`;
+            }
+        }
+        
+        // Keyword Research Function (kept for backward compatibility, but not used)
+        async function researchKeyword() {
+            alert('⚠️ Gebruik nu "Start Automatisch Onderzoek" in het dashboard rechts voor keyword research!');
+        }
+        
+        function formatPerplexityResponse(text) {
+            // Format Perplexity response with proper HTML
+            if (!text) return '';
+            
+            // Convert markdown-style formatting to HTML
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^### (.*$)/gim, '<h4 style="color: var(--dark-blue); margin-top: 15px; margin-bottom: 10px;">$1</h4>')
+                .replace(/^## (.*$)/gim, '<h3 style="color: var(--dark-blue); margin-top: 20px; margin-bottom: 10px;">$1</h3>')
+                .replace(/^# (.*$)/gim, '<h2 style="color: var(--dark-blue); margin-top: 20px; margin-bottom: 10px;">$1</h2>')
+                .replace(/^\d+\.\s+(.*$)/gim, '<div style="margin-left: 20px; margin-bottom: 8px;">• $1</div>')
+                .replace(/^-\s+(.*$)/gim, '<div style="margin-left: 20px; margin-bottom: 8px;">• $1</div>')
+                .replace(/\n\n/g, '</p><p style="margin-bottom: 10px;">')
+                .replace(/\n/g, '<br>');
+            
+            return '<p style="margin-bottom: 10px;">' + formatted + '</p>';
+        }
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 WritgoAI v22 - Initializing...');
+            
+            // Load sites from localStorage
+            loadSites();
+            
+            // Check if old site data exists and migrate
+            const oldSiteData = localStorage.getItem('wp_site_data');
+            if (oldSiteData && sites.length === 0) {
+                try {
+                    const siteData = JSON.parse(oldSiteData);
+                    console.log('📦 Migrating old site data...');
+                    
+                    // Add missing fields for v22
+                    if (!siteData.id) siteData.id = Date.now().toString();
+                    if (!siteData.domain) {
+                        const url = new URL(siteData.url);
+                        siteData.domain = url.hostname.replace('www.', '');
+                    }
+                    if (!siteData.tld) siteData.tld = 'com';
+                    if (!siteData.country) siteData.country = 'International';
+                    if (!siteData.language) siteData.language = 'English';
+                    if (!siteData.flag) siteData.flag = '🌍';
+                    if (!siteData.last_sync) siteData.last_sync = new Date().toLocaleDateString('nl-NL');
+                    if (!siteData.keywords) siteData.keywords = [];
+                    if (!siteData.keyword_count) siteData.keyword_count = 0;
+                    
+                    addSite(siteData);
+                    console.log('✅ Migration complete');
+                } catch (e) {
+                    console.error('❌ Migration failed:', e);
+                }
+            }
+            
+            console.log('✅ Initialization complete');
+            console.log(`📊 ${sites.length} site(s) loaded`);
+        });
+
+        // Dashboard Data Loading
+        function loadDashboardData() {
+            // Load WordPress stats if site is connected
+            const siteInfo = localStorage.getItem('wordpress_site_info');
+            if (siteInfo) {
+                const site = JSON.parse(siteInfo);
+                
+                // Update stats from WordPress
+                fetch('/api/wordpress/stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('posts-count').textContent = data.posts || 0;
+                            document.getElementById('pages-count').textContent = data.pages || 0;
+                            document.getElementById('categories-count').textContent = data.categories || 0;
+                            document.getElementById('tags-count').textContent = data.tags || 0;
+                        }
+                    })
+                    .catch(err => console.log('Stats loading:', err));
+            }
+            
+            // Load recent articles from localStorage
+            loadRecentArticles();
+            
+            // Load websites for sitemap management
+            loadWebsites();
+            
+            // Add window resize listener for responsive table
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    if (currentWebsite) {
+                        renderUrlsTable();
+                    }
+                }, 250);
+            });
+            
+            // Update last sync time
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('last-sync-time').textContent = `Laatste sync: Vandaag om ${timeStr}`;
+        }
+        
+        function loadRecentArticles() {
+            const savedArticles = JSON.parse(localStorage.getItem('saved_articles') || '[]');
+            const recentList = document.getElementById('recent-articles-list');
+            
+            if (savedArticles.length === 0) {
+                recentList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📝</div>
+                        <p>Nog geen artikelen. Start met schrijven!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show last 5 articles
+            const recent = savedArticles.slice(-5).reverse();
+            recentList.innerHTML = recent.map(article => `
+                <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--dark-blue); margin-bottom: 5px; font-size: 14px;">${article.title || 'Untitled'}</div>
+                        <div style="font-size: 12px; color: #666;">
+                            <span>📅 ${new Date(article.timestamp).toLocaleDateString('nl-NL')}</span>
+                            <span style="margin-left: 15px;">📊 ${article.word_count || 0} woorden</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="viewArticle('${article.id}')" style="padding: 6px 12px; background: var(--light-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bekijk</button>
+                        <button onclick="editArticle('${article.id}')" style="padding: 6px 12px; background: var(--orange); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bewerk</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function viewArticle(id) {
+            // Switch to saved articles and show the article
+            switchSection('saved-articles');
+            // Trigger view of specific article
+            setTimeout(() => {
+                const articles = JSON.parse(localStorage.getItem('saved_articles') || '[]');
+                const article = articles.find(a => a.id === id);
+                if (article) {
+                    showArticleModal(article);
+                }
+            }, 100);
+        }
+        
+        function editArticle(id) {
+            // Load article into editor
+            const articles = JSON.parse(localStorage.getItem('saved_articles') || '[]');
+            const article = articles.find(a => a.id === id);
+            if (article) {
+                switchSection('content-writer');
+                setTimeout(() => {
+                    document.getElementById('content-topic').value = article.title || '';
+                    if (window.quill) {
+                        quill.root.innerHTML = article.content || '';
+                    }
+                }, 100);
+            }
+        }
+        
+        // Load dashboard data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure dashboard is visible on load
+            switchSection('dashboard');
+            loadDashboardData();
+            
+            // Load saved sitemaps
+            loadSavedSitemaps();
+            
+            // Refresh dashboard every 5 minutes
+            setInterval(loadDashboardData, 5 * 60 * 1000);
+        });
+        
+        // Refresh dashboard when switching to it
+        const originalSwitchSection = switchSection;
+        switchSection = function(sectionId, event) {
+            originalSwitchSection(sectionId, event);
+            if (sectionId === 'dashboard') {
+                setTimeout(loadDashboardData, 100);
+            } else if (sectionId === 'website-beheer') {
+                setTimeout(loadSavedSitemaps, 100);
+            }
+        };
+
+        // ============================================================================
+        // SITEMAP MANAGEMENT FUNCTIONS
+        // ============================================================================
+        
+        let allWebsites = [];
+        let currentWebsite = null;
+        let allUrls = [];
+        let filteredUrls = [];
+        let currentPage = 1;
+        const urlsPerPage = 50;
+        
+        // Load all websites
+        async function loadWebsites() {
+            try {
+                const response = await fetch('/api/websites');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allWebsites = data.websites;
+                    renderWebsiteCards();
+                }
+            } catch (error) {
+                console.error('Error loading websites:', error);
+            }
+        }
+        
+        // Render website cards
+        function renderWebsiteCards() {
+            const grid = document.getElementById('websites-grid');
+            
+            if (allWebsites.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #718096;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">🗺️</div>
+                        <h3 style="color: #4a5568; margin-bottom: 10px;">Geen websites gevonden</h3>
+                        <p>Voeg je eerste website toe om te beginnen met sitemap management</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = allWebsites.map(website => {
+                const lastUpdated = website.last_updated 
+                    ? new Date(website.last_updated).toLocaleString('nl-NL', { 
+                        day: '2-digit', 
+                        month: 'short', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    })
+                    : 'Nog niet geladen';
+                
+                const hasUrls = website.urls_count > 0;
+                const cardGradient = hasUrls 
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                
+                return `
+                    <div style="background: ${cardGradient}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" 
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'">
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <h3 style="color: white; margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">${website.name}</h3>
+                                <a href="${website.url}" target="_blank" style="color: rgba(255,255,255,0.9); font-size: 13px; text-decoration: none;">
+                                    🔗 ${website.url}
+                                </a>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteWebsite(${website.id})" 
+                                    style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                🗑️
+                            </button>
+                        </div>
+                        
+                        <div style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div>
+                                    <div style="color: rgba(255,255,255,0.8); font-size: 12px; margin-bottom: 4px;">URLs</div>
+                                    <div style="color: white; font-size: 24px; font-weight: bold;">${website.urls_count || 0}</div>
+                                </div>
+                                <div>
+                                    <div style="color: rgba(255,255,255,0.8); font-size: 12px; margin-bottom: 4px;">Status</div>
+                                    <div style="color: white; font-size: 14px; font-weight: 500;">
+                                        ${hasUrls ? '✅ Geladen' : '⏳ Wachten'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="color: rgba(255,255,255,0.8); font-size: 12px; margin-bottom: 15px;">
+                            🕐 ${lastUpdated}
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button onclick="event.stopPropagation(); refreshSitemap(${website.id})" 
+                                    style="background: white; color: #667eea; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                🔄 Refresh
+                            </button>
+                            <button onclick="event.stopPropagation(); viewWebsiteUrls(${website.id})" 
+                                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                👁️ Bekijk
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Add new website
+        async function addNewWebsite() {
+            const name = document.getElementById('new-website-name').value.trim();
+            const url = document.getElementById('new-website-url').value.trim();
+            
+            if (!name || !url) {
+                alert('Vul beide velden in');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/websites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('new-website-name').value = '';
+                    document.getElementById('new-website-url').value = '';
+                    
+                    showNotification('✅ Website toegevoegd! Klik op "Refresh" om sitemap te laden.', 'success');
+                    loadWebsites();
+                } else {
+                    showNotification('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error adding website:', error);
+                showNotification('❌ Fout bij toevoegen website', 'error');
+            }
+        }
+        
+        // Refresh sitemap
+        async function refreshSitemap(websiteId) {
+            const website = allWebsites.find(w => w.id === websiteId);
+            if (!website) return;
+            
+            showNotification(`🔄 Sitemap wordt geladen voor ${website.name}... Dit kan even duren.`, 'info');
+            
+            try {
+                const response = await fetch(`/api/websites/${websiteId}/refresh-sitemap`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`✅ ${data.urls_count} URLs geladen voor ${website.name}!`, 'success');
+                    loadWebsites();
+                } else {
+                    showNotification('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error refreshing sitemap:', error);
+                showNotification('❌ Fout bij laden sitemap', 'error');
+            }
+        }
+        
+        // View website URLs
+        async function viewWebsiteUrls(websiteId) {
+            try {
+                const response = await fetch(`/api/websites/${websiteId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentWebsite = data.website;
+                    allUrls = currentWebsite.sitemap_urls || [];
+                    filteredUrls = [...allUrls];
+                    currentPage = 1;
+                    
+                    document.getElementById('detail-website-name').textContent = currentWebsite.name;
+                    
+                    // Bereken statistieken per type
+                    const stats = {
+                        post: 0,
+                        category: 0,
+                        product: 0,
+                        'product-category': 0
+                    };
+                    
+                    allUrls.forEach(item => {
+                        const type = item.type || 'post';
+                        if (stats.hasOwnProperty(type)) {
+                            stats[type]++;
+                        }
+                    });
+                    
+                    // Toon statistieken
+                    const statsHtml = `
+                        <span style="background: #3b82f6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            📝 ${stats.post} Posts
+                        </span>
+                        <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            📁 ${stats.category} Categorieën
+                        </span>
+                        <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            🛍️ ${stats.product} Producten
+                        </span>
+                        <span style="background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            🏷️ ${stats['product-category']} Product Cat.
+                        </span>
+                    `;
+                    document.getElementById('url-stats').innerHTML = statsHtml;
+                    
+                    document.getElementById('websites-grid').style.display = 'none';
+                    document.getElementById('website-details').style.display = 'block';
+                    
+                    renderUrlsTable();
+                } else {
+                    showNotification('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error loading website details:', error);
+                showNotification('❌ Fout bij laden details', 'error');
+            }
+        }
+        
+        // Close website details
+        function closeWebsiteDetails() {
+            document.getElementById('websites-grid').style.display = 'grid';
+            document.getElementById('website-details').style.display = 'none';
+            document.getElementById('url-search').value = '';
+            document.getElementById('type-filter').value = '';
+            currentWebsite = null;
+        }
+        
+        // Filter URLs
+        function filterUrls() {
+            const searchTerm = document.getElementById('url-search').value.toLowerCase();
+            const typeFilter = document.getElementById('type-filter').value;
+            
+            filteredUrls = allUrls.filter(item => {
+                // Filter op zoekterm
+                const matchesSearch = searchTerm === '' || 
+                    item.url.toLowerCase().includes(searchTerm) || 
+                    item.title.toLowerCase().includes(searchTerm);
+                
+                // Filter op type
+                const matchesType = typeFilter === '' || (item.type || 'post') === typeFilter;
+                
+                return matchesSearch && matchesType;
+            });
+            
+            currentPage = 1;
+            renderUrlsTable();
+        }
+        
+        // Render URLs table
+        function renderUrlsTable() {
+            const isMobile = window.innerWidth <= 768;
+            const tbody = document.getElementById('urls-table-body');
+            const mobileContainer = document.getElementById('urls-cards-mobile');
+            const desktopTable = document.getElementById('urls-table-desktop');
+            
+            // Show/hide appropriate view
+            if (isMobile) {
+                desktopTable.style.display = 'none';
+                mobileContainer.style.display = 'block';
+            } else {
+                desktopTable.style.display = 'block';
+                mobileContainer.style.display = 'none';
+            }
+            
+            const totalPages = Math.ceil(filteredUrls.length / urlsPerPage);
+            const startIdx = (currentPage - 1) * urlsPerPage;
+            const endIdx = startIdx + urlsPerPage;
+            const pageUrls = filteredUrls.slice(startIdx, endIdx);
+            
+            if (filteredUrls.length === 0) {
+                const emptyMessage = `
+                    <div style="text-align: center; padding: 40px; color: #718096; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        ${allUrls.length === 0 
+                            ? '📭 Geen URLs gevonden. Klik op "Refresh" om sitemap te laden.' 
+                            : '🔍 Geen resultaten gevonden voor je zoekopdracht.'}
+                    </div>
+                `;
+                
+                if (isMobile) {
+                    mobileContainer.innerHTML = emptyMessage;
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: #718096;">
+                                ${allUrls.length === 0 
+                                    ? '📭 Geen URLs gevonden. Klik op "Refresh" om sitemap te laden.' 
+                                    : '🔍 Geen resultaten gevonden voor je zoekopdracht.'}
+                            </td>
+                        </tr>
+                    `;
+                }
+            } else {
+                // Generate content for both views
+                const urlsContent = pageUrls.map((item, idx) => {
+                    // Bepaal badge kleur en emoji op basis van type
+                    let badgeColor, badgeText, emoji;
+                    const urlType = item.type || 'post';
+                    
+                    switch(urlType) {
+                        case 'category':
+                            badgeColor = '#10b981';
+                            badgeText = 'Categorie';
+                            emoji = '📁';
+                            break;
+                        case 'product':
+                            badgeColor = '#f59e0b';
+                            badgeText = 'Product';
+                            emoji = '🛍️';
+                            break;
+                        case 'product-category':
+                            badgeColor = '#8b5cf6';
+                            badgeText = 'Product Cat.';
+                            emoji = '🏷️';
+                            break;
+                        default:
+                            badgeColor = '#3b82f6';
+                            badgeText = 'Post';
+                            emoji = '📝';
+                    }
+                    
+                    return {
+                        tableRow: `
+                            <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;" 
+                                onmouseover="this.style.background='#f7fafc'" 
+                                onmouseout="this.style.background='white'">
+                                <td style="padding: 12px 8px; color: #718096; font-weight: 500; font-size: 13px;">${startIdx + idx + 1}</td>
+                                <td style="padding: 12px 8px;">
+                                    <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                                        ${emoji} ${badgeText}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 8px;">
+                                    <a href="${item.url}" target="_blank" style="color: #4299e1; text-decoration: none; word-break: break-all; font-size: 13px;">
+                                        ${item.url}
+                                    </a>
+                                </td>
+                                <td style="padding: 12px 8px; color: #4a5568; font-size: 13px;">${item.title}</td>
+                                <td style="padding: 12px 8px;">
+                                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                        <button onclick="useForKeywordResearch('${item.url.replace(/'/g, "\\'")}', '${item.title.replace(/'/g, "\\'")}', event)" 
+                                                style="background: linear-gradient(135deg, var(--light-blue), var(--deep-blue)); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                                            🔍 Keyword
+                                        </button>
+                                        <button onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}', event)" 
+                                                style="background: #edf2f7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #4a5568; font-size: 11px; white-space: nowrap;">
+                                            📋 Kopieer
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `,
+                        mobileCard: `
+                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                        ${emoji} ${badgeText}
+                                    </span>
+                                    <span style="color: #a0aec0; font-size: 12px; font-weight: 600;">#${startIdx + idx + 1}</span>
+                                </div>
+                                <h4 style="color: #2d3748; font-size: 14px; margin: 0 0 8px 0; font-weight: 600;">${item.title}</h4>
+                                <a href="${item.url}" target="_blank" style="color: #4299e1; text-decoration: none; font-size: 12px; word-break: break-all; display: block; margin-bottom: 12px;">
+                                    ${item.url}
+                                </a>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button onclick="useForKeywordResearch('${item.url.replace(/'/g, "\\'")}', '${item.title.replace(/'/g, "\\'")}', event)" 
+                                            style="flex: 1; min-width: 120px; background: linear-gradient(135deg, var(--light-blue), var(--deep-blue)); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                        🔍 Keyword Research
+                                    </button>
+                                    <button onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}', event)" 
+                                            style="background: #edf2f7; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; color: #4a5568; font-size: 12px; font-weight: 500;">
+                                        📋 Kopieer
+                                    </button>
+                                </div>
+                            </div>
+                        `
+                    };
+                });
+                
+                // Render desktop table
+                tbody.innerHTML = urlsContent.map(item => item.tableRow).join('');
+                
+                // Render mobile cards
+                mobileContainer.innerHTML = urlsContent.map(item => item.mobileCard).join('');
+            }
+            
+            // Update pagination
+            document.getElementById('page-info').textContent = `Pagina ${currentPage} van ${totalPages || 1} (${filteredUrls.length} URLs)`;
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = currentPage >= totalPages;
+        }
+        
+        // Pagination functions
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderUrlsTable();
+            }
+        }
+        
+        function nextPage() {
+            const totalPages = Math.ceil(filteredUrls.length / urlsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderUrlsTable();
+            }
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard(text, event) {
+            event.stopPropagation();
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('✅ URL gekopieerd!', 'success');
+            }).catch(err => {
+                console.error('Error copying:', err);
+                showNotification('❌ Fout bij kopiëren', 'error');
+            });
+        }
+        
+        // Use URL for keyword research
+        function useForKeywordResearch(url, title, event) {
+            event.stopPropagation();
+            
+            // Switch to keyword research section
+            switchSection('keyword-research', event);
+            
+            // Fill in the URL field
+            setTimeout(() => {
+                const urlInput = document.getElementById('competitor-url');
+                if (urlInput) {
+                    urlInput.value = url;
+                    
+                    // Scroll to the input
+                    urlInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Highlight the input briefly
+                    urlInput.style.border = '2px solid var(--light-blue)';
+                    urlInput.style.boxShadow = '0 0 10px rgba(0, 174, 239, 0.3)';
+                    
+                    setTimeout(() => {
+                        urlInput.style.border = '';
+                        urlInput.style.boxShadow = '';
+                    }, 2000);
+                    
+                    showNotification(`🔍 URL geladen voor keyword research: ${title}`, 'success');
+                }
+            }, 300);
+        }
+        
+        // Delete website
+        async function deleteWebsite(websiteId) {
+            const website = allWebsites.find(w => w.id === websiteId);
+            if (!website) return;
+            
+            if (!confirm(`Weet je zeker dat je "${website.name}" wilt verwijderen?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/websites/${websiteId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('✅ Website verwijderd', 'success');
+                    loadWebsites();
+                } else {
+                    showNotification('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting website:', error);
+                showNotification('❌ Fout bij verwijderen', 'error');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const colors = {
+                success: '#48bb78',
+                error: '#f56565',
+                info: '#4299e1'
+            };
+            
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${colors[type]};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Logout function
+        async function handleLogout() {
+            if (!confirm('Weet je zeker dat je wilt uitloggen?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    showNotification('Uitloggen mislukt', 'error');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                showNotification('Er ging iets mis bij uitloggen', 'error');
+            }
+        }
+        
+    </script>
+    
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+</body>
+</html>
