@@ -11,3 +11,13 @@ ENV/
 .DS_Store
 .env
 api_keys.json
+
+# Database files
+*.db
+
+# Backup files
+*.backup
+*.current_broken
+
+# Test output files
+test_output.txt

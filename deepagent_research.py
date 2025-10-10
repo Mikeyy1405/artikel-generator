@@ -127,9 +127,144 @@ Provide the results in a structured, table-like format that can be easily parsed
         }
 
 
+def deepagent_monthly_content_plan(domain, niche, country, language, description="", posting_frequency="2x per week"):
+    """
+    Generate a MONTHLY content plan based on posting frequency
+    This is faster and more practical than generating 150+ keywords
+    
+    Args:
+        domain: Website domain
+        niche: Business niche/industry
+        country: Target country
+        language: Content language
+        description: Optional website description
+        posting_frequency: Posting frequency ('daily', '2x per week', '3x per week', 'weekly')
+    
+    Returns:
+        dict: Monthly content plan with article topics
+    """
+    print(f"📅 [DEEPAGENT] Generating monthly content plan for {domain}")
+    
+    # Calculate number of articles based on posting frequency
+    frequency_map = {
+        'daily': 30,
+        '2x per week': 8,
+        '3x per week': 12,
+        'weekly': 4,
+        'dagelijks': 30,
+        '2x per week': 8,
+        '3x per week': 12,
+        'wekelijks': 4
+    }
+    
+    num_articles = frequency_map.get(posting_frequency.lower(), 8)  # Default to 2x per week
+    
+    print(f"📊 [DEEPAGENT] Frequency: {posting_frequency} → {num_articles} articles/month")
+    
+    # Determine language context
+    lang_context_map = {
+        'Nederland': "Dutch language, targeting the Netherlands market",
+        'België': "Dutch/French language, targeting the Belgium market",
+        'Duitsland': "German language, targeting the German market",
+        'Frankrijk': "French language, targeting the French market",
+        'Spanje': "Spanish language, targeting the Spanish market",
+        'Italië': "Italian language, targeting the Italian market",
+    }
+    lang_context = lang_context_map.get(country, "English language, targeting international market")
+    
+    # Build focused prompt for monthly content planning
+    prompt = f"""
+Create a focused monthly content plan for: {domain}
+
+**Website Information:**
+- Domain: {domain}
+- Niche/Industry: {niche}
+- Target Country: {country}
+- Language: {language}
+{f"- Description: {description}" if description else ""}
+- Posting Frequency: {posting_frequency}
+- Number of Articles This Month: {num_articles}
+
+**Content Plan Requirements:**
+
+Generate exactly {num_articles} article ideas that:
+1. Are highly relevant to {niche} in {country}
+2. Target different search intents (informational, commercial, navigational)
+3. Mix content types (guides, listicles, how-tos, comparisons)
+4. Are optimized for SEO with clear keywords
+5. Build topical authority progressively
+
+**For EACH article provide:**
+- Article Number (1-{num_articles})
+- Title (compelling, SEO-optimized, in {language})
+- Primary Keyword (in {language})
+- Secondary Keywords (2-3 keywords, in {language})
+- Content Type (Guide/Listicle/How-to/Comparison/Tutorial)
+- Search Intent (Informational/Commercial/Transactional)
+- Estimated Word Count
+- Brief Outline (3-5 main sections)
+- Priority (High/Medium/Low)
+
+**Important:**
+- ALL content must be in {language} language
+- Focus on {country} market specifics
+- Consider local search behavior and trends
+- Make titles engaging and click-worthy
+
+Provide a clear, structured format that's easy to parse.
+"""
+    
+    try:
+        print(f"🤖 [DEEPAGENT] Calling OpenAI for monthly content plan...")
+        
+        if not client:
+            raise Exception("OpenAI API key not configured")
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Using mini for faster response
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"You are an expert content strategist specializing in {language} content for {country}. Create practical, actionable monthly content plans."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.5,
+            max_tokens=2500  # Reduced tokens for faster response
+        )
+        
+        content_plan_text = response.choices[0].message.content
+        
+        print(f"✅ [DEEPAGENT] Monthly content plan completed successfully")
+        
+        return {
+            'success': True,
+            'content_plan': content_plan_text,
+            'num_articles': num_articles,
+            'posting_frequency': posting_frequency,
+            'domain': domain,
+            'niche': niche,
+            'country': country,
+            'language': language,
+            'generated_at': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        print(f"❌ [DEEPAGENT] Monthly content planning failed: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'content_plan': None
+        }
+
+
 def deepagent_content_planning(keywords_data, domain, niche, num_articles=10, posting_schedule="weekly"):
     """
     Use DeepAgent (or OpenAI) to create content plan from keyword research
+    (LEGACY - kept for backward compatibility)
     
     Args:
         keywords_data: Keyword research results

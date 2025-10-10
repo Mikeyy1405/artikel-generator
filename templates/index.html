@@ -1156,7 +1156,7 @@
                         </button>
                         <div style="margin-top: 25px; font-size: 14px; opacity: 0.9;">
                             <strong>Wat gebeurt er?</strong><br>
-                            1️⃣ Je vult website info in → 2️⃣ Wij maken automatisch keywords & content plan → 3️⃣ Content wordt automatisch gepubliceerd
+                            1️⃣ Je vult website info in → 2️⃣ Wij maken automatisch een maandelijkse contentplanning → 3️⃣ Content wordt automatisch gepubliceerd
                         </div>
                     </div>
                     
@@ -1444,8 +1444,8 @@
             <!-- Keyword Research Section -->
             <div id="keyword-research" class="section">
                 <div class="section-header">
-                    <h2>🔍 Automatisch Zoekwoordonderzoek</h2>
-                    <p>Powered by Perplexity AI - 150+ keywords automatisch gegenereerd</p>
+                    <h2>📅 Maandelijkse Contentplanning</h2>
+                    <p>AI-gedreven maandelijkse content strategie op basis van jouw postfrequentie</p>
                 </div>
                 
                 <div class="section-content">
@@ -1453,23 +1453,24 @@
                         <div class="alert alert-info" style="margin-bottom: 20px;">
                             <h4 style="margin-bottom: 10px;">✨ Volledig Automatisch!</h4>
                             <p style="font-size: 14px; line-height: 1.6;">
-                                Keyword onderzoek gebeurt nu volledig automatisch. 
+                                Maandelijkse contentplanning gebeurt nu volledig automatisch. 
                                 Klik op <strong>"Start Automatisch Onderzoek"</strong> in het dashboard rechts.
                             </p>
                             <p style="font-size: 14px; line-height: 1.6; margin-top: 10px;">
-                                We genereren 150+ keywords specifiek voor jouw site en land, inclusief:
+                                We maken een gerichte contentkalender op basis van jouw postfrequentie:
                             </p>
                             <ul style="font-size: 13px; margin-left: 20px; margin-top: 8px;">
-                                <li>Site analyse</li>
-                                <li>Concurrenten (uit jouw land)</li>
-                                <li>Content gaps</li>
-                                <li>150+ keywords in jouw taal</li>
+                                <li>🗓️ Dagelijks → 30 artikel ideeën per maand</li>
+                                <li>📝 2x per week → 8 artikel ideeën per maand</li>
+                                <li>✍️ 3x per week → 12 artikel ideeën per maand</li>
+                                <li>📄 Wekelijks → 4 artikel ideeën per maand</li>
+                                <li>🎯 Inclusief keywords, zoekintentie en SEO tips</li>
                             </ul>
                         </div>
                         
                         <div id="website-status-alert" style="margin-top: 15px;">
                             <div class="alert alert-warning">
-                                ⚠️ <strong>Let op:</strong> Voeg eerst een website toe in "Website Beheer" voordat je keyword onderzoek start
+                                ⚠️ <strong>Let op:</strong> Voeg eerst een website toe in "Website Beheer" voordat je contentplanning start
                             </div>
                         </div>
                         
@@ -3044,7 +3045,8 @@
                     
                     output.innerHTML = html;
                     
-                    alert(`✅ ${data.total_keywords} keywords gegenereerd!`);
+                    const numArticles = data.num_articles || '8-12';
+                    alert(`✅ Maandelijkse contentplanning voltooid (${numArticles} artikelen)!`);
                 } else {
                     output.innerHTML = `
                         <div class="alert alert-danger">
@@ -3394,7 +3396,8 @@
                     
                     output.innerHTML = html;
                     
-                    alert(`✅ ${data.total_keywords} keywords gegenereerd voor ${site.name}!`);
+                    const numArticles = data.num_articles || '8-12';
+                    alert(`✅ Maandelijkse contentplanning voltooid voor ${site.name} (${numArticles} artikelen)!`);
                 } else {
                     output.innerHTML = `<div class="alert alert-error">❌ Fout: ${data.error}</div>`;
                 }
@@ -5168,6 +5171,7 @@
                 const websiteUrl = document.getElementById('onboarding-website-url').value.trim();
                 const country = document.getElementById('onboarding-country').value;
                 const language = document.getElementById('onboarding-language').value;
+                const postingFrequency = document.getElementById('onboarding-posting-frequency').value;
                 const sitemapUrl = document.getElementById('onboarding-sitemap-url').value.trim();
                 const description = document.getElementById('onboarding-description').value.trim();
                 const wordpressUrl = document.getElementById('onboarding-wordpress-url').value.trim();
@@ -5184,6 +5188,7 @@
                         sitemap_url: sitemapUrl,
                         country: country,
                         language: language,
+                        posting_frequency: postingFrequency,
                         description: description,
                         wordpress_url: wordpressUrl,
                         wordpress_username: wordpressUsername,
@@ -5247,7 +5252,8 @@
                 }
                 
                 if (data.success) {
-                    document.getElementById('keyword-research-status').textContent = `✅ ${data.total_keywords} keywords gegenereerd!`;
+                    const numArticles = data.num_articles || '8-12';
+                    document.getElementById('keyword-research-status').textContent = `✅ Maandelijkse contentplanning voltooid (${numArticles} artikelen)!`;
                     
                     // Wait 2 seconds then move to step 3
                     setTimeout(() => {
@@ -5307,7 +5313,7 @@
                         ✅ Website toegevoegd
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
-                        ✅ 150+ keywords gegenereerd
+                        ✅ Maandelijkse contentplanning gegenereerd
                     </li>
                     <li style="padding: 10px 0;">
                         ✅ ${data.total_items} content plan items aangemaakt
@@ -5970,6 +5976,17 @@
                     </div>
                     
                     <div class="form-group">
+                        <label>Postfrequentie *</label>
+                        <select id="onboarding-posting-frequency">
+                            <option value="daily">Dagelijks (30 artikelen/maand)</option>
+                            <option value="3x per week">3x per week (12-15 artikelen/maand)</option>
+                            <option value="2x per week" selected>2x per week (8-10 artikelen/maand)</option>
+                            <option value="weekly">Wekelijks (4-5 artikelen/maand)</option>
+                        </select>
+                        <small style="color: #666; display: block; margin-top: 5px;">📅 Dit bepaalt hoeveel artikelen we in jouw maandelijkse contentplan opnemen</small>
+                    </div>
+                    
+                    <div class="form-group">
                         <label>Sitemap URL (optioneel)</label>
                         <input type="text" id="onboarding-sitemap-url" placeholder="https://jouwwebsite.nl/sitemap.xml">
                         <small style="color: #666; display: block; margin-top: 5px;">💡 Laat leeg voor automatische detectie</small>
@@ -6001,12 +6018,12 @@
                     </div>
                 </div>
                 
-                <!-- Step 2: Keyword Research (Loading) -->
+                <!-- Step 2: Monthly Content Planning (Loading) -->
                 <div id="onboarding-step-2" class="onboarding-step">
                     <div class="loading-step">
                         <div class="loading-spinner"></div>
-                        <h3 style="color: var(--dark-blue); margin-top: 20px;">🔍 Keyword Research Bezig...</h3>
-                        <p style="color: #666; margin: 10px 0;">We analyseren jouw niche en genereren 150+ relevante keywords</p>
+                        <h3 style="color: var(--dark-blue); margin-top: 20px;">📅 Maandelijkse Contentplanning Bezig...</h3>
+                        <p style="color: #666; margin: 10px 0;">We maken een gepersonaliseerd contentplan op basis van jouw postfrequentie</p>
                         <p id="keyword-research-status" style="color: var(--light-blue); font-weight: 600;">⏳ Gestart...</p>
                     </div>
                 </div>
@@ -6016,7 +6033,7 @@
                     <div class="loading-step">
                         <div class="loading-spinner"></div>
                         <h3 style="color: var(--dark-blue); margin-top: 20px;">📝 Content Plan Maken...</h3>
-                        <p style="color: #666; margin: 10px 0;">We creëren automatisch content plan items gebaseerd op de beste keywords</p>
+                        <p style="color: #666; margin: 10px 0;">We creëren automatisch content plan items voor de komende maand</p>
                         <p id="content-plan-status" style="color: var(--light-blue); font-weight: 600;">⏳ Gestart...</p>
                     </div>
                 </div>

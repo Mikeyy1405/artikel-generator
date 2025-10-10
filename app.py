@@ -48,6 +48,7 @@ except ImportError:
 from deepagent_research import (
     deepagent_keyword_research, 
     deepagent_content_planning,
+    deepagent_monthly_content_plan,
     deepagent_web_search
 )
 
@@ -3766,7 +3767,10 @@ def api_add_wordpress_site():
 # NEW ENDPOINT: Automatic Keyword Research (100-200 keywords)
 @app.route('/api/keyword-research', methods=['POST'])
 def api_keyword_research():
-    """Automatic keyword research (100-200 keywords) with localization"""
+    """
+    OPTIMIZED: Monthly content planning instead of 150+ keywords
+    Much faster and more practical approach
+    """
     
     site_data = request.json.get('site_data')
     
@@ -3782,160 +3786,51 @@ def api_keyword_research():
     language = site_data.get('language', 'English')
     niche = site_data.get('name', '')
     description = site_data.get('description', '')
+    posting_frequency = site_data.get('posting_frequency', '2x per week')
     
-    print(f"🔍 Starting automatic keyword research for {domain}")
-    print(f"🌍 Country: {country}, Language: {language}")
-    
-    # Determine language context for queries
-    lang_context = ""
-    if country == 'Nederland':
-        lang_context = "Dutch language, targeting the Netherlands market"
-    elif country == 'België':
-        lang_context = "Dutch/French language, targeting the Belgium market"
-    elif country == 'Duitsland':
-        lang_context = "German language, targeting the German market"
-    elif country == 'Frankrijk':
-        lang_context = "French language, targeting the French market"
-    elif country == 'Spanje':
-        lang_context = "Spanish language, targeting the Spanish market"
-    elif country == 'Italië':
-        lang_context = "Italian language, targeting the Italian market"
-    else:
-        lang_context = "English language, targeting international market"
+    print(f"📅 Starting monthly content planning for {domain}")
+    print(f"🌍 Country: {country}, Language: {language}, Frequency: {posting_frequency}")
     
     try:
-        # 1. Site Analysis
-        print("📊 Step 1/4: Analyzing site...")
-        site_analysis_prompt = f"""
-Analyze the website {domain} ({niche}) in detail.
-Language/Market: {lang_context}
-Description: {description}
-
-Provide:
-1. Main topic and niche
-2. Target audience
-3. Current content focus
-4. Strengths and weaknesses
-5. Content opportunities
-
-Be specific and actionable.
-"""
-        site_analysis_result = perplexity_research(site_analysis_prompt)
-        site_analysis = site_analysis_result.get('summary', 'Geen data beschikbaar') if site_analysis_result else 'Geen data beschikbaar'
+        # Use the optimized monthly content planning function
+        print("📋 Generating focused monthly content plan...")
+        content_plan_result = deepagent_monthly_content_plan(
+            domain=domain,
+            niche=niche,
+            country=country,
+            language=language,
+            description=description,
+            posting_frequency=posting_frequency
+        )
         
-        # 2. Competitor Analysis (with localization)
-        print("🎯 Step 2/4: Finding competitors...")
-        competitor_prompt = f"""
-Find the top 10 competitor websites for {domain} ({niche}).
-Language/Market: {lang_context}
-Country: {country}
-
-IMPORTANT: Only include competitors from {country} or targeting {country} market.
-
-For each competitor provide:
-1. Website URL
-2. Main topics they cover
-3. Their unique selling points
-4. Estimated traffic/authority
-5. What makes them successful
-
-Focus on direct competitors in the same niche and market.
-"""
-        competitors_result = perplexity_research(competitor_prompt)
-        competitors = competitors_result.get('summary', 'Geen data beschikbaar') if competitors_result else 'Geen data beschikbaar'
-        
-        # 3. Content Gaps
-        print("💡 Step 3/4: Identifying content gaps...")
-        gap_prompt = f"""
-Compare {domain} with its top competitors in {country}.
-Language/Market: {lang_context}
-
-Identify specific content gaps:
-1. Topics competitors cover that {domain} doesn't (High priority)
-2. Keywords competitors rank for that {domain} doesn't (Medium priority)
-3. Content formats missing (guides, videos, tools, comparisons, etc.)
-4. User questions not being answered
-5. Trending topics in the niche
-
-Provide 20-30 specific, actionable content gap opportunities.
-Be very specific with topics and keywords.
-"""
-        content_gaps_result = perplexity_research(gap_prompt)
-        content_gaps = content_gaps_result.get('summary', 'Geen data beschikbaar') if content_gaps_result else 'Geen data beschikbaar'
-        
-        # 4. AUTOMATIC KEYWORD GENERATION (150+ keywords)
-        print("🔑 Step 4/4: Generating 150+ keywords...")
-        keywords_prompt = f"""
-Generate 150 SEO keywords for {domain} ({niche}).
-Language/Market: {lang_context}
-Country: {country}
-
-IMPORTANT: All keywords MUST be in {language} language.
-
-Include these categories:
-
-**Primary Keywords (20 keywords):**
-- High search volume (1000+ monthly searches)
-- High competition
-- Core business terms
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-**Secondary Keywords (40 keywords):**
-- Medium search volume (500-1000 monthly searches)
-- Medium competition
-- Supporting topics
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-**Long-tail Keywords (60 keywords):**
-- Low search volume (100-500 monthly searches)
-- Low competition
-- Specific, detailed phrases
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-**Question Keywords (30 keywords):**
-- "how to", "what is", "why", "when", "where" questions
-- User intent focused
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-For EACH keyword provide in a table format:
-- Keyword phrase (in {language})
-- Search intent (Informational/Commercial/Transactional/Navigational)
-- Difficulty (Easy/Medium/Hard)
-- Priority (High/Medium/Low)
-- Estimated monthly search volume
-
-Make sure all keywords are relevant to {niche} and target the {country} market.
-"""
-        keywords_result = perplexity_research(keywords_prompt)
-        keywords = keywords_result.get('summary', 'Geen data beschikbaar') if keywords_result else 'Geen data beschikbaar'
-        
-        print("✅ Keyword research completed successfully!")
-        
-        return jsonify({
-            'success': True,
-            'site_analysis': site_analysis,
-            'competitors': competitors,
-            'content_gaps': content_gaps,
-            'keywords': keywords,
-            'total_keywords': '150+',
-            'country': country,
-            'language': language
-        })
+        if content_plan_result and content_plan_result.get('success'):
+            print(f"✅ Monthly content plan completed successfully")
+            
+            content_plan_text = content_plan_result.get('content_plan', '')
+            num_articles = content_plan_result.get('num_articles', 8)
+            
+            return jsonify({
+                'success': True,
+                'content_plan': content_plan_text,
+                'num_articles': num_articles,
+                'posting_frequency': posting_frequency,
+                'country': country,
+                'language': language,
+                'message': f'Maandelijkse contentplanning voltooid ({num_articles} artikelen)'
+            })
+        else:
+            error_msg = content_plan_result.get('error', 'Unknown error') if content_plan_result else 'No result'
+            raise Exception(error_msg)
         
     except Exception as e:
         import traceback
         error_msg = str(e)
-        print(f"❌ Error in keyword research: {error_msg}")
+        print(f"❌ Error in content planning: {error_msg}")
         print(traceback.format_exc())
         
-        # Return proper JSON error instead of HTML
         return jsonify({
             'success': False,
-            'error': f'Fout bij keyword research: {error_msg}',
-            'site_analysis': 'Error',
-            'competitors': 'Error',
-            'content_gaps': 'Error',
-            'keywords': 'Error'
+            'error': f'Fout bij contentplanning: {error_msg}'
         }), 500
 
 # ============================================================================
@@ -3960,6 +3855,7 @@ def api_onboarding_start():
         country = data.get('country', 'International')
         language = data.get('language', 'English')
         description = data.get('description', '')
+        posting_frequency = data.get('posting_frequency', '2x per week')
         
         if not website_name or not website_url:
             return jsonify({
@@ -3997,7 +3893,8 @@ def api_onboarding_start():
             'domain': website_url,
             'country': country,
             'language': language,
-            'description': description
+            'description': description,
+            'posting_frequency': posting_frequency
         })
         
         cursor.execute('''
@@ -4041,21 +3938,21 @@ def api_onboarding_start():
 
 @app.route('/api/onboarding/keyword-research/<int:onboarding_id>', methods=['POST'])
 def api_onboarding_keyword_research(onboarding_id):
-    """Run keyword research as part of onboarding flow"""
+    """Generate monthly content plan as part of onboarding flow (replaces keyword research)"""
     
-    print(f"🔍 [KEYWORD RESEARCH] Starting for onboarding_id={onboarding_id}")
+    print(f"📋 [CONTENT PLANNING] Starting for onboarding_id={onboarding_id}")
     
     try:
         user = get_current_user()
         user_id = user.get('id', 1)
         
-        print(f"🔍 [KEYWORD RESEARCH] User ID: {user_id}")
+        print(f"📋 [CONTENT PLANNING] User ID: {user_id}")
         
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Get onboarding session
-        print(f"🔍 [KEYWORD RESEARCH] Fetching onboarding session from database...")
+        print(f"📋 [CONTENT PLANNING] Fetching onboarding session from database...")
         cursor.execute('''
             SELECT website_id, site_data, status 
             FROM onboarding_sessions 
@@ -4065,7 +3962,7 @@ def api_onboarding_keyword_research(onboarding_id):
         row = cursor.fetchone()
         if not row:
             conn.close()
-            print(f"❌ [KEYWORD RESEARCH] Onboarding session not found: id={onboarding_id}, user={user_id}")
+            print(f"❌ [CONTENT PLANNING] Onboarding session not found: id={onboarding_id}, user={user_id}")
             return jsonify({
                 'success': False,
                 'error': 'Onboarding sessie niet gevonden'
@@ -4073,28 +3970,28 @@ def api_onboarding_keyword_research(onboarding_id):
         
         website_id, site_data_json, status = row
         
-        print(f"🔍 [KEYWORD RESEARCH] Session found - website_id={website_id}, status={status}")
+        print(f"📋 [CONTENT PLANNING] Session found - website_id={website_id}, status={status}")
         
         if status == 'completed':
             conn.close()
-            print(f"❌ [KEYWORD RESEARCH] Onboarding already completed")
+            print(f"❌ [CONTENT PLANNING] Onboarding already completed")
             return jsonify({
                 'success': False,
                 'error': 'Onboarding al voltooid'
             }), 400
         
-        # Update step to keyword_research
-        print(f"🔍 [KEYWORD RESEARCH] Updating session step to 'keyword_research'...")
+        # Update step to content_planning
+        print(f"📋 [CONTENT PLANNING] Updating session step to 'content_planning'...")
         cursor.execute('''
             UPDATE onboarding_sessions 
-            SET current_step = 'keyword_research', updated_at = ?
+            SET current_step = 'content_planning', updated_at = ?
             WHERE id = ?
         ''', (datetime.now(), onboarding_id))
         conn.commit()
         
         site_data = json.loads(site_data_json)
         
-        print(f"🔍 [KEYWORD RESEARCH] Site data loaded: {site_data}")
+        print(f"📋 [CONTENT PLANNING] Site data loaded: {site_data}")
         
         # Extract site info
         domain = site_data.get('domain', '')
@@ -4103,7 +4000,7 @@ def api_onboarding_keyword_research(onboarding_id):
         niche = site_data.get('name', '')
         description = site_data.get('description', '')
         
-        print(f"🔍 [KEYWORD RESEARCH] Domain: {domain}, Country: {country}, Language: {language}")
+        print(f"📋 [CONTENT PLANNING] Domain: {domain}, Country: {country}, Language: {language}")
         
         # Determine language context
         lang_context = ""
@@ -4122,66 +4019,74 @@ def api_onboarding_keyword_research(onboarding_id):
         else:
             lang_context = "English language, targeting international market"
         
-        # Run keyword research using DeepAgent
-        print("🔑 [KEYWORD RESEARCH] Generating 150+ keywords with DeepAgent...")
-        keywords_result = deepagent_keyword_research(
+        # Get posting frequency from site_data or use default
+        posting_frequency = site_data.get('posting_frequency', '2x per week')
+        print(f"📅 [CONTENT PLANNING] Posting frequency: {posting_frequency}")
+        
+        # Run monthly content planning using DeepAgent (faster than 150+ keywords)
+        print(f"📋 [CONTENT PLANNING] Generating monthly content plan with DeepAgent...")
+        content_plan_result = deepagent_monthly_content_plan(
             domain=domain,
             niche=niche,
             country=country,
             language=language,
             description=description,
-            num_keywords=150
+            posting_frequency=posting_frequency
         )
         
-        if keywords_result and keywords_result.get('success'):
-            print(f"✅ [KEYWORD RESEARCH] Research completed successfully")
-            keywords_data = keywords_result.get('keywords', 'Geen data beschikbaar')
+        if content_plan_result and content_plan_result.get('success'):
+            print(f"✅ [CONTENT PLANNING] Monthly plan completed successfully")
+            content_plan_data = content_plan_result.get('content_plan', 'Geen data beschikbaar')
+            num_articles = content_plan_result.get('num_articles', 8)
         else:
-            print(f"⚠️ [KEYWORD RESEARCH] Research failed or returned None")
-            error_msg = keywords_result.get('error', 'Unknown error') if keywords_result else 'No result'
-            keywords_data = f'Keyword research mislukt: {error_msg}'
+            print(f"⚠️ [CONTENT PLANNING] Planning failed or returned None")
+            error_msg = content_plan_result.get('error', 'Unknown error') if content_plan_result else 'No result'
+            content_plan_data = f'Content planning mislukt: {error_msg}'
+            num_articles = 8
         
-        # Store keyword research results
-        print(f"🔑 [KEYWORD RESEARCH] Storing results in database...")
+        # Store content plan results
+        print(f"📋 [CONTENT PLANNING] Storing results in database...")
         keyword_research_json = json.dumps({
-            'keywords': keywords_data,
+            'content_plan': content_plan_data,
+            'num_articles': num_articles,
+            'posting_frequency': posting_frequency,
             'country': country,
-            'language': language,
-            'total_keywords': '150+'
+            'language': language
         })
         
         cursor.execute('''
             UPDATE onboarding_sessions 
-            SET keyword_research_data = ?, current_step = 'keyword_research_completed', updated_at = ?
+            SET keyword_research_data = ?, current_step = 'content_plan_completed', updated_at = ?
             WHERE id = ?
         ''', (keyword_research_json, datetime.now(), onboarding_id))
         
         conn.commit()
         conn.close()
         
-        print(f"✅ [KEYWORD RESEARCH] Keyword research completed for onboarding {onboarding_id}")
+        print(f"✅ [CONTENT PLANNING] Monthly content plan completed for onboarding {onboarding_id}")
         
         response_data = {
             'success': True,
             'onboarding_id': onboarding_id,
-            'keywords': keywords_data,
-            'total_keywords': '150+',
-            'current_step': 'keyword_research_completed',
-            'message': 'Keyword research voltooid'
+            'content_plan': content_plan_data,
+            'num_articles': num_articles,
+            'posting_frequency': posting_frequency,
+            'current_step': 'content_plan_completed',
+            'message': f'Maandelijkse contentplanning voltooid ({num_articles} artikelen)'
         }
         
-        print(f"✅ [KEYWORD RESEARCH] Returning success response")
+        print(f"✅ [CONTENT PLANNING] Returning success response")
         return jsonify(response_data)
         
     except Exception as e:
-        print(f"❌ [KEYWORD RESEARCH] Error in onboarding keyword research: {str(e)}")
+        print(f"❌ [CONTENT PLANNING] Error in onboarding content planning: {str(e)}")
         import traceback
-        print(f"❌ [KEYWORD RESEARCH] Full traceback:")
+        print(f"❌ [CONTENT PLANNING] Full traceback:")
         traceback.print_exc()
         
         # Update onboarding session with error
         try:
-            print(f"❌ [KEYWORD RESEARCH] Updating onboarding session with error status...")
+            print(f"❌ [CONTENT PLANNING] Updating onboarding session with error status...")
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute('''
@@ -4191,9 +4096,9 @@ def api_onboarding_keyword_research(onboarding_id):
             ''', (str(e), datetime.now(), onboarding_id))
             conn.commit()
             conn.close()
-            print(f"❌ [KEYWORD RESEARCH] Error status saved to database")
+            print(f"❌ [CONTENT PLANNING] Error status saved to database")
         except Exception as db_error:
-            print(f"❌ [KEYWORD RESEARCH] Failed to save error to database: {db_error}")
+            print(f"❌ [CONTENT PLANNING] Failed to save error to database: {db_error}")
             pass
         
         error_response = {
@@ -4201,7 +4106,7 @@ def api_onboarding_keyword_research(onboarding_id):
             'error': str(e)
         }
         
-        print(f"❌ [KEYWORD RESEARCH] Returning error response: {error_response}")
+        print(f"❌ [CONTENT PLANNING] Returning error response: {error_response}")
         return jsonify(error_response), 500
 
 
