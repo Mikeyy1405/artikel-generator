@@ -356,6 +356,85 @@
             color: #333;
             margin-bottom: 15px;
         }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .invoice-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .invoice-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .invoice-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .invoice-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .invoice-status.paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .invoice-status.open {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .invoice-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-invoice {
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-invoice:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .no-invoices {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .no-invoices-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -519,6 +598,31 @@
                 </div>
             </div>
 
+            <!-- Abonnement & Facturen -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">💳</span>
+                    <h2 class="card-title">Abonnement & Facturen</h2>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>Abonnement:</strong> <span id="subscription-status">Actief</span></p>
+                    <p><strong>Prijs:</strong> €99,00 per maand</p>
+                    <p><strong>Volgende betaling:</strong> <span id="next-payment">-</span></p>
+                </div>
+
+                <button type="button" class="btn-primary" onclick="openCustomerPortal()" style="margin-bottom: 20px;">
+                    🔧 Beheer Abonnement & Betaalmethode
+                </button>
+
+                <h3 class="section-title">Facturen</h3>
+                <div id="invoices-container">
+                    <p style="text-align: center; color: #666; padding: 20px;">
+                        <span class="loading"></span> Facturen laden...
+                    </p>
+                </div>
+            </div>
+
             <!-- Content Voorkeuren -->
             <div class="card">
                 <div class="card-header">
@@ -577,6 +681,7 @@
         window.addEventListener('DOMContentLoaded', async () => {
             await loadUserData();
             await loadStats();
+            await loadInvoices();
         });
 
         async function loadUserData() {
@@ -829,6 +934,121 @@
             } catch (error) {
                 console.error('Logout error:', error);
                 window.location.href = '/login';
+            }
+        }
+
+        async function loadInvoices() {
+            try {
+                const response = await fetch('/api/invoices', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load invoices');
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayInvoices(data.invoices);
+                } else {
+                    document.getElementById('invoices-container').innerHTML = `
+                        <div class="no-invoices">
+                            <div class="no-invoices-icon">📄</div>
+                            <p>Geen facturen gevonden</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                document.getElementById('invoices-container').innerHTML = `
+                    <div class="no-invoices">
+                        <p style="color: #e74c3c;">Fout bij laden van facturen</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayInvoices(invoices) {
+            const container = document.getElementById('invoices-container');
+            
+            if (!invoices || invoices.length === 0) {
+                container.innerHTML = `
+                    <div class="no-invoices">
+                        <div class="no-invoices-icon">📄</div>
+                        <p>Nog geen facturen beschikbaar</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Factuurnummer</th>
+                            <th>Datum</th>
+                            <th>Bedrag</th>
+                            <th>Status</th>
+                            <th>Acties</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            invoices.forEach(invoice => {
+                const statusClass = invoice.status === 'paid' ? 'paid' : 'open';
+                const statusText = invoice.status === 'paid' ? 'Betaald' : 'Openstaand';
+                
+                html += `
+                    <tr>
+                        <td><strong>${invoice.number || invoice.id}</strong></td>
+                        <td>${invoice.date}</td>
+                        <td>€${invoice.amount.toFixed(2)}</td>
+                        <td><span class="invoice-status ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div class="invoice-actions">
+                                ${invoice.pdf_url ? `<a href="${invoice.pdf_url}" target="_blank" class="btn-invoice">📥 PDF</a>` : ''}
+                                ${invoice.hosted_url ? `<a href="${invoice.hosted_url}" target="_blank" class="btn-invoice">👁️ Bekijken</a>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        async function openCustomerPortal() {
+            try {
+                const btn = event.target;
+                btn.disabled = true;
+                btn.innerHTML = 'Laden... <span class="loading"></span>';
+
+                const response = await fetch('/api/stripe/customer-portal', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.url) {
+                    window.open(data.url, '_blank');
+                } else {
+                    showAlert(data.error || 'Kon portal niet openen', 'error');
+                }
+            } catch (error) {
+                console.error('Error opening portal:', error);
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                const btn = event.target;
+                btn.disabled = false;
+                btn.innerHTML = '🔧 Beheer Abonnement & Betaalmethode';
             }
         }
 

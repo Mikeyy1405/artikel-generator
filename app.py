@@ -2002,6 +2002,82 @@ def create_checkout_session():
             'error': str(e)
         }), 500
 
+@app.route('/api/stripe/customer-portal', methods=['POST'])
+def create_customer_portal():
+    """Create Stripe Customer Portal session"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        user_id = session['user_id']
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT stripe_customer_id FROM users WHERE id = ?', (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user or not user['stripe_customer_id']:
+            return jsonify({'success': False, 'error': 'No Stripe customer found'}), 404
+        
+        # Create portal session
+        portal_session = stripe.billing_portal.Session.create(
+            customer=user['stripe_customer_id'],
+            return_url=request.host_url + 'account.html'
+        )
+        
+        return jsonify({
+            'success': True,
+            'url': portal_session.url
+        })
+    except Exception as e:
+        print(f"❌ Error creating portal session: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/invoices', methods=['GET'])
+def get_invoices():
+    """Get user's Stripe invoices"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        user_id = session['user_id']
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT stripe_customer_id FROM users WHERE id = ?', (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user or not user['stripe_customer_id']:
+            return jsonify({'success': True, 'invoices': []})
+        
+        # Fetch invoices from Stripe
+        invoices = stripe.Invoice.list(
+            customer=user['stripe_customer_id'],
+            limit=100
+        )
+        
+        invoice_list = []
+        for invoice in invoices.data:
+            invoice_list.append({
+                'id': invoice.id,
+                'number': invoice.number,
+                'amount': invoice.amount_paid / 100,  # Convert cents to euros
+                'currency': invoice.currency.upper(),
+                'status': invoice.status,
+                'date': datetime.fromtimestamp(invoice.created).strftime('%Y-%m-%d'),
+                'pdf_url': invoice.invoice_pdf,
+                'hosted_url': invoice.hosted_invoice_url,
+                'description': invoice.lines.data[0].description if invoice.lines.data else 'Abonnement'
+            })
+        
+        return jsonify({
+            'success': True,
+            'invoices': invoice_list
+        })
+    except Exception as e:
+        print(f"❌ Error fetching invoices: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/stripe/webhook', methods=['POST'])
 def stripe_webhook():
     """Handle Stripe webhooks"""
