@@ -3659,6 +3659,7 @@
                 
                 return `
                     <div style="background: ${cardGradient}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" 
+                         onclick="openWebsiteManagementModal(${website.id})"
                          onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'">
                         
@@ -5320,6 +5321,12 @@
                     </li>
                 </ul>
             `;
+            
+            // ✅ FIX: Refresh website list in background
+            setTimeout(() => {
+                loadWebsites();
+                console.log('✅ Website lijst ververst na onboarding');
+            }, 1000);
         }
         
         async function finishOnboarding() {
@@ -5330,14 +5337,18 @@
                     headers: { 'Content-Type': 'application/json' }
                 });
                 
-                // Close wizard and refresh
+                // Close wizard
                 closeOnboardingWizard();
                 showNotification('🎉 Onboarding succesvol voltooid!', 'success');
                 
-                // Refresh the page to show new data
+                // ✅ FIX: Refresh website list and switch to content planning
+                loadWebsites();
+                
+                // Switch to content planning section to show the new plans
                 setTimeout(() => {
-                    location.reload();
-                }, 1000);
+                    switchSection('content-planning');
+                }, 500);
+                
             } catch (error) {
                 console.error('Error completing onboarding:', error);
                 showNotification('Fout bij afronden: ' + error.message, 'error');

@@ -4203,14 +4203,14 @@ def api_onboarding_content_plan(onboarding_id):
         for i, title in enumerate(article_titles[:num_articles], 1):
             cursor.execute('''
                 INSERT INTO content_plans (
-                    user_id, wordpress_site_id, title, keyword, 
+                    user_id, website_id, wordpress_site_id, title, keyword, 
                     description, status, auto_generated, approval_status,
                     created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, 'draft', 1, 'pending', ?, ?)
+                VALUES (?, ?, NULL, ?, ?, ?, 'draft', 1, 'pending', ?, ?)
             ''', (
                 user_id, 
-                website_id,
+                website_id,  # ✅ FIX: Now correctly linked to websites table
                 title,
                 f"keyword_{i}",  # Placeholder keyword
                 f"AI-gegenereerd content plan: {title[:100]}",
@@ -4944,10 +4944,13 @@ def get_content_plans():
             SELECT 
                 cp.*,
                 a.title as article_title,
-                ws.site_name as wordpress_site_name
+                ws.site_name as wordpress_site_name,
+                w.name as website_name,
+                w.url as website_url
             FROM content_plans cp
             LEFT JOIN articles a ON cp.article_id = a.id
             LEFT JOIN wordpress_sites ws ON cp.wordpress_site_id = ws.id
+            LEFT JOIN websites w ON cp.website_id = w.id
             WHERE cp.user_id = ?
             ORDER BY cp.target_date DESC, cp.created_at DESC
         ''', (user_id,))
@@ -4965,6 +4968,9 @@ def get_content_plans():
                 'article_title': row['article_title'],
                 'wordpress_site_id': row['wordpress_site_id'],
                 'wordpress_site_name': row['wordpress_site_name'],
+                'website_id': row.get('website_id'),
+                'website_name': row.get('website_name'),
+                'website_url': row.get('website_url'),
                 'word_count': row['word_count'],
                 'created_at': row['created_at'],
                 'updated_at': row['updated_at']
