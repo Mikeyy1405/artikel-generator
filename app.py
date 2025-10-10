@@ -2105,14 +2105,42 @@ def create_customer_portal():
         print(f"❌ Error creating portal session: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/debug/stripe', methods=['GET'])
+def debug_stripe():
+    """Debug endpoint to check Stripe configuration"""
+    user = get_current_user()
+    if not user or not user.get('is_superuser'):
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    debug_info = {
+        'stripe_key_set': bool(stripe.api_key),
+        'stripe_key_prefix': stripe.api_key[:7] if stripe.api_key else None,
+        'env_var_set': bool(os.environ.get('STRIPE_SECRET_KEY')),
+    }
+    
+    # Check database
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) as count FROM users WHERE stripe_customer_id IS NOT NULL")
+        debug_info['users_with_stripe'] = cursor.fetchone()[0]
+        conn.close()
+    except Exception as e:
+        debug_info['db_error'] = str(e)
+    
+    return jsonify(debug_info)
+
 @app.route('/api/invoices', methods=['GET'])
 def get_invoices():
     """Get user's Stripe invoices"""
     try:
         if 'user_id' not in session:
+            print("❌ Invoice request: No user_id in session")
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
         user_id = session['user_id']
+        print(f"📋 Loading invoices for user_id: {user_id}")
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT stripe_customer_id, subscription_status FROM users WHERE id = ?', (user_id,))
@@ -2120,10 +2148,15 @@ def get_invoices():
         conn.close()
         
         if not user:
+            print(f"❌ User {user_id} not found in database")
             return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        print(f"   Stripe customer ID: {user['stripe_customer_id']}")
+        print(f"   Subscription status: {user['subscription_status']}")
         
         # If no Stripe customer ID yet, return empty list (not an error)
         if not user['stripe_customer_id']:
+            print("   → No Stripe customer ID yet")
             return jsonify({
                 'success': True, 
                 'invoices': [],
@@ -2131,31 +2164,37 @@ def get_invoices():
             })
         
         # Check if Stripe is configured
-        if not stripe.api_key:
+        if not stripe.api_key or stripe.api_key == '':
+            print("⚠️  STRIPE_SECRET_KEY not configured")
+            # Return empty invoices instead of error for better UX
             return jsonify({
-                'success': False, 
-                'error': 'Stripe is niet geconfigureerd. Neem contact op met support.'
-            }), 500
+                'success': True,
+                'invoices': [],
+                'message': 'Facturen zijn momenteel niet beschikbaar.'
+            })
         
         # Fetch invoices from Stripe
+        print(f"   → Fetching invoices from Stripe for customer: {user['stripe_customer_id']}")
         try:
             invoices = stripe.Invoice.list(
                 customer=user['stripe_customer_id'],
                 limit=100
             )
+            print(f"   ✅ Found {len(invoices.data)} invoices")
         except stripe.error.InvalidRequestError as e:
-            print(f"❌ Stripe API error: {e}")
+            print(f"❌ Stripe InvalidRequestError: {e}")
             # Return empty list instead of error - customer might not have invoices yet
             return jsonify({
                 'success': True,
                 'invoices': []
             })
         except stripe.error.AuthenticationError as e:
-            print(f"❌ Stripe authentication error: {e}")
+            print(f"❌ Stripe AuthenticationError: {e}")
             return jsonify({
-                'success': False,
-                'error': 'Stripe authenticatie mislukt. Controleer de API keys.'
-            }), 500
+                'success': True,
+                'invoices': [],
+                'message': 'Facturen zijn momenteel niet beschikbaar.'
+            })
         
         invoice_list = []
         for invoice in invoices.data:
