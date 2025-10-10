@@ -1,13 +1,874 @@
 ✅ Database initialized
 ✅ OpenAI API key loaded
+✅ Blog Generator initialized
 ⚠️  Anthropic API key not found
 ✅ Originality.AI API key loaded
 ✅ Pixabay API key loaded
-✅ Perplexity API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
  * Serving Flask app 'app'
- * Debug mode: off
+ * Debug mode: on
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:10000
- * Running on http://100.122.140.192:10000
+ * Running on http://127.0.0.1:5000
+ * Running on http://100.119.123.124:5000
 [33mPress CTRL+C to quit[0m
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 13:47:54] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+127.0.0.1 - - [10/Oct/2025 13:48:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Oct/2025 13:48:00] "GET /api/get-sitemaps HTTP/1.1" 200 -
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 13:48:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 13:48:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 13:48:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 13:53:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 13:58:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5683, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 14:03:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+127.0.0.1 - - [10/Oct/2025 14:06:44] "[31m[1mPOST /api/onboarding/start HTTP/1.1[0m" 400 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ IntegrityError in onboarding start: UNIQUE constraint failed: websites.url
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+127.0.0.1 - - [10/Oct/2025 14:07:04] "POST /api/onboarding/start HTTP/1.1" 200 -
+127.0.0.1 - - [10/Oct/2025 14:07:28] "POST /api/onboarding/keyword-research/2 HTTP/1.1" 200 -
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5767, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 14:08:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+✅ Onboarding started: ID=2, website_id=2
+🔍 [KEYWORD RESEARCH] Starting for onboarding_id=2
+🔍 [KEYWORD RESEARCH] User ID: 1
+🔍 [KEYWORD RESEARCH] Fetching onboarding session from database...
+🔍 [KEYWORD RESEARCH] Session found - website_id=2, status=in_progress
+🔍 [KEYWORD RESEARCH] Updating session step to 'keyword_research'...
+🔍 [KEYWORD RESEARCH] Site data loaded: {'name': 'Test Website 1760105219', 'domain': 'https://example-1760105219-6581.com', 'country': 'Nederland', 'language': 'Dutch', 'description': 'Test website for keyword research'}
+🔍 [KEYWORD RESEARCH] Domain: https://example-1760105219-6581.com, Country: Nederland, Language: Dutch
+🔑 [KEYWORD RESEARCH] Generating 150+ keywords...
+🔑 [KEYWORD RESEARCH] Calling perplexity_research (or OpenAI fallback)...
+⚠️  Perplexity API key not configured, using OpenAI fallback
+🔍 Starting OpenAI research fallback for: 
+Generate 150 SEO keywords for https://example-1760105219-6581.com (Test Website 1760105219).
+Language/Market: Dutch language, targeting the Netherlands market
+Country: Nederland
+
+IMPORTANT: All keywords MUST be in Dutch language.
+
+Include these categories:
+
+**Primary Keywords (20 keywords):**
+- High search volume (1000+ monthly searches)
+- High competition
+- Core business terms
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Secondary Keywords (40 keywords):**
+- Medium search volume (500-1000 monthly searches)
+- Medium competition
+- Supporting topics
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Long-tail Keywords (60 keywords):**
+- Low search volume (100-500 monthly searches)
+- Low competition
+- Specific, detailed phrases
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+**Question Keywords (30 keywords):**
+- "how to", "what is", "why", "when", "where" questions
+- User intent focused
+- Format: keyword | search intent | difficulty | priority | estimated volume
+
+For EACH keyword provide in a table format:
+- Keyword phrase (in Dutch)
+- Search intent (Informational/Commercial/Transactional/Navigational)
+- Difficulty (Easy/Medium/Hard)
+- Priority (High/Medium/Low)
+- Estimated monthly search volume
+
+Make sure all keywords are relevant to Test Website 1760105219 and target the Nederland market.
+
+✅ OpenAI research fallback completed
+✅ [KEYWORD RESEARCH] Research completed successfully
+🔑 [KEYWORD RESEARCH] Storing results in database...
+✅ [KEYWORD RESEARCH] Keyword research completed for onboarding 2
+✅ [KEYWORD RESEARCH] Returning success response
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5767, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 14:13:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_website_management.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_website_management.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_website_management.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+Traceback (most recent call last):
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5767, in get_dashboard_stats_api
+    result = get_dashboard_stats()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/github_repos/artikel-generator/dashboard_api.py", line 85, in get_dashboard_stats
+    cursor.execute("SELECT COUNT(*) as count FROM articles WHERE wordpress_post_id IS NOT NULL")
+sqlite3.OperationalError: no such column: wordpress_post_id
+127.0.0.1 - - [10/Oct/2025 14:18:00] "GET /api/dashboard/stats HTTP/1.1" 200 -
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+❌ Error getting dashboard stats: no such column: wordpress_post_id
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/backend_utils.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_content_plans.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_keyword_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migration_add_remember_token.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_writing_style.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_website_persistence.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/refresh_sitemaps_daily.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/content_automation_daemon.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_db.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_sitemap.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/blog_generator.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_website_management.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_stripe.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/sitemap_parser.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/affiliate_manager.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/test_invoices.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/image_fetcher.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_onboarding.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/sitemap_manager.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/verify_db_init.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/dashboard_api.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/automation_utils.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/keyword_research_utils.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/affiliate_linker.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/migrate_automation.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/markdown_generator.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/deepagent_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/deepagent_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/deepagent_research.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/deepagent_research.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/deepagent_research.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 762-820-097
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+ * Detected change in '/home/ubuntu/github_repos/artikel-generator/app.py', reloading
+✅ Database initialized
+✅ OpenAI API key loaded
+✅ Blog Generator initialized
+⚠️  Anthropic API key not found
+✅ Originality.AI API key loaded
+✅ Pixabay API key loaded
+⚠️  Perplexity API key not found
+🚀 Starting WritgoAI Content Generator v23...
+📊 Enhanced Dashboard with Charts & Analytics
+📍 Server running on http://localhost:5000
+ * Restarting with watchdog (inotify)
+  File "/home/ubuntu/github_repos/artikel-generator/app.py", line 5741
+    """
+    ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 5783)
