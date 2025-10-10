@@ -3832,14 +3832,20 @@ def api_websites():
     
     if request.method == 'GET':
         try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             
+            # Filter websites by user_id
             cursor.execute('''
                 SELECT id, name, url, sitemap_url, urls_count, last_updated, created_at
                 FROM websites
+                WHERE user_id = ?
                 ORDER BY created_at DESC
-            ''')
+            ''', (user_id,))
             
             websites = []
             for row in cursor.fetchall():
@@ -3869,6 +3875,10 @@ def api_websites():
     
     elif request.method == 'POST':
         try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
             data = request.json
             name = data.get('name')
             url = data.get('url')
@@ -3890,14 +3900,17 @@ def api_websites():
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             
+            # Include user_id in the INSERT statement
             cursor.execute('''
-                INSERT INTO websites (name, url, sitemap_url, created_at)
-                VALUES (?, ?, ?, ?)
-            ''', (name, url, sitemap_url, datetime.now()))
+                INSERT INTO websites (name, url, sitemap_url, created_at, user_id)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (name, url, sitemap_url, datetime.now(), user_id))
             
             website_id = cursor.lastrowid
             conn.commit()
             conn.close()
+            
+            print(f"✅ Website added successfully: ID={website_id}, user_id={user_id}, url={url}")
             
             return jsonify({
                 'success': True,
@@ -3906,13 +3919,16 @@ def api_websites():
                 'message': 'Website succesvol toegevoegd'
             })
             
-        except sqlite3.IntegrityError:
+        except sqlite3.IntegrityError as e:
+            print(f"❌ IntegrityError adding website: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': 'Deze URL bestaat al in de database'
             }), 400
         except Exception as e:
             print(f"❌ Error adding website: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return jsonify({
                 'success': False,
                 'error': str(e)
@@ -3925,14 +3941,19 @@ def api_website_detail(website_id):
     
     if request.method == 'GET':
         try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             
+            # Filter by both website_id and user_id for security
             cursor.execute('''
                 SELECT id, name, url, sitemap_url, sitemap_urls, urls_count, last_updated, created_at
                 FROM websites
-                WHERE id = ?
-            ''', (website_id,))
+                WHERE id = ? AND user_id = ?
+            ''', (website_id, user_id))
             
             row = cursor.fetchone()
             conn.close()
@@ -3969,6 +3990,10 @@ def api_website_detail(website_id):
     
     elif request.method == 'PUT':
         try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
             data = request.json
             name = data.get('name')
             url = data.get('url')
@@ -3982,11 +4007,19 @@ def api_website_detail(website_id):
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             
+            # Update only if the website belongs to the current user
             cursor.execute('''
                 UPDATE websites
                 SET name = ?, url = ?
-                WHERE id = ?
-            ''', (name, url, website_id))
+                WHERE id = ? AND user_id = ?
+            ''', (name, url, website_id, user_id))
+            
+            if cursor.rowcount == 0:
+                conn.close()
+                return jsonify({
+                    'success': False,
+                    'error': 'Website niet gevonden of geen toegang'
+                }), 404
             
             conn.commit()
             conn.close()
@@ -4005,10 +4038,22 @@ def api_website_detail(website_id):
     
     elif request.method == 'DELETE':
         try:
+            # Get current user
+            user = get_current_user()
+            user_id = user.get('id', 1)
+            
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             
-            cursor.execute('DELETE FROM websites WHERE id = ?', (website_id,))
+            # Delete only if the website belongs to the current user
+            cursor.execute('DELETE FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
+            
+            if cursor.rowcount == 0:
+                conn.close()
+                return jsonify({
+                    'success': False,
+                    'error': 'Website niet gevonden of geen toegang'
+                }), 404
             
             conn.commit()
             conn.close()
@@ -4031,11 +4076,15 @@ def api_refresh_website_sitemap(website_id):
     """Refresh sitemap URLs for a specific website"""
     
     try:
+        # Get current user
+        user = get_current_user()
+        user_id = user.get('id', 1)
+        
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
-        # Get website info
-        cursor.execute('SELECT url, sitemap_url FROM websites WHERE id = ?', (website_id,))
+        # Get website info - filter by user_id for security
+        cursor.execute('SELECT url, sitemap_url FROM websites WHERE id = ? AND user_id = ?', (website_id, user_id))
         row = cursor.fetchone()
         
         if not row:
@@ -4053,7 +4102,7 @@ def api_refresh_website_sitemap(website_id):
             sitemap_result = find_sitemap(url)
             if sitemap_result.get('success'):
                 sitemap_url = sitemap_result.get('sitemap_url')
-                cursor.execute('UPDATE websites SET sitemap_url = ? WHERE id = ?', (sitemap_url, website_id))
+                cursor.execute('UPDATE websites SET sitemap_url = ? WHERE id = ? AND user_id = ?', (sitemap_url, website_id, user_id))
                 conn.commit()
             else:
                 conn.close()
@@ -4081,8 +4130,8 @@ def api_refresh_website_sitemap(website_id):
         cursor.execute('''
             UPDATE websites
             SET sitemap_urls = ?, urls_count = ?, last_updated = ?
-            WHERE id = ?
-        ''', (sitemap_urls_json, urls_count, datetime.now(), website_id))
+            WHERE id = ? AND user_id = ?
+        ''', (sitemap_urls_json, urls_count, datetime.now(), website_id, user_id))
         
         conn.commit()
         conn.close()
