@@ -1,0 +1,42 @@
+{
+  "daemon_name": "WritgoAI Content Automation",
+  "description": "Automated content generation and publishing for WritgoAI websites",
+  "version": "1.0.0",
+  "schedule": {
+    "type": "daily",
+    "time": "00:00",
+    "timezone": "UTC",
+    "description": "Run daily at midnight UTC"
+  },
+  "database": {
+    "path": "/home/ubuntu/github_repos/artikel-generator/writgo_content.db",
+    "backup_enabled": true,
+    "backup_retention_days": 7
+  },
+  "logging": {
+    "level": "INFO",
+    "directory": "/home/ubuntu/github_repos/artikel-generator/logs",
+    "retention_days": 30,
+    "max_file_size_mb": 10
+  },
+  "notifications": {
+    "enabled": false,
+    "email": null,
+    "slack_webhook": null,
+    "on_success": false,
+    "on_failure": true
+  },
+  "limits": {
+    "max_websites_per_run": 50,
+    "max_execution_time_minutes": 120,
+    "retry_failed_websites": true,
+    "max_retries": 3
+  },
+  "features": {
+    "auto_publish": true,
+    "generate_images": true,
+    "add_internal_links": true,
+    "add_affiliate_links": true,
+    "seo_optimization": true
+  }
+}
