@@ -511,10 +511,10 @@ class AffiliateManager:
                 product = {
                     'id': self._get_xml_text(item, '{http://base.google.com/ns/1.0}id'),
                     'name': self._get_xml_text(item, '{http://base.google.com/ns/1.0}title'),
-                    'url': self._get_xml_text(item, '{https://lh5.googleusercontent.com/nn5CUPQ7tvS_Bwz9sRR59HCalAPTjGP1LrWYtAciifTFxvlUYngZoANzr3mlqysWTkOUUO02NX0l4B-_z_CiuIn5ololPXgFJ2qYcUHFqSxKSaA0SfLYR_L1N4pWr0eFVFKjBYy2=s0
+                    'url': self._get_xml_text(item, '{http://base.google.com/ns/1.0}link'),
                     'price': self._get_xml_text(item, '{http://base.google.com/ns/1.0}price'),
                     'category': self._get_xml_text(item, '{http://base.google.com/ns/1.0}product_type'),
-                    'image': self._get_xml_text(item, '{https://litcommerce.com/blog/wp-content/uploads/2024/11/What-Is-a-Product-Feed.webp
+                    'image': self._get_xml_text(item, '{http://base.google.com/ns/1.0}image_link'),
                     'description': self._get_xml_text(item, '{http://base.google.com/ns/1.0}description')
                 }
                 products.append(product)
