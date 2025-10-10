@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijn Account - WritgoAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-back {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-logout {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .account-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .checkbox-label {
+            flex: 1;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .checkbox-label strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #667eea;
+        }
+
+        .social-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .social-input {
+            flex: 1;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .account-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+        }
+
+        .password-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">WritgoAI</div>
+            <div class="header-actions">
+                <a href="/" class="btn-back">← Terug naar Dashboard</a>
+                <button class="btn-logout" onclick="handleLogout()">Uitloggen</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">Mijn Account</h1>
+        <p class="page-subtitle">Beheer je profiel en voorkeuren</p>
+
+        <div id="alert" class="alert"></div>
+
+        <div class="account-grid">
+            <!-- Profiel Informatie -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">👤</span>
+                    <h2 class="card-title">Profiel Informatie</h2>
+                </div>
+
+                <form onsubmit="handleProfileUpdate(event)">
+                    <div class="form-group">
+                        <label for="full_name">Volledige Naam</label>
+                        <input type="text" id="full_name" placeholder="Jan Jansen" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mailadres</label>
+                        <input type="email" id="email" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="company">Bedrijfsnaam (optioneel)</label>
+                        <input type="text" id="company" placeholder="Mijn Bedrijf BV">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="website">Website (optioneel)</label>
+                        <input type="url" id="website" placeholder="https://voorbeeld.nl">
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="profile-btn">
+                        Profiel Opslaan
+                    </button>
+                </form>
+
+                <div class="password-section">
+                    <h3 class="section-title">Wachtwoord Wijzigen</h3>
+                    <form onsubmit="handlePasswordChange(event)">
+                        <div class="form-group">
+                            <label for="current_password">Huidig Wachtwoord</label>
+                            <input type="password" id="current_password" placeholder="••••••••">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new_password">Nieuw Wachtwoord</label>
+                            <input type="password" id="new_password" placeholder="Minimaal 8 tekens" minlength="8">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm_password">Bevestig Nieuw Wachtwoord</label>
+                            <input type="password" id="confirm_password" placeholder="Herhaal wachtwoord" minlength="8">
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="password-btn">
+                            Wachtwoord Wijzigen
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Social Media & Content Voorkeuren -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🌐</span>
+                    <h2 class="card-title">Social Media</h2>
+                </div>
+
+                <div class="info-box">
+                    <p>Voeg je social media accounts toe. Deze kunnen automatisch worden opgenomen in je gegenereerde content.</p>
+                </div>
+
+                <form onsubmit="handleSocialsUpdate(event)">
+                    <div class="social-input-group">
+                        <div class="social-icon">📘</div>
+                        <input type="url" id="facebook" class="social-input" placeholder="https://facebook.com/jouwpagina">
+                    </div>
+
+                    <div class="social-input-group">
+                        <div class="social-icon">📷</div>
+                        <input type="url" id="instagram" class="social-input" placeholder="https://instagram.com/jouwaccount">
+                    </div>
+
+                    <div class="social-input-group">
+                        <div class="social-icon">🐦</div>
+                        <input type="url" id="twitter" class="social-input" placeholder="https://twitter.com/jouwaccount">
+                    </div>
+
+                    <div class="social-input-group">
+                        <div class="social-icon">💼</div>
+                        <input type="url" id="linkedin" class="social-input" placeholder="https://linkedin.com/in/jouwprofiel">
+                    </div>
+
+                    <div class="social-input-group">
+                        <div class="social-icon">📺</div>
+                        <input type="url" id="youtube" class="social-input" placeholder="https://youtube.com/@jouwkanaal">
+                    </div>
+
+                    <div class="social-input-group">
+                        <div class="social-icon">🎵</div>
+                        <input type="url" id="tiktok" class="social-input" placeholder="https://tiktok.com/@jouwaccount">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="include_socials" checked>
+                        <label for="include_socials" class="checkbox-label">
+                            <strong>Social media opnemen in content</strong>
+                            Voeg automatisch je social media links toe aan het einde van gegenereerde artikelen
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="socials-btn">
+                        Social Media Opslaan
+                    </button>
+                </form>
+            </div>
+
+            <!-- Account Statistieken -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <h2 class="card-title">Account Statistieken</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-articles">0</div>
+                        <div class="stat-label">Artikelen</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-websites">0</div>
+                        <div class="stat-label">Websites</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-keywords">0</div>
+                        <div class="stat-label">Keywords</div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>Account aangemaakt:</strong> <span id="created-at">-</span></p>
+                    <p><strong>Laatste login:</strong> <span id="last-login">-</span></p>
+                    <p><strong>Account type:</strong> <span id="account-type">-</span></p>
+                </div>
+            </div>
+
+            <!-- Content Voorkeuren -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">⚙️</span>
+                    <h2 class="card-title">Content Voorkeuren</h2>
+                </div>
+
+                <form onsubmit="handlePreferencesUpdate(event)">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="auto_images" checked>
+                        <label for="auto_images" class="checkbox-label">
+                            <strong>Automatisch afbeeldingen toevoegen</strong>
+                            Voeg relevante afbeeldingen toe aan gegenereerde artikelen
+                        </label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="auto_internal_links" checked>
+                        <label for="auto_internal_links" class="checkbox-label">
+                            <strong>Automatisch interne links</strong>
+                            Voeg automatisch interne links toe aan artikelen
+                        </label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="seo_optimize" checked>
+                        <label for="seo_optimize" class="checkbox-label">
+                            <strong>SEO optimalisatie</strong>
+                            Optimaliseer content voor zoekmachines
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="default_tone">Standaard Schrijfstijl</label>
+                        <select id="default_tone" style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: #fafafa;">
+                            <option value="professional">Professioneel</option>
+                            <option value="casual">Casual</option>
+                            <option value="friendly">Vriendelijk</option>
+                            <option value="formal">Formeel</option>
+                            <option value="enthusiastic">Enthousiast</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="preferences-btn">
+                        Voorkeuren Opslaan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // Load user data on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadUserData();
+            await loadStats();
+        });
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success && data.user) {
+                    currentUser = data.user;
+                    populateUserData(data.user);
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        function populateUserData(user) {
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('full_name').value = user.full_name || '';
+            document.getElementById('company').value = user.company || '';
+            document.getElementById('website').value = user.website || '';
+            
+            // Social media
+            document.getElementById('facebook').value = user.facebook || '';
+            document.getElementById('instagram').value = user.instagram || '';
+            document.getElementById('twitter').value = user.twitter || '';
+            document.getElementById('linkedin').value = user.linkedin || '';
+            document.getElementById('youtube').value = user.youtube || '';
+            document.getElementById('tiktok').value = user.tiktok || '';
+            document.getElementById('include_socials').checked = user.include_socials !== false;
+
+            // Preferences
+            document.getElementById('auto_images').checked = user.auto_images !== false;
+            document.getElementById('auto_internal_links').checked = user.auto_internal_links !== false;
+            document.getElementById('seo_optimize').checked = user.seo_optimize !== false;
+            document.getElementById('default_tone').value = user.default_tone || 'professional';
+
+            // Account info
+            document.getElementById('created-at').textContent = user.created_at ? new Date(user.created_at).toLocaleDateString('nl-NL') : '-';
+            document.getElementById('last-login').textContent = user.last_login ? new Date(user.last_login).toLocaleDateString('nl-NL') : '-';
+            document.getElementById('account-type').textContent = user.is_superuser ? 'Superuser' : 'Standaard';
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/account/stats', {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('stat-articles').textContent = data.stats.articles || 0;
+                        document.getElementById('stat-websites').textContent = data.stats.websites || 0;
+                        document.getElementById('stat-keywords').textContent = data.stats.keywords || 0;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function handleProfileUpdate(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('profile-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Opslaan... <span class="loading"></span>';
+
+            const data = {
+                full_name: document.getElementById('full_name').value,
+                company: document.getElementById('company').value,
+                website: document.getElementById('website').value
+            };
+
+            try {
+                const response = await fetch('/api/account/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Profiel succesvol bijgewerkt!', 'success');
+                } else {
+                    showAlert(result.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Profiel Opslaan';
+            }
+        }
+
+        async function handleSocialsUpdate(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('socials-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Opslaan... <span class="loading"></span>';
+
+            const data = {
+                facebook: document.getElementById('facebook').value,
+                instagram: document.getElementById('instagram').value,
+                twitter: document.getElementById('twitter').value,
+                linkedin: document.getElementById('linkedin').value,
+                youtube: document.getElementById('youtube').value,
+                tiktok: document.getElementById('tiktok').value,
+                include_socials: document.getElementById('include_socials').checked
+            };
+
+            try {
+                const response = await fetch('/api/account/socials', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Social media succesvol bijgewerkt!', 'success');
+                } else {
+                    showAlert(result.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Social Media Opslaan';
+            }
+        }
+
+        async function handlePreferencesUpdate(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('preferences-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Opslaan... <span class="loading"></span>';
+
+            const data = {
+                auto_images: document.getElementById('auto_images').checked,
+                auto_internal_links: document.getElementById('auto_internal_links').checked,
+                seo_optimize: document.getElementById('seo_optimize').checked,
+                default_tone: document.getElementById('default_tone').value
+            };
+
+            try {
+                const response = await fetch('/api/account/preferences', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Voorkeuren succesvol bijgewerkt!', 'success');
+                } else {
+                    showAlert(result.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Voorkeuren Opslaan';
+            }
+        }
+
+        async function handlePasswordChange(event) {
+            event.preventDefault();
+            
+            const currentPassword = document.getElementById('current_password').value;
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('Vul alle wachtwoord velden in', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showAlert('Nieuwe wachtwoorden komen niet overeen', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('password-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Wijzigen... <span class="loading"></span>';
+
+            try {
+                const response = await fetch('/api/account/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Wachtwoord succesvol gewijzigd!', 'success');
+                    document.getElementById('current_password').value = '';
+                    document.getElementById('new_password').value = '';
+                    document.getElementById('confirm_password').value = '';
+                } else {
+                    showAlert(result.error || 'Er ging iets mis', 'error');
+                }
+            } catch (error) {
+                showAlert('Er ging iets mis. Probeer het opnieuw.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Wachtwoord Wijzigen';
+            }
+        }
+
+        async function handleLogout() {
+            if (!confirm('Weet je zeker dat je wilt uitloggen?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            
+            setTimeout(() => {
+                alert.className = 'alert';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
