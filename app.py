@@ -2115,40 +2115,74 @@ def get_invoices():
         user_id = session['user_id']
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT stripe_customer_id FROM users WHERE id = ?', (user_id,))
+        cursor.execute('SELECT stripe_customer_id, subscription_status FROM users WHERE id = ?', (user_id,))
         user = cursor.fetchone()
         conn.close()
         
-        if not user or not user['stripe_customer_id']:
-            return jsonify({'success': True, 'invoices': []})
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        # If no Stripe customer ID yet, return empty list (not an error)
+        if not user['stripe_customer_id']:
+            return jsonify({
+                'success': True, 
+                'invoices': [],
+                'message': 'Nog geen facturen beschikbaar. Sluit eerst een abonnement af.'
+            })
+        
+        # Check if Stripe is configured
+        if not stripe.api_key:
+            return jsonify({
+                'success': False, 
+                'error': 'Stripe is niet geconfigureerd. Neem contact op met support.'
+            }), 500
         
         # Fetch invoices from Stripe
-        invoices = stripe.Invoice.list(
-            customer=user['stripe_customer_id'],
-            limit=100
-        )
+        try:
+            invoices = stripe.Invoice.list(
+                customer=user['stripe_customer_id'],
+                limit=100
+            )
+        except stripe.error.InvalidRequestError as e:
+            print(f"❌ Stripe API error: {e}")
+            return jsonify({
+                'success': True,
+                'invoices': [],
+                'message': 'Geen facturen gevonden voor dit account.'
+            })
         
         invoice_list = []
         for invoice in invoices.data:
             invoice_list.append({
                 'id': invoice.id,
-                'number': invoice.number,
+                'number': invoice.number or f"INV-{invoice.id[:8]}",
                 'amount': invoice.amount_paid / 100,  # Convert cents to euros
                 'currency': invoice.currency.upper(),
                 'status': invoice.status,
                 'date': datetime.fromtimestamp(invoice.created).strftime('%Y-%m-%d'),
                 'pdf_url': invoice.invoice_pdf,
                 'hosted_url': invoice.hosted_invoice_url,
-                'description': invoice.lines.data[0].description if invoice.lines.data else 'Abonnement'
+                'description': invoice.lines.data[0].description if invoice.lines.data else 'Writgo AI Abonnement'
             })
         
         return jsonify({
             'success': True,
             'invoices': invoice_list
         })
+    except stripe.error.StripeError as e:
+        print(f"❌ Stripe error fetching invoices: {e}")
+        return jsonify({
+            'success': False, 
+            'error': 'Kon facturen niet ophalen van Stripe. Probeer het later opnieuw.'
+        }), 500
     except Exception as e:
         print(f"❌ Error fetching invoices: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False, 
+            'error': 'Er is een fout opgetreden bij het laden van facturen.'
+        }), 500
 
 @app.route('/api/stripe/webhook', methods=['POST'])
 def stripe_webhook():

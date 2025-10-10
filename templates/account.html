@@ -938,32 +938,53 @@
         }
 
         async function loadInvoices() {
+            const container = document.getElementById('invoices-container');
+            
+            // Show loading state
+            container.innerHTML = `
+                <div class="no-invoices">
+                    <div class="no-invoices-icon">⏳</div>
+                    <p>Facturen laden...</p>
+                </div>
+            `;
+            
             try {
                 const response = await fetch('/api/invoices', {
                     credentials: 'include'
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to load invoices');
-                }
-
                 const data = await response.json();
                 
                 if (data.success) {
-                    displayInvoices(data.invoices);
+                    if (data.message) {
+                        // Show informational message
+                        container.innerHTML = `
+                            <div class="no-invoices">
+                                <div class="no-invoices-icon">ℹ️</div>
+                                <p>${data.message}</p>
+                            </div>
+                        `;
+                    } else {
+                        displayInvoices(data.invoices);
+                    }
                 } else {
-                    document.getElementById('invoices-container').innerHTML = `
+                    // Show error message from server
+                    container.innerHTML = `
                         <div class="no-invoices">
-                            <div class="no-invoices-icon">📄</div>
-                            <p>Geen facturen gevonden</p>
+                            <div class="no-invoices-icon">⚠️</div>
+                            <p style="color: #e74c3c;">${data.error || 'Fout bij laden van facturen'}</p>
                         </div>
                     `;
                 }
             } catch (error) {
                 console.error('Error loading invoices:', error);
-                document.getElementById('invoices-container').innerHTML = `
+                container.innerHTML = `
                     <div class="no-invoices">
-                        <p style="color: #e74c3c;">Fout bij laden van facturen</p>
+                        <div class="no-invoices-icon">❌</div>
+                        <p style="color: #e74c3c;">Kan geen verbinding maken met de server</p>
+                        <button onclick="loadInvoices()" style="margin-top: 10px; padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Opnieuw proberen
+                        </button>
                     </div>
                 `;
             }
