@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betaling - WritgoAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .payment-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .payment-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .payment-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .payment-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .payment-body {
+            padding: 40px 30px;
+        }
+
+        .plan-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .plan-price {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .plan-price span {
+            font-size: 20px;
+            color: #666;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .plan-features li {
+            padding: 10px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .payment-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .payment-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .payment-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .secure-badge:before {
+            content: "🔒";
+            margin-right: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="payment-header">
+            <h1>WritgoAI Premium</h1>
+            <p>Start vandaag nog met professionele content creatie</p>
+        </div>
+
+        <div class="payment-body">
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="plan-details">
+                <div class="plan-name">Premium Abonnement</div>
+                <div class="plan-price">€99<span>/maand</span></div>
+                
+                <ul class="plan-features">
+                    <li>Onbeperkte artikelen genereren</li>
+                    <li>AI-gestuurde keyword research</li>
+                    <li>WordPress integratie</li>
+                    <li>Automatische SEO optimalisatie</li>
+                    <li>Multi-site beheer</li>
+                    <li>Sitemap analyse</li>
+                    <li>Affiliate link detectie</li>
+                    <li>Priority support</li>
+                </ul>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Betaling wordt verwerkt...</p>
+            </div>
+
+            <button class="payment-button" id="checkoutButton" onclick="createCheckoutSession()">
+                Start Abonnement - €99/maand
+            </button>
+
+            <div class="secure-badge">
+                Veilig betalen via Stripe
+            </div>
+
+            <div class="back-link">
+                <a href="/login">Terug naar login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const stripe = Stripe('{{ stripe_publishable_key }}');
+
+        async function createCheckoutSession() {
+            const button = document.getElementById('checkoutButton');
+            const loading = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            button.disabled = true;
+            loading.classList.add('active');
+            errorMessage.classList.remove('active');
+
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.sessionId) {
+                    // Redirect to Stripe Checkout
+                    const result = await stripe.redirectToCheckout({
+                        sessionId: data.sessionId
+                    });
+
+                    if (result.error) {
+                        throw new Error(result.error.message);
+                    }
+                } else {
+                    throw new Error(data.error || 'Er is een fout opgetreden bij het maken van de betaalsessie');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                errorMessage.textContent = error.message;
+                errorMessage.classList.add('active');
+                button.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

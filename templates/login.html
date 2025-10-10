@@ -509,6 +509,12 @@
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 1000);
+                } else if (data.error === 'payment_required') {
+                    // Redirect to payment page
+                    showAlert(data.message || 'Betaling vereist. Doorverwijzen naar betaalpagina...', 'error');
+                    setTimeout(() => {
+                        window.location.href = data.redirect || '/payment';
+                    }, 2000);
                 } else {
                     showAlert(data.error || 'Login mislukt. Controleer je gegevens.');
                     btn.disabled = false;
@@ -551,10 +557,10 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showAlert('Account aangemaakt! Inloggen...', 'success');
+                    showAlert('Account aangemaakt! Doorverwijzen naar betaling...', 'success');
                     setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1000);
+                        window.location.href = '/payment';
+                    }, 1500);
                 } else {
                     showAlert(data.error || 'Registratie mislukt. Probeer het opnieuw.');
                     btn.disabled = false;

@@ -25,7 +25,7 @@ PREVIOUS (V21):
 - FIXED: Pixabay API endpoints for images and videos
 """
 
-from flask import Flask, request, jsonify, send_file, session
+from flask import Flask, request, jsonify, send_file, session, redirect
 from flask_cors import CORS
 from openai import OpenAI
 import httpx
@@ -39,10 +39,16 @@ from deep_translator import GoogleTranslator
 from urllib.parse import urljoin, urlparse
 import xml.etree.ElementTree as ET
 import uuid
+import stripe
 try:
     import anthropic
 except ImportError:
     anthropic = None
+
+# Stripe configuration
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_PRODUCT_ID = 'prod_TBxZgD1ASfSHPc'
+STRIPE_PRICE_AMOUNT = 9900  # €99.00 in cents
 
 # Import backend utilities
 from backend_utils import find_sitemap, extract_internal_links, detect_affiliate_links, fetch_sitemap_urls
@@ -142,6 +148,11 @@ def init_db():
             default_tone TEXT DEFAULT 'professional',
             is_superuser BOOLEAN DEFAULT 0,
             is_active BOOLEAN DEFAULT 1,
+            stripe_customer_id TEXT,
+            stripe_subscription_id TEXT,
+            subscription_status TEXT DEFAULT 'inactive',
+            subscription_start_date TIMESTAMP,
+            subscription_end_date TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP
         )
@@ -1754,7 +1765,7 @@ def index():
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    """Login endpoint"""
+    """Login endpoint - requires active subscription"""
     import hashlib
     
     data = request.json
@@ -1776,6 +1787,20 @@ def login():
     user = cursor.fetchone()
     
     if user:
+        # Check if user has active subscription (or is superuser)
+        subscription_status = user['subscription_status'] if 'subscription_status' in user.keys() else 'inactive'
+        
+        if subscription_status != 'active' and not user['is_superuser']:
+            # Store user_id temporarily for payment flow
+            session['pending_user_id'] = user['id']
+            conn.close()
+            return jsonify({
+                'success': False, 
+                'error': 'payment_required',
+                'message': 'Je moet eerst een abonnement afsluiten om in te loggen',
+                'redirect': '/payment'
+            }), 402
+        
         session['user_id'] = user['id']
         cursor.execute('''
             UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
@@ -1789,7 +1814,8 @@ def login():
                 'id': user['id'],
                 'email': user['email'],
                 'full_name': user['full_name'],
-                'is_superuser': bool(user['is_superuser'])
+                'is_superuser': bool(user['is_superuser']),
+                'subscription_status': subscription_status
             }
         })
     else:
@@ -1827,13 +1853,13 @@ def register():
     # Create user
     try:
         cursor.execute('''
-            INSERT INTO users (email, password_hash, full_name, is_superuser, is_active)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (email, password_hash, name, 0, 1))
+            INSERT INTO users (email, password_hash, full_name, is_superuser, is_active, subscription_status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (email, password_hash, name, 0, 1, 'inactive'))
         user_id = cursor.lastrowid
         
-        # Auto-login
-        session['user_id'] = user_id
+        # Set pending user for payment flow (don't auto-login yet)
+        session['pending_user_id'] = user_id
         
         conn.commit()
         conn.close()
@@ -1856,6 +1882,268 @@ def logout():
     """Logout endpoint"""
     session.clear()
     return jsonify({'success': True})
+
+# ============================================================================
+# STRIPE PAYMENT ENDPOINTS
+# ============================================================================
+
+@app.route('/payment')
+def payment_page():
+    """Serve the payment page"""
+    from flask import render_template_string
+    
+    stripe_publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+    
+    # Read the template file
+    with open('templates/payment.html', 'r') as f:
+        template_content = f.read()
+    
+    # Replace the placeholder with actual key
+    template_content = template_content.replace('{{ stripe_publishable_key }}', stripe_publishable_key)
+    
+    return template_content
+
+@app.route('/payment/success')
+def payment_success():
+    """Payment success page"""
+    return send_file('templates/payment_success.html')
+
+@app.route('/payment/cancel')
+def payment_cancel():
+    """Payment cancelled page"""
+    return send_file('templates/payment_cancel.html')
+
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    """Create Stripe checkout session"""
+    try:
+        # Get user from session (either logged in or pending)
+        user_id = session.get('user_id') or session.get('pending_user_id')
+        
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'Geen gebruiker gevonden. Log eerst in of registreer.'
+            }), 400
+        
+        # Get user email
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT email, stripe_customer_id FROM users WHERE id = ?', (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if not user:
+            return jsonify({
+                'success': False,
+                'error': 'Gebruiker niet gevonden'
+            }), 404
+        
+        # Create or retrieve Stripe customer
+        if user['stripe_customer_id']:
+            customer_id = user['stripe_customer_id']
+        else:
+            customer = stripe.Customer.create(
+                email=user['email'],
+                metadata={'user_id': user_id}
+            )
+            customer_id = customer.id
+            
+            # Save customer ID
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE users SET stripe_customer_id = ? WHERE id = ?
+            ''', (customer_id, user_id))
+            conn.commit()
+            conn.close()
+        
+        # Get or create price for the product
+        prices = stripe.Price.list(product=STRIPE_PRODUCT_ID, active=True, limit=1)
+        
+        if prices.data:
+            price_id = prices.data[0].id
+        else:
+            # Create a new price if none exists
+            price = stripe.Price.create(
+                product=STRIPE_PRODUCT_ID,
+                unit_amount=STRIPE_PRICE_AMOUNT,
+                currency='eur',
+                recurring={'interval': 'month'}
+            )
+            price_id = price.id
+        
+        # Create checkout session
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=['card', 'ideal'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=request.host_url + 'payment/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'payment/cancel',
+            metadata={
+                'user_id': user_id
+            }
+        )
+        
+        return jsonify({
+            'success': True,
+            'sessionId': checkout_session.id
+        })
+        
+    except Exception as e:
+        print(f"❌ Stripe checkout error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhooks"""
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+    except ValueError as e:
+        print(f"❌ Invalid payload: {e}")
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        print(f"❌ Invalid signature: {e}")
+        return jsonify({'error': 'Invalid signature'}), 400
+    
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session_data = event['data']['object']
+        handle_checkout_completed(session_data)
+    
+    elif event['type'] == 'customer.subscription.updated':
+        subscription = event['data']['object']
+        handle_subscription_updated(subscription)
+    
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        handle_subscription_deleted(subscription)
+    
+    elif event['type'] == 'invoice.payment_succeeded':
+        invoice = event['data']['object']
+        handle_payment_succeeded(invoice)
+    
+    elif event['type'] == 'invoice.payment_failed':
+        invoice = event['data']['object']
+        handle_payment_failed(invoice)
+    
+    return jsonify({'success': True})
+
+def handle_checkout_completed(session_data):
+    """Handle successful checkout"""
+    user_id = session_data['metadata'].get('user_id')
+    customer_id = session_data['customer']
+    subscription_id = session_data['subscription']
+    
+    if not user_id:
+        print("❌ No user_id in checkout session metadata")
+        return
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE users 
+        SET stripe_customer_id = ?,
+            stripe_subscription_id = ?,
+            subscription_status = 'active',
+            subscription_start_date = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (customer_id, subscription_id, user_id))
+    
+    conn.commit()
+    conn.close()
+    
+    print(f"✅ Subscription activated for user {user_id}")
+
+def handle_subscription_updated(subscription):
+    """Handle subscription updates"""
+    customer_id = subscription['customer']
+    subscription_id = subscription['id']
+    status = subscription['status']
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE users 
+        SET subscription_status = ?
+        WHERE stripe_customer_id = ?
+    ''', (status, customer_id))
+    
+    conn.commit()
+    conn.close()
+    
+    print(f"✅ Subscription {subscription_id} updated to status: {status}")
+
+def handle_subscription_deleted(subscription):
+    """Handle subscription cancellation"""
+    customer_id = subscription['customer']
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE users 
+        SET subscription_status = 'cancelled',
+            subscription_end_date = CURRENT_TIMESTAMP
+        WHERE stripe_customer_id = ?
+    ''', (customer_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    print(f"✅ Subscription cancelled for customer {customer_id}")
+
+def handle_payment_succeeded(invoice):
+    """Handle successful payment"""
+    customer_id = invoice['customer']
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE users 
+        SET subscription_status = 'active'
+        WHERE stripe_customer_id = ?
+    ''', (customer_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    print(f"✅ Payment succeeded for customer {customer_id}")
+
+def handle_payment_failed(invoice):
+    """Handle failed payment"""
+    customer_id = invoice['customer']
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE users 
+        SET subscription_status = 'past_due'
+        WHERE stripe_customer_id = ?
+    ''', (customer_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    print(f"⚠️ Payment failed for customer {customer_id}")
 
 @app.route('/api/auth/me', methods=['GET'])
 def get_me():
