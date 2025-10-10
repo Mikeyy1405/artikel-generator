@@ -1,28 +1,27 @@
 
 #!/usr/bin/env python3
 """
-WritgoAI Content Generator v22
+WritgoAI Content Generator v23
 Multi-feature content creation platform with WordPress integration
-Enhanced with Dashboard, Multi-Site Support, Automatic Keyword Research, and Localization
+Enhanced with Professional Dashboard, Charts & Analytics
 
-NEW IN V22:
+NEW IN V23:
+- 📊 Professional Dashboard with comprehensive statistics
+- 📈 Interactive charts (Chart.js): Articles per month, Words per week, Website distribution
+- 📊 Advanced metrics: Total articles, words, websites, publications with trends
+- 🎯 Progress bars for monthly goals and performance tracking
+- 🕐 Recent activity feed with timestamps
+- 🌐 Website overview cards with quick actions
+- ⚡ Enhanced quick actions for faster workflow
+- 🎨 Modern, gradient-based design with hover effects
+- 📱 Fully responsive dashboard layout
+
+PREVIOUS (V22):
 - Dashboard with stats sidebar (right panel)
 - Multi-site support (add multiple WordPress sites)
 - Automatic keyword research (100-200 keywords, no manual input)
 - Country/language detection from TLD (.nl → Dutch, .de → German, etc.)
 - Localized competitor analysis and keyword generation
-
-PREVIOUS (V21):
-- FIXED: Enforced word count with retry mechanism (minimum 90% of target)
-- FIXED: Strip markdown code blocks (```html, ```markdown, etc.)
-- FIXED: Stricter whitespace cleaning (max 1 blank line)
-- FIXED: Mandatory list/table/FAQ when requested
-- HTML output instead of markdown (proper <h2>, <h3> tags for WordPress blocks)
-- 1 image per 500 words (configurable)
-- Maximum 1 blank line between paragraphs
-- WordPress sitemap integration
-- Improved Pixabay keyword generation (more relevant images)
-- FIXED: Pixabay API endpoints for images and videos
 """
 
 from flask import Flask, request, jsonify, send_file, session, redirect
@@ -4952,7 +4951,51 @@ def api_get_relevant_links(website_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/dashboard/stats', methods=['GET'])
+def get_dashboard_stats_api():
+    """
+    Get comprehensive dashboard statistics
+    Returns all data needed for the enhanced dashboard
+    """
+    try:
+        from dashboard_api import get_dashboard_stats
+        
+        result = get_dashboard_stats()
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Error getting dashboard stats: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'stats': {
+                'total_articles': 0,
+                'articles_this_month': 0,
+                'articles_trend': 0,
+                'total_words': 0,
+                'avg_words': 0,
+                'words_trend': 0,
+                'total_websites': 0,
+                'websites_trend': 0,
+                'total_affiliate_links': 0,
+                'published_count': 0,
+                'published_this_week': 0,
+                'published_trend': 0
+            },
+            'charts': {
+                'articles_per_month': {'labels': [], 'data': []},
+                'words_per_week': {'labels': [], 'data': []},
+                'articles_per_website': {'labels': [], 'data': []}
+            },
+            'recent_activity': [],
+            'websites': []
+        }), 200
+
+
 if __name__ == '__main__':
-    print("🚀 Starting WritgoAI Content Generator v22...")
+    print("🚀 Starting WritgoAI Content Generator v23...")
+    print("📊 Enhanced Dashboard with Charts & Analytics")
     print("📍 Server running on http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
