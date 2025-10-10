@@ -53,6 +53,7 @@ from keyword_research_utils import (
 )
 
 app = Flask(__name__)
+app.secret_key = 'writgo-ai-secret-key-2025-change-in-production'
 CORS(app)
 
 # Error handlers
@@ -115,9 +116,24 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
+    # Users table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            full_name TEXT,
+            is_superuser BOOLEAN DEFAULT 0,
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_login TIMESTAMP
+        )
+    ''')
+    
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL DEFAULT 1,
             title TEXT NOT NULL,
             content_html TEXT NOT NULL,
             content_text TEXT NOT NULL,
@@ -130,21 +146,24 @@ def init_db():
             human_score REAL,
             ai_score REAL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ''')
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS wordpress_sites (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            site_name TEXT NOT NULL UNIQUE,
+            user_id INTEGER NOT NULL DEFAULT 1,
+            site_name TEXT NOT NULL,
             site_url TEXT NOT NULL,
             username TEXT NOT NULL,
             app_password TEXT NOT NULL,
             sitemap_url TEXT,
             context TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ''')
     
@@ -185,13 +204,15 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS websites (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL DEFAULT 1,
             name TEXT NOT NULL,
-            url TEXT NOT NULL UNIQUE,
+            url TEXT NOT NULL,
             sitemap_url TEXT,
             sitemap_urls TEXT,
             urls_count INTEGER DEFAULT 0,
             last_updated TIMESTAMP,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ''')
     
@@ -205,11 +226,63 @@ def init_db():
     except sqlite3.OperationalError:
         pass
     
+    try:
+        cursor.execute('ALTER TABLE articles ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1')
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE wordpress_sites ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1')
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE websites ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1')
+    except sqlite3.OperationalError:
+        pass
+    
+    # Create superuser if not exists
+    cursor.execute('SELECT COUNT(*) FROM users WHERE email = ?', ('info@writgo.nl',))
+    if cursor.fetchone()[0] == 0:
+        import hashlib
+        password_hash = hashlib.sha256('WritgoAI2025!'.encode()).hexdigest()
+        cursor.execute('''
+            INSERT INTO users (email, password_hash, full_name, is_superuser, is_active)
+            VALUES (?, ?, ?, ?, ?)
+        ''', ('info@writgo.nl', password_hash, 'WritgoAI Admin', 1, 1))
+        print("✅ Superuser created: info@writgo.nl")
+    
     conn.commit()
     conn.close()
     print("✅ Database initialized")
 
 init_db()
+
+# Authentication helpers
+def get_current_user():
+    """Get current logged in user"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return None
+    
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE id = ? AND is_active = 1', (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    
+    return dict(user) if user else None
+
+def login_required(f):
+    """Decorator to require login"""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Login required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Load API keys
 def load_api_keys():
@@ -1635,7 +1708,84 @@ def generate_dalle_image(prompt):
 @app.route('/')
 def index():
     """Serve the main HTML page"""
+    # Auto-login superuser for now (remove in production)
+    if 'user_id' not in session:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM users WHERE email = ?', ('info@writgo.nl',))
+        user = cursor.fetchone()
+        if user:
+            session['user_id'] = user[0]
+        conn.close()
+    
     return send_file('templates/index.html')
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """Login endpoint"""
+    import hashlib
+    
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Email en wachtwoord zijn verplicht'}), 400
+    
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM users 
+        WHERE email = ? AND password_hash = ? AND is_active = 1
+    ''', (email, password_hash))
+    user = cursor.fetchone()
+    
+    if user:
+        session['user_id'] = user['id']
+        cursor.execute('''
+            UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
+        ''', (user['id'],))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'full_name': user['full_name'],
+                'is_superuser': bool(user['is_superuser'])
+            }
+        })
+    else:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Ongeldige inloggegevens'}), 401
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    """Logout endpoint"""
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/auth/me', methods=['GET'])
+def get_me():
+    """Get current user info"""
+    user = get_current_user()
+    if user:
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'full_name': user['full_name'],
+                'is_superuser': bool(user['is_superuser'])
+            }
+        })
+    else:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
 
 @app.route('/api/generate-topic', methods=['POST'])
 def api_generate_topic():
