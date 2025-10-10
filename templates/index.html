@@ -5426,8 +5426,8 @@
         
         async function openAutomationSettingsModal(websiteId) {
             try {
-                // Fetch current settings
-                const response = await fetch(`/api/websites/${websiteId}/schedule`);
+                // Fetch current settings (expanded with management data)
+                const response = await fetch(`/api/websites/${websiteId}/management`);
                 const data = await response.json();
                 
                 if (!data.success) {
@@ -5436,7 +5436,22 @@
                 }
                 
                 const website = data.website;
-                const schedule = data.schedule;
+                const schedule = data.schedule || website;
+                
+                // Parse external links if exists
+                let externalLinksHtml = '';
+                try {
+                    const links = website.external_links ? JSON.parse(website.external_links) : [];
+                    externalLinksHtml = links.map((link, i) => `
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" class="external-link-url" placeholder="https://example.com/page" value="${link.url || ''}" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                            <input type="text" class="external-link-anchor" placeholder="Anchor tekst" value="${link.anchor || ''}" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                            <button type="button" onclick="this.parentElement.remove()" style="padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">🗑️</button>
+                        </div>
+                    `).join('');
+                } catch(e) {
+                    console.error('Error parsing external links:', e);
+                }
                 
                 // Create and show modal
                 const modal = document.createElement('div');
@@ -6039,5 +6054,8 @@
             </div>
         </div>
     </div>
+    
+    <!-- Website Management Modal Script -->
+    <script src="/static/website_management_modal.js"></script>
 </body>
 </html>

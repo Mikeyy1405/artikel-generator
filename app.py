@@ -44,6 +44,19 @@ try:
 except ImportError:
     anthropic = None
 
+# Import DeepAgent research module
+from deepagent_research import (
+    deepagent_keyword_research, 
+    deepagent_content_planning,
+    deepagent_web_search
+)
+
+# Import Website Management API
+from website_management_api import (
+    get_website_management,
+    update_website_management
+)
+
 # Stripe configuration
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PRODUCT_ID = 'prod_TBxZgD1ASfSHPc'
@@ -4109,59 +4122,24 @@ def api_onboarding_keyword_research(onboarding_id):
         else:
             lang_context = "English language, targeting international market"
         
-        # Run keyword research using existing perplexity_research function
-        print("🔑 [KEYWORD RESEARCH] Generating 150+ keywords...")
-        keywords_prompt = f"""
-Generate 150 SEO keywords for {domain} ({niche}).
-Language/Market: {lang_context}
-Country: {country}
-
-IMPORTANT: All keywords MUST be in {language} language.
-
-Include these categories:
-
-**Primary Keywords (20 keywords):**
-- High search volume (1000+ monthly searches)
-- High competition
-- Core business terms
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-**Secondary Keywords (40 keywords):**
-- Medium search volume (500-1000 monthly searches)
-- Medium competition
-- Supporting topics
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-**Long-tail Keywords (60 keywords):**
-- Low search volume (100-500 monthly searches)
-- Low competition
-- Specific, detailed phrases
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-**Question Keywords (30 keywords):**
-- "how to", "what is", "why", "when", "where" questions
-- User intent focused
-- Format: keyword | search intent | difficulty | priority | estimated volume
-
-For EACH keyword provide in a table format:
-- Keyword phrase (in {language})
-- Search intent (Informational/Commercial/Transactional/Navigational)
-- Difficulty (Easy/Medium/Hard)
-- Priority (High/Medium/Low)
-- Estimated monthly search volume
-
-Make sure all keywords are relevant to {niche} and target the {country} market.
-"""
+        # Run keyword research using DeepAgent
+        print("🔑 [KEYWORD RESEARCH] Generating 150+ keywords with DeepAgent...")
+        keywords_result = deepagent_keyword_research(
+            domain=domain,
+            niche=niche,
+            country=country,
+            language=language,
+            description=description,
+            num_keywords=150
+        )
         
-        print(f"🔑 [KEYWORD RESEARCH] Calling perplexity_research (or OpenAI fallback)...")
-        keywords_result = perplexity_research(keywords_prompt)
-        
-        if keywords_result:
+        if keywords_result and keywords_result.get('success'):
             print(f"✅ [KEYWORD RESEARCH] Research completed successfully")
-            keywords_data = keywords_result.get('summary', 'Geen data beschikbaar')
+            keywords_data = keywords_result.get('keywords', 'Geen data beschikbaar')
         else:
-            print(f"⚠️ [KEYWORD RESEARCH] Research returned None, using default message")
-            keywords_data = 'Geen data beschikbaar'
+            print(f"⚠️ [KEYWORD RESEARCH] Research failed or returned None")
+            error_msg = keywords_result.get('error', 'Unknown error') if keywords_result else 'No result'
+            keywords_data = f'Keyword research mislukt: {error_msg}'
         
         # Store keyword research results
         print(f"🔑 [KEYWORD RESEARCH] Storing results in database...")
@@ -4276,48 +4254,74 @@ def api_onboarding_content_plan(onboarding_id):
         keyword_data = json.loads(keyword_research_json)
         keywords_text = keyword_data.get('keywords', '')
         
-        print(f"📝 Creating content plan for onboarding {onboarding_id}")
+        site_data = json.loads(site_data_json)
+        domain = site_data.get('domain', '')
+        niche = site_data.get('name', '')
         
-        # Parse keywords from the text (simple extraction)
-        # This is a simplified version - in production you'd want better parsing
-        keyword_lines = [line.strip() for line in keywords_text.split('\n') if line.strip() and '|' in line]
+        print(f"📝 Creating content plan for onboarding {onboarding_id} using DeepAgent")
         
-        # Extract top keywords (limit to num_articles)
+        # Use DeepAgent for content planning
+        posting_schedule = data.get('posting_schedule', 'weekly')
+        plan_result = deepagent_content_planning(
+            keywords_data=keywords_text,
+            domain=domain,
+            niche=niche,
+            num_articles=num_articles,
+            posting_schedule=posting_schedule
+        )
+        
+        if not plan_result or not plan_result.get('success'):
+            error_msg = plan_result.get('error', 'Unknown error') if plan_result else 'No result'
+            raise Exception(f"Content planning failed: {error_msg}")
+        
+        content_plan_text = plan_result.get('content_plan', '')
+        
+        # Parse content plan to extract article topics
+        # Simple extraction - look for numbered articles or titles
         content_items = []
-        keywords_used = []
+        article_lines = content_plan_text.split('\n')
         
-        for line in keyword_lines[:num_articles]:
-            parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 2:
-                keyword = parts[0]
-                keywords_used.append(keyword)
-                
-                # Create content plan item
-                cursor.execute('''
-                    INSERT INTO content_plans (
-                        user_id, wordpress_site_id, title, keyword, 
-                        description, status, auto_generated, approval_status,
-                        created_at, updated_at
-                    )
-                    VALUES (?, ?, ?, ?, ?, 'draft', 1, 'pending', ?, ?)
-                ''', (
-                    user_id, 
-                    website_id,
-                    f"Artikel over {keyword}",
-                    keyword,
-                    f"Content gebaseerd op keyword: {keyword}",
-                    datetime.now(),
-                    datetime.now()
-                ))
-                
-                content_items.append({
-                    'id': cursor.lastrowid,
-                    'keyword': keyword,
-                    'title': f"Artikel over {keyword}"
-                })
+        article_titles = []
+        for line in article_lines:
+            # Look for patterns like "Article 1:", "1.", "Title:", etc.
+            if re.match(r'^(Article\s+\d+|^\d+\.)', line, re.IGNORECASE):
+                title = re.sub(r'^(Article\s+\d+|^\d+\.)[:.\s]*', '', line, flags=re.IGNORECASE).strip()
+                if title and len(title) > 5:  # Valid title
+                    article_titles.append(title)
+            elif line.startswith('**') and line.endswith('**') and len(line) < 150:
+                # Bold titles
+                title = line.strip('*').strip()
+                if len(title) > 5:
+                    article_titles.append(title)
         
-        # Store content plan data
+        # Create content plan items (limit to num_articles)
+        for i, title in enumerate(article_titles[:num_articles], 1):
+            cursor.execute('''
+                INSERT INTO content_plans (
+                    user_id, wordpress_site_id, title, keyword, 
+                    description, status, auto_generated, approval_status,
+                    created_at, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, 'draft', 1, 'pending', ?, ?)
+            ''', (
+                user_id, 
+                website_id,
+                title,
+                f"keyword_{i}",  # Placeholder keyword
+                f"AI-gegenereerd content plan: {title[:100]}",
+                datetime.now(),
+                datetime.now()
+            ))
+            
+            content_items.append({
+                'id': cursor.lastrowid,
+                'title': title,
+                'keyword': f"keyword_{i}"
+            })
+        
+        # Store full content plan data
         content_plan_json = json.dumps({
+            'content_plan_full': content_plan_text,
             'content_items': content_items,
             'total_items': len(content_items)
         })
@@ -4823,6 +4827,49 @@ def api_website_schedule(website_id):
                 'success': False,
                 'error': str(e)
             }), 500
+
+
+@app.route('/api/websites/<int:website_id>/management', methods=['GET', 'PUT'])
+def api_website_management(website_id):
+    """Get or update comprehensive website management data"""
+    
+    user = get_current_user()
+    user_id = user.get('id', 1)
+    
+    if request.method == 'GET':
+        website, error = get_website_management(website_id, user_id)
+        
+        if error:
+            return jsonify({
+                'success': False,
+                'error': error
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'website': website,
+            'schedule': {
+                'posting_schedule': website.get('posting_schedule', 'weekly'),
+                'posting_days': website.get('posting_days', []),
+                'posting_time': website.get('posting_time', '09:00'),
+                'auto_publish': website.get('auto_publish', 0)
+            }
+        })
+    
+    elif request.method == 'PUT':
+        data = request.json
+        success, error = update_website_management(website_id, user_id, data)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': error
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': 'Website instellingen succesvol bijgewerkt'
+        })
 
 
 @app.route('/api/websites/schedules', methods=['GET'])
