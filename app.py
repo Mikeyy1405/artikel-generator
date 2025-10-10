@@ -1777,7 +1777,8 @@ def check_remember_token():
     if not remember_token:
         return None
     
-    conn = get_db_connection()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -1938,7 +1939,8 @@ def logout():
     """Logout endpoint"""
     # Clear remember token from database
     if 'user_id' in session:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE users 
@@ -2082,7 +2084,8 @@ def create_customer_portal():
             return jsonify({'success': False, 'error': 'Not authenticated'}), 401
         
         user_id = session['user_id']
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('SELECT stripe_customer_id FROM users WHERE id = ?', (user_id,))
         user = cursor.fetchone()
@@ -2120,7 +2123,8 @@ def debug_stripe():
     
     # Check database
     try:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE stripe_customer_id IS NOT NULL")
         debug_info['users_with_stripe'] = cursor.fetchone()[0]
@@ -2141,7 +2145,8 @@ def get_invoices():
         user_id = session['user_id']
         print(f"📋 Loading invoices for user_id: {user_id}")
         
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('SELECT stripe_customer_id, subscription_status FROM users WHERE id = ?', (user_id,))
         user = cursor.fetchone()
