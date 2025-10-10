@@ -10,7 +10,9 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <!-- FullCalendar for Content Planning -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>    
+    <!-- Chart.js for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <style>
         :root {
@@ -615,7 +617,484 @@
                 width: 300px;
             }
         }
-    </style>
+    
+        /* ===== NIEUWE DASHBOARD STYLES ===== */
+        .dashboard-container {
+            padding: 30px;
+            overflow-y: auto;
+            background: var(--gray-50);
+        }
+        
+        .dashboard-header {
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 8px;
+        }
+        
+        .dashboard-header p {
+            color: var(--gray-600);
+            font-size: 16px;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        
+        .stat-trend.up {
+            background: #dcfce7;
+            color: var(--success);
+        }
+        
+        .stat-trend.down {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .chart-header {
+            margin-bottom: 20px;
+        }
+        
+        .chart-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+        
+        .chart-header p {
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+        
+        /* Recent Activity */
+        .activity-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 32px;
+        }
+        
+        .activity-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .activity-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-blue);
+        }
+        
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        
+        .activity-item:hover {
+            background: var(--gray-100);
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .activity-meta {
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+        
+        .activity-time {
+            font-size: 12px;
+            color: var(--gray-600);
+            white-space: nowrap;
+        }
+        
+        /* Website Cards */
+        .websites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .website-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s;
+        }
+        
+        .website-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        
+        .website-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .website-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .website-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+        
+        .website-info p {
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+        
+        .website-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .website-stat {
+            text-align: center;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+        
+        .website-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 4px;
+        }
+        
+        .website-stat-label {
+            font-size: 11px;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .website-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .website-action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        /* Quick Actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .quick-action-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .quick-action-btn:hover {
+            border-color: var(--light-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,174,239,0.2);
+        }
+        
+        .quick-action-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .quick-action-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark-blue);
+        }
+        
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-600);
+        }
+        
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gray-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+        }
+        
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-700);
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,174,239,0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--orange);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+        }
+        
+        /* Progress Bars */
+        .progress-bar-container {
+            margin-top: 12px;
+        }
+        
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--gray-600);
+            margin-bottom: 6px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--light-blue), var(--deep-blue));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--light-blue);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+
+</style>
 </head>
 <body>
     <!-- Hamburger Menu Button -->
@@ -685,124 +1164,200 @@
         <div class="main-content">
             <!-- Dashboard Section (NEW - Fase 2) -->
             <div id="dashboard" class="section active">
-                <div class="section-header">
-                    <h2>📊 Dashboard</h2>
-                    <p>Overzicht van je content en statistieken</p>
-                </div>
-                
-                <div class="section-content" style="overflow-y: auto;">
-                    <div style="padding: 30px; max-width: 1200px; margin: 0 auto;">
+                <div class="dashboard-container">
+                    <!-- Header -->
+                    <div class="dashboard-header">
+                        <h1>📊 Dashboard</h1>
+                        <p>Welkom terug! Hier is een overzicht van je content productie</p>
+                    </div>
+                    
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, var(--light-blue), var(--deep-blue));">
+                                    📝
+                                </div>
+                                <div class="stat-trend up">
+                                    <span>↑</span>
+                                    <span id="articles-trend">0%</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="total-articles">0</div>
+                            <div class="stat-label">Totaal Artikelen</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>Deze maand</span>
+                                    <span id="articles-this-month">0</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" id="articles-progress" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <!-- Header -->
-                        <div style="margin-bottom: 40px;">
-                            <h1 style="color: var(--dark-blue); font-size: 28px; font-weight: 700; margin: 0 0 8px 0;">Dashboard</h1>
-                            <p style="color: #64748b; font-size: 16px; margin: 0;">Overzicht van je content en statistieken</p>
-                        </div>
-
-                        <!-- Stats Cards -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px;">
-                            
-                            <!-- Articles Card -->
-                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                    <div style="width: 48px; height: 48px; background: var(--light-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📝</div>
-                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, var(--orange), var(--dark-orange));">
+                                    📊
                                 </div>
-                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="posts-count">0</div>
-                                <div style="color: #64748b; font-size: 14px;">Artikelen</div>
-                            </div>
-
-                            <!-- Keywords Card -->
-                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                    <div style="width: 48px; height: 48px; background: var(--orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">🔍</div>
-                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
-                                </div>
-                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="total-keywords">0</div>
-                                <div style="color: #64748b; font-size: 14px;">Keywords</div>
-                            </div>
-
-                            <!-- Websites Card -->
-                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                    <div style="width: 48px; height: 48px; background: var(--deep-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">🌐</div>
-                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
-                                </div>
-                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="websites-count">0</div>
-                                <div style="color: #64748b; font-size: 14px;">Websites</div>
-                            </div>
-
-                            <!-- Research Card -->
-                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; transition: all 0.2s;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                    <div style="width: 48px; height: 48px; background: var(--dark-orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">📊</div>
-                                    <span style="color: #10b981; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">+0%</span>
-                                </div>
-                                <div style="font-size: 32px; font-weight: 700; color: var(--dark-blue); margin-bottom: 4px;" id="research-count">0</div>
-                                <div style="color: #64748b; font-size: 14px;">Onderzoeken</div>
-                            </div>
-                        </div>
-
-                        <!-- Main Content Grid -->
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-bottom: 40px;">
-                            
-                            <!-- Recent Articles -->
-                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-                                <div style="display: flex; align-items: center; justify-content: between; margin-bottom: 20px;">
-                                    <h3 style="color: var(--dark-blue); font-size: 18px; font-weight: 600; margin: 0;">Recente Artikelen</h3>
-                                    <button onclick="switchSection('saved-articles')" style="padding: 8px 16px; background: var(--light-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; margin-left: auto;">Bekijk Alles</button>
-                                </div>
-                                <div id="recent-articles-list">
-                                    <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
-                                        <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px;">📝</div>
-                                        <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 500;">Nog geen artikelen</p>
-                                        <p style="margin: 0; font-size: 14px;">Start met het schrijven van je eerste artikel</p>
-                                        <button onclick="switchSection('content-writer')" style="margin-top: 16px; padding: 10px 20px; background: var(--light-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
-                                            Nieuw Artikel
-                                        </button>
-                                    </div>
+                                <div class="stat-trend up">
+                                    <span>↑</span>
+                                    <span id="words-trend">0%</span>
                                 </div>
                             </div>
-
-                            <!-- Quick Actions -->
-                            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-                                <h3 style="color: var(--dark-blue); font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Quick Actions</h3>
-                                
-                                <div style="space-y: 12px;">
-                                    <button onclick="switchSection('keyword-research')" style="width: 100%; padding: 16px; background: var(--light-blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='#0099d4'" onmouseout="this.style.background='var(--light-blue)'">
-                                        <span style="font-size: 18px;">🔍</span>
-                                        <span>Keyword Research</span>
-                                    </button>
-
-                                    <button onclick="switchSection('content-writer')" style="width: 100%; padding: 16px; background: var(--orange); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='#e55a1a'" onmouseout="this.style.background='var(--orange)'">
-                                        <span style="font-size: 18px;">✍️</span>
-                                        <span>Schrijf Artikel</span>
-                                    </button>
-
-                                    <button onclick="switchSection('website-beheer')" style="width: 100%; padding: 16px; background: var(--deep-blue); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='#003d7a'" onmouseout="this.style.background='var(--deep-blue)'">
-                                        <span style="font-size: 18px;">🗺️</span>
-                                        <span>Sitemap Beheer</span>
-                                    </button>
-
-                                    <button onclick="switchSection('saved-articles')" style="width: 100%; padding: 16px; background: var(--dark-orange); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;" onmouseover="this.style.background='#c55a18'" onmouseout="this.style.background='var(--dark-orange)'">
-                                        <span style="font-size: 18px;">📚</span>
-                                        <span>Opgeslagen Artikelen</span>
-                                    </button>
+                            <div class="stat-value" id="total-words">0</div>
+                            <div class="stat-label">Totaal Woorden</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>Gemiddeld per artikel</span>
+                                    <span id="avg-words">0</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" id="words-progress" style="width: 0%; background: linear-gradient(90deg, var(--orange), var(--dark-orange));"></div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Recent Activity -->
-                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-                            <h3 style="color: var(--dark-blue); font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Recente Activiteit</h3>
-                            
-                            <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
-                                <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px;">📅</div>
-                                <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 500;">Nog geen activiteit</p>
-                                <p style="margin: 0; font-size: 14px;">Je activiteiten worden hier weergegeven</p>
+                        
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                                    🌐
+                                </div>
+                                <div class="stat-trend up">
+                                    <span>↑</span>
+                                    <span id="websites-trend">0%</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="total-websites">0</div>
+                            <div class="stat-label">Actieve Websites</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>Affiliate links</span>
+                                    <span id="total-affiliate-links">0</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" id="websites-progress" style="width: 0%; background: linear-gradient(90deg, #8b5cf6, #6366f1);"></div>
+                                </div>
                             </div>
                         </div>
-
+                        
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
+                                    📤
+                                </div>
+                                <div class="stat-trend up">
+                                    <span>↑</span>
+                                    <span id="published-trend">0%</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="published-count">0</div>
+                            <div class="stat-label">Gepubliceerd</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>Deze week</span>
+                                    <span id="published-this-week">0</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" id="published-progress" style="width: 0%; background: linear-gradient(90deg, var(--success), #059669);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>📈 Artikelen per Maand</h3>
+                                <p>Laatste 6 maanden</p>
+                            </div>
+                            <canvas id="articlesChart" height="80"></canvas>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>🍩 Artikelen per Website</h3>
+                                <p>Verdeling</p>
+                            </div>
+                            <canvas id="websitesChart" height="80"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Words per Week Chart -->
+                    <div class="chart-card" style="margin-bottom: 32px;">
+                        <div class="chart-header">
+                            <h3>📊 Woorden per Week</h3>
+                            <p>Laatste 8 weken</p>
+                        </div>
+                        <canvas id="wordsChart" height="60"></canvas>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="activity-section">
+                        <div class="activity-header">
+                            <h3>🕐 Recente Activiteit</h3>
+                            <button class="btn btn-primary" onclick="switchSection('saved-articles', event)">
+                                Bekijk Alles
+                            </button>
+                        </div>
+                        <div class="activity-list" id="recent-activity">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📅</div>
+                                <h3>Nog geen activiteit</h3>
+                                <p>Je recente artikelen en acties worden hier weergegeven</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Website Overview -->
+                    <div class="activity-section">
+                        <div class="activity-header">
+                            <h3>🌐 Website Overzicht</h3>
+                            <button class="btn btn-secondary" onclick="switchSection('website-beheer', event)">
+                                Beheer Websites
+                            </button>
+                        </div>
+                        <div class="websites-grid" id="dashboard-websites">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🌐</div>
+                                <h3>Geen websites toegevoegd</h3>
+                                <p>Voeg je eerste website toe om te beginnen</p>
+                                <button class="btn btn-primary" onclick="switchSection('website-beheer', event)">
+                                    Website Toevoegen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="activity-section">
+                        <div class="activity-header">
+                            <h3>⚡ Quick Actions</h3>
+                        </div>
+                        <div class="quick-actions-grid">
+                            <div class="quick-action-btn" onclick="switchSection('content-writer', event)">
+                                <div class="quick-action-icon">✍️</div>
+                                <div class="quick-action-label">Schrijf Artikel</div>
+                            </div>
+                            <div class="quick-action-btn" onclick="switchSection('website-beheer', event)">
+                                <div class="quick-action-icon">🌐</div>
+                                <div class="quick-action-label">Voeg Website Toe</div>
+                            </div>
+                            <div class="quick-action-btn" onclick="switchSection('keyword-research', event)">
+                                <div class="quick-action-icon">🔍</div>
+                                <div class="quick-action-label">Keyword Research</div>
+                            </div>
+                            <div class="quick-action-btn" onclick="switchSection('content-planning', event)">
+                                <div class="quick-action-icon">📅</div>
+                                <div class="quick-action-label">Content Planning</div>
+                            </div>
+                            <div class="quick-action-btn" onclick="switchSection('saved-articles', event)">
+                                <div class="quick-action-icon">💾</div>
+                                <div class="quick-action-label">Bekijk Artikelen</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1132,157 +1687,146 @@
             <!-- Content Writer Section -->
             <div id="content-writer" class="section">
                 <div class="section-header">
-                    <h2>✍️ Content Writer</h2>
-                    <p>Genereer hoogwaardige content met AI</p>
+                    <h2>🔥 Automatische Blog Generator</h2>
+                    <p>Genereer complete blogs met afbeeldingen, interne links en affiliate links</p>
                 </div>
                 
                 <div class="section-content">
                     <!-- Input Panel -->
                     <div class="input-panel">
+                        <!-- Website Selectie -->
                         <div class="form-group">
-                            <label>Content Type</label>
-                            <select id="content-type" onchange="handleContentTypeChange()">
-                                <option value="general">Algemeen Artikel</option>
-                                <option value="seo">SEO Artikel</option>
-                                <option value="list">Lijst Artikel</option>
-                                <option value="youtube">YouTube Artikel</option>
-                                <option value="linkbuilding">Linkbuilding</option>
+                            <label>🌐 Selecteer Website *</label>
+                            <select id="blog-website-select" onchange="handleBlogWebsiteChange()">
+                                <option value="">-- Selecteer een website --</option>
                             </select>
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                💡 Voeg eerst een website toe in "Website Beheer"
+                            </small>
                         </div>
                         
+                        <!-- Content Planning Koppeling (Optioneel) -->
                         <div class="form-group">
-                            <label>Onderwerp</label>
-                            <input type="text" id="content-topic" placeholder="Bijv: Beste yoga oefeningen voor beginners">
+                            <label>📅 Content Planning (optioneel)</label>
+                            <select id="blog-content-plan-select">
+                                <option value="">-- Geen koppeling --</option>
+                            </select>
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                Koppel aan bestaand content plan item
+                            </small>
                         </div>
                         
+                        <!-- Onderwerp/Titel -->
                         <div class="form-group">
-                            <label>Aantal Woorden</label>
-                            <input type="number" id="content-words" value="500" min="100" max="5000">
+                            <label>✍️ Onderwerp/Titel *</label>
+                            <input type="text" id="blog-topic" placeholder="Bijv: De 10 beste yoga oefeningen voor beginners">
                         </div>
                         
-                        <!-- Perplexity Research -->
+                        <!-- Aantal Woorden -->
                         <div class="form-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="perplexity-research">
-                                <label for="perplexity-research">🔍 Perplexity Research</label>
+                            <label>📝 Aantal Woorden</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="range" id="blog-word-count-slider" min="500" max="3000" value="1500" step="100" 
+                                       style="flex: 1;" oninput="updateWordCountDisplay()">
+                                <input type="number" id="blog-word-count" value="1500" min="500" max="3000" 
+                                       style="width: 80px; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; text-align: center;"
+                                       oninput="updateWordCountSlider()">
                             </div>
                         </div>
                         
-                        <!-- Extra Options -->
+                        <!-- Automatische Features -->
                         <div class="form-group">
-                            <label>Extra Opties</label>
+                            <label>🚀 Automatische Features</label>
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-lists">
-                                    <label for="include-lists">Lijsten toevoegen</label>
+                                    <input type="checkbox" id="blog-auto-images" checked>
+                                    <label for="blog-auto-images">📸 Automatische afbeeldingen (Pixabay/Pexels/Unsplash)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-tables">
-                                    <label for="include-tables">Tabellen toevoegen</label>
+                                    <input type="checkbox" id="blog-internal-links" checked>
+                                    <label for="blog-internal-links">🔗 Interne links (van sitemap)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-faq">
-                                    <label for="include-faq">FAQ sectie</label>
+                                    <input type="checkbox" id="blog-affiliate-links" checked>
+                                    <label for="blog-affiliate-links">💰 Affiliate links (van website config)</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="include-conclusion" checked>
-                                    <label for="include-conclusion">Conclusie</label>
+                                    <input type="checkbox" id="blog-faq-section">
+                                    <label for="blog-faq-section">❓ FAQ sectie</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="blog-conclusion" checked>
+                                    <label for="blog-conclusion">✅ Conclusie</label>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Image Source -->
+                        <!-- Extra Context (Optioneel) -->
                         <div class="form-group">
-                            <label>Afbeeldingen</label>
-                            <div class="checkbox-group">
-                                <div class="checkbox-item">
-                                    <input type="radio" name="content-image-source" value="pixabay" checked>
-                                    <label>Pixabay (gratis)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="radio" name="content-image-source" value="dalle">
-                                    <label>DALL-E (AI)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="radio" name="content-image-source" value="none">
-                                    <label>Geen afbeeldingen</label>
-                                </div>
-                            </div>
+                            <label>📋 Extra Context (optioneel)</label>
+                            <textarea id="blog-extra-context" rows="3" 
+                                      placeholder="Extra informatie, specifieke eisen, tone of voice, etc."></textarea>
                         </div>
                         
-                        <!-- Sitemap URL -->
-                        <div class="form-group">
-                            <label>Sitemap URL (optioneel)</label>
-                            <input type="text" id="sitemap-url" placeholder="https://example.com/sitemap.xml">
-                        </div>
-                        
-                        <!-- List Article Fields -->
-                        <div id="list-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>Aantal Items</label>
-                                <input type="number" id="content-list-items" value="10" min="3" max="50">
-                            </div>
-                            <div class="form-group">
-                                <label>Woorden per Item</label>
-                                <input type="number" id="content-list-words" value="100" min="50" max="500">
-                            </div>
-                        </div>
-                        
-                        <!-- YouTube Fields -->
-                        <div id="youtube-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>YouTube URL</label>
-                                <input type="text" id="content-youtube-url" placeholder="https://youtube.com/watch?v=...">
-                            </div>
-                        </div>
-                        
-                        <!-- Linkbuilding Fields -->
-                        <div id="linkbuilding-fields" style="display: none;">
-                            <div class="form-group">
-                                <label>Anchor Text 1</label>
-                                <input type="text" id="content-lb-anchor1" placeholder="Bijv: yoga mat">
-                            </div>
-                            <div class="form-group">
-                                <label>URL 1</label>
-                                <input type="text" id="content-lb-url1" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Anchor Text 2</label>
-                                <input type="text" id="content-lb-anchor2" placeholder="Bijv: meditatie kussen">
-                            </div>
-                            <div class="form-group">
-                                <label>URL 2</label>
-                                <input type="text" id="content-lb-url2" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Extra Context</label>
-                                <textarea id="content-lb-context" rows="3" placeholder="Extra informatie..."></textarea>
-                            </div>
-                            <button class="btn btn-secondary btn-small" onclick="autoGenerateTopicInline()" style="width: 100%; margin-bottom: 15px;">
-                                🎯 Auto-genereer Onderwerp
-                            </button>
-                        </div>
-                        
-                        <button class="btn btn-primary" onclick="generateContent()" style="width: 100%; margin-top: 20px;">
-                            ✨ Genereer Content
+                        <!-- Genereer Knop -->
+                        <button class="btn btn-primary" onclick="generateAutomaticBlog()" style="width: 100%; margin-top: 20px; padding: 15px;">
+                            🚀 Genereer Artikel
                         </button>
+                        
+                        <!-- Progress Indicator -->
+                        <div id="blog-generation-progress" style="display: none; margin-top: 20px;">
+                            <div class="alert alert-info">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                                    <strong>Artikel wordt gegenereerd...</strong>
+                                </div>
+                                <div id="blog-progress-steps" class="progress-steps"></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Editor Area -->
+                    <!-- Preview/Resultaat Area -->
                     <div class="editor-area">
                         <div class="editor-toolbar">
-                            <button class="btn btn-secondary btn-small" onclick="copyToClipboard()">
+                            <button class="btn btn-secondary btn-small" onclick="copyBlogToClipboard()" id="blog-copy-btn" disabled>
                                 📋 Kopieer
                             </button>
-                            <button class="btn btn-secondary btn-small" onclick="downloadHTML()">
+                            <button class="btn btn-secondary btn-small" onclick="downloadBlogHTML()" id="blog-download-html-btn" disabled>
                                 💾 Download HTML
                             </button>
-                            <span style="margin-left: auto; color: #666; font-size: 14px;" id="word-counter">
+                            <button class="btn btn-secondary btn-small" onclick="downloadBlogMarkdown()" id="blog-download-md-btn" disabled>
+                                📄 Download Markdown
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="publishBlogToWordPress()" id="blog-publish-btn" disabled>
+                                📤 Publiceer naar WordPress
+                            </button>
+                            <span style="margin-left: auto; color: #666; font-size: 14px;" id="blog-word-counter">
                                 0 woorden
                             </span>
                         </div>
                         <div class="editor-container">
-                            <div id="editor"></div>
+                            <div id="blog-preview" style="padding: 20px; line-height: 1.8;">
+                                <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                                    <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px;">
+                                        🔥
+                                    </div>
+                                    <h3 style="color: var(--dark-blue); margin-bottom: 10px;">Automatische Blog Generator</h3>
+                                    <p style="margin: 0 0 20px 0; font-size: 16px;">
+                                        Selecteer een website en vul de details in om te beginnen
+                                    </p>
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: left; max-width: 500px; margin: 0 auto;">
+                                        <h4 style="margin-top: 0; color: var(--dark-blue);">✨ Features:</h4>
+                                        <ul style="margin: 0; padding-left: 20px; line-height: 2;">
+                                            <li>📸 Automatische afbeeldingen van Pixabay, Pexels & Unsplash</li>
+                                            <li>🔗 Slimme interne links van je sitemap</li>
+                                            <li>💰 Automatische affiliate links</li>
+                                            <li>❓ Optionele FAQ sectie</li>
+                                            <li>✅ Professionele conclusie</li>
+                                            <li>📤 Direct publiceren naar WordPress</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3924,7 +4468,425 @@
             }
         };
         
-    </script>
+    
+        // ===== NIEUWE DASHBOARD & BLOG GENERATOR FUNCTIES =====
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStats(data.stats);
+                    updateCharts(data.charts);
+                    updateRecentActivity(data.recent_activity);
+                    updateWebsites(data.websites);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Update stats cards
+        function updateStats(stats) {
+            // Total articles
+            document.getElementById('total-articles').textContent = stats.total_articles || 0;
+            document.getElementById('articles-this-month').textContent = stats.articles_this_month || 0;
+            document.getElementById('articles-trend').textContent = (stats.articles_trend || 0) + '%';
+            document.getElementById('articles-progress').style.width = Math.min((stats.articles_this_month / 30) * 100, 100) + '%';
+            
+            // Total words
+            const totalWords = stats.total_words || 0;
+            document.getElementById('total-words').textContent = totalWords.toLocaleString();
+            document.getElementById('avg-words').textContent = stats.avg_words || 0;
+            document.getElementById('words-trend').textContent = (stats.words_trend || 0) + '%';
+            document.getElementById('words-progress').style.width = Math.min((stats.avg_words / 2000) * 100, 100) + '%';
+            
+            // Websites
+            document.getElementById('total-websites').textContent = stats.total_websites || 0;
+            document.getElementById('total-affiliate-links').textContent = stats.total_affiliate_links || 0;
+            document.getElementById('websites-trend').textContent = (stats.websites_trend || 0) + '%';
+            document.getElementById('websites-progress').style.width = Math.min((stats.total_affiliate_links / 50) * 100, 100) + '%';
+            
+            // Published
+            document.getElementById('published-count').textContent = stats.published_count || 0;
+            document.getElementById('published-this-week').textContent = stats.published_this_week || 0;
+            document.getElementById('published-trend').textContent = (stats.published_trend || 0) + '%';
+            document.getElementById('published-progress').style.width = Math.min((stats.published_this_week / 10) * 100, 100) + '%';
+        }
+        
+        // Update charts
+        function updateCharts(charts) {
+            // Articles per month chart
+            const articlesCtx = document.getElementById('articlesChart').getContext('2d');
+            if (articlesChart) articlesChart.destroy();
+            articlesChart = new Chart(articlesCtx, {
+                type: 'line',
+                data: {
+                    labels: charts.articles_per_month.labels,
+                    datasets: [{
+                        label: 'Artikelen',
+                        data: charts.articles_per_month.data,
+                        borderColor: '#00AEEF',
+                        backgroundColor: 'rgba(0, 174, 239, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+            
+            // Websites distribution chart
+            const websitesCtx = document.getElementById('websitesChart').getContext('2d');
+            if (websitesChart) websitesChart.destroy();
+            websitesChart = new Chart(websitesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: charts.articles_per_website.labels,
+                    datasets: [{
+                        data: charts.articles_per_website.data,
+                        backgroundColor: [
+                            '#00AEEF',
+                            '#FFA62B',
+                            '#004E92',
+                            '#E36C1E',
+                            '#8b5cf6',
+                            '#10b981'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Words per week chart
+            const wordsCtx = document.getElementById('wordsChart').getContext('2d');
+            if (wordsChart) wordsChart.destroy();
+            wordsChart = new Chart(wordsCtx, {
+                type: 'bar',
+                data: {
+                    labels: charts.words_per_week.labels,
+                    datasets: [{
+                        label: 'Woorden',
+                        data: charts.words_per_week.data,
+                        backgroundColor: 'rgba(255, 166, 43, 0.8)',
+                        borderColor: '#FFA62B',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        // Update recent activity
+        function updateRecentActivity(activities) {
+            const container = document.getElementById('recent-activity');
+            
+            if (!activities || activities.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <h3>Nog geen activiteit</h3>
+                        <p>Je recente artikelen en acties worden hier weergegeven</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: ${activity.color};">
+                        ${activity.icon}
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-meta">${activity.meta}</div>
+                    </div>
+                    <div class="activity-time">${activity.time}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Update websites
+        function updateWebsites(websites) {
+            const container = document.getElementById('dashboard-websites');
+            
+            if (!websites || websites.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌐</div>
+                        <h3>Geen websites toegevoegd</h3>
+                        <p>Voeg je eerste website toe om te beginnen</p>
+                        <button class="btn btn-primary" onclick="switchSection('website-beheer', event)">
+                            Website Toevoegen
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+
+        function handleBlogWebsiteChange() {
+            const select = document.getElementById('blog-website-select');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                // Website selected - enable form
+                document.getElementById('blog-topic').disabled = false;
+            } else {
+                // No website selected - disable form
+                document.getElementById('blog-topic').disabled = true;
+            }
+        }
+        
+        // Update word count display from slider
+        function updateWordCountDisplay() {
+            const slider = document.getElementById('blog-word-count-slider');
+            const input = document.getElementById('blog-word-count');
+            input.value = slider.value;
+        }
+        
+        // Update word count slider from input
+        function updateWordCountSlider() {
+            const slider = document.getElementById('blog-word-count-slider');
+            const input = document.getElementById('blog-word-count');
+            slider.value = input.value;
+        }
+        
+        // Generate automatic blog
+        async function generateAutomaticBlog() {
+            // Validate inputs
+            const websiteSelect = document.getElementById('blog-website-select');
+            const topic = document.getElementById('blog-topic').value.trim();
+            const wordCount = parseInt(document.getElementById('blog-word-count').value);
+            
+            if (!websiteSelect.value) {
+                showNotification('Selecteer eerst een website', 'error');
+                return;
+            }
+            
+            if (!topic) {
+                showNotification('Vul een onderwerp/titel in', 'error');
+                return;
+            }
+            
+            // Get selected options
+            const selectedOption = websiteSelect.options[websiteSelect.selectedIndex];
+            const websiteId = selectedOption.value;
+            const sitemapUrl = selectedOption.dataset.sitemapUrl;
+            
+            const autoImages = document.getElementById('blog-auto-images').checked;
+            const internalLinks = document.getElementById('blog-internal-links').checked;
+            const affiliateLinks = document.getElementById('blog-affiliate-links').checked;
+            const faqSection = document.getElementById('blog-faq-section').checked;
+            const conclusion = document.getElementById('blog-conclusion').checked;
+            const extraContext = document.getElementById('blog-extra-context').value.trim();
+            const contentPlanId = document.getElementById('blog-content-plan-select').value;
+            
+            // Show progress
+            const progressDiv = document.getElementById('blog-generation-progress');
+            const progressSteps = document.getElementById('blog-progress-steps');
+            progressDiv.style.display = 'block';
+            progressSteps.innerHTML = '';
+            
+            // Disable generate button
+            const generateBtn = document.querySelector('button[onclick="generateAutomaticBlog()"]');
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Bezig met genereren...';
+            
+            try {
+                // Prepare request data
+                const requestData = {
+                    website_id: websiteId,
+                    topic: topic,
+                    word_count: wordCount,
+                    sitemap_url: sitemapUrl,
+                    auto_images: autoImages,
+                    internal_links: internalLinks,
+                    affiliate_links: affiliateLinks,
+                    faq_section: faqSection,
+                    conclusion: conclusion,
+                    extra_context: extraContext,
+                    content_plan_id: contentPlanId || null
+                };
+                
+                // Add progress step
+                addProgressStep('Artikel wordt gegenereerd...', false);
+                
+                // Call API
+                const response = await fetch('/api/generate-blog', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update progress
+                    updateProgressStep(0, 'Artikel succesvol gegenereerd!', true);
+                    
+                    // Store blog data
+                    currentBlogData = data;
+                    
+                    // Display blog in preview
+                    displayBlogPreview(data);
+                    
+                    // Enable action buttons
+                    enableBlogActionButtons();
+                    
+                    // Hide progress after delay
+                    setTimeout(() => {
+                        progressDiv.style.display = 'none';
+                    }, 2000);
+                    
+                    showNotification('Artikel succesvol gegenereerd!', 'success');
+                } else {
+                    throw new Error(data.error || 'Er ging iets mis bij het genereren');
+                }
+            } catch (error) {
+                console.error('Error generating blog:', error);
+                addProgressStep(`Fout: ${error.message}`, false);
+                showNotification(`Fout bij genereren: ${error.message}`, 'error');
+            } finally {
+                // Re-enable generate button
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🚀 Genereer Artikel';
+            }
+        }
+        
+        // Add progress step
+        function addProgressStep(message, completed) {
+            const progressSteps = document.getElementById('blog-progress-steps');
+            const step = document.createElement('div');
+            step.className = 'progress-step' + (completed ? ' completed' : '');
+            step.innerHTML = `
+                <span class="spinner">${completed ? '✅' : '⏳'}</span>
+                <span>${message}</span>
+            `;
+            progressSteps.appendChild(step);
+            return progressSteps.children.length - 1;
+        }
+        
+        // Update progress step
+        function updateProgressStep(index, message, completed) {
+            const progressSteps = document.getElementById('blog-progress-steps');
+            const step = progressSteps.children[index];
+            if (step) {
+                step.className = 'progress-step' + (completed ? ' completed' : '');
+                step.innerHTML = `
+                    <span class="spinner">${completed ? '✅' : '⏳'}</span>
+                    <span>${message}</span>
+                `;
+            }
+        }
+        
+        // Display blog preview
+        function displayBlogPreview(data) {
+            const preview = document.getElementById('blog-preview');
+            const wordCounter = document.getElementById('blog-word-counter');
+            
+            // Display HTML content
+            preview.innerHTML = data.html_content || data.content || '';
+            
+            // Update word counter
+            const text = preview.textContent || preview.innerText;
+            const words = text.trim().split(/\s+/).length;
+            wordCounter.textContent = `${words} woorden`;
+        }
+        
+        // Enable action buttons
+        function enableBlogActionButtons() {
+            document.getElementById('blog-copy-btn').disabled = false;
+            document.getElementById('blog-download-html-btn').disabled = false;
+            document.getElementById('blog-download-md-btn').disabled = false;
+            document.getElementById('blog-publish-btn').disabled = false;
+        }
+        
+        // Copy blog to clipboard
+        function copyBlogToClipboard() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te kopiëren', 'error');
+                return;
+            }
+            
+            const content = currentBlogData.html_content || currentBlogData.content || '';
+            
+            // Create temporary element
+            const temp = document.createElement('textarea');
+            temp.value = content;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            showNotification('Artikel gekopieerd naar klembord!', 'success');
+        }
+        
+        // Download blog as HTML
+        function downloadBlogHTML() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te downloaden', 'error');
+                return;
+            }
+            
+            const content = currentBlogData.html_content || currentBlogData.content || '';
+            const topic = document.getElementById('blog-topic').value.trim();
+            const filename = `${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+            
+            downloadFile(content, filename, 'text/html');
+            showNotification('HTML bestand gedownload!', 'success');
+        }
+        
+        // Download blog as Markdown
+        function downloadBlogMarkdown() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te downloaden', 'error');
+                return;
+            }
+            
+            const content = currentBlogData.markdown_content || currentBlogData.content || '';
+            const topic = document.getElementById('blog-topic').value.trim();
+            const filename = `${topic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+            
+            downloadFile(content, filename, 'text/markdown');
+            showNotification('Markdown bestand gedownload!', 'success');
+        }
+        
+        // Publish blog to WordPress
+        async function publishBlogToWordPress() {
+            if (!currentBlogData) {
+                showNotification('Geen artikel om te publiceren', 'error');
+                return;
+
+</script>
     
     <style>
         @keyframes slideIn {
