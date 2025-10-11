@@ -1,0 +1,109 @@
+
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/faceless_video_platform/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model blog_posts {
+  id              String           @id
+  siteId          String?
+  title           String
+  content         String
+  contentType     String
+  seoTitle        String?
+  metaDescription String?
+  keywords        String?
+  wordCount       Int?
+  htmlContent     String?
+  youtubeUrl      String?
+  status          String           @default("draft")
+  wordpressPostId Int?
+  publishedUrl    String?
+  scheduledAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  wordpress_sites wordpress_sites? @relation(fields: [siteId], references: [id])
+}
+
+model keyword_research {
+  id           String   @id
+  siteId       String?
+  keyword      String
+  searchVolume Int?
+  difficulty   String?
+  suggestions  String?
+  createdAt    DateTime @default(now())
+}
+
+model series {
+  id               String   @id
+  name             String
+  format           String
+  presetType       String?
+  customFormat     String?
+  niche            String
+  language         String
+  voice            String
+  voiceStyle       String
+  backgroundMusic  String?
+  musicDescription String?
+  artStyle         String
+  captionStyle     String
+  duration         String
+  videoCount       Int
+  publishSchedule  String?
+  publishTime      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  videos           videos[]
+}
+
+model videos {
+  id           String   @id
+  seriesId     String
+  title        String
+  thumbnailUrl String
+  videoUrl     String?
+  duration     String
+  status       String   @default("generated")
+  createdAt    DateTime @default(now())
+  series       series   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+}
+
+model wordpress_sites {
+  id          String       @id
+  name        String
+  url         String
+  username    String
+  appPassword String
+  language    String       @default("en")
+  country     String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  blog_posts  blog_posts[]
+}
+
+model social_media_posts {
+  id           String    @id @default(cuid())
+  title        String
+  content      String
+  platform     String
+  postType     String
+  status       String    @default("draft")
+  imagePath    String?
+  imagePrompt  String?
+  hashtags     String[]  @default([])
+  artStyle     String?   @default("realism")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  publishedAt  DateTime?
+  scheduledFor DateTime?
+  metadata     Json?
+}
