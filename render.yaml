@@ -5,13 +5,15 @@ services:
     plan: free
     region: frankfurt
     rootDir: nextjs_space
-    buildCommand: yarn install && yarn build
+    buildCommand: yarn install && yarn prisma generate && yarn prisma db push --accept-data-loss && yarn build
     startCommand: yarn start
     envVars:
       - key: NODE_VERSION
         value: 20.11.0
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
