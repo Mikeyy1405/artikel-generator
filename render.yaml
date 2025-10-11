@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: faceless-video-platform
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: cd nextjs_space && yarn install && yarn build
+    startCommand: cd nextjs_space && yarn start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: PIXABAY_API_KEY
+        sync: false
