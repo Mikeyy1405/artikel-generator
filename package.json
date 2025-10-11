@@ -1,0 +1,16 @@
+{
+  "name": "faceless-video-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-powered faceless video generation platform",
+  "engines": {
+    "node": ">=18.17.0",
+    "yarn": ">=1.22.0"
+  },
+  "scripts": {
+    "install": "cd nextjs_space && yarn install",
+    "build": "cd nextjs_space && yarn build",
+    "start": "cd nextjs_space && yarn start",
+    "dev": "cd nextjs_space && yarn dev"
+  }
+}

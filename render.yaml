@@ -4,11 +4,14 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: cd nextjs_space && yarn install && yarn build
-    startCommand: cd nextjs_space && yarn start
+    rootDir: nextjs_space
+    buildCommand: yarn install && yarn build
+    startCommand: yarn start
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
+      - key: NODE_ENV
+        value: production
       - key: OPENAI_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
