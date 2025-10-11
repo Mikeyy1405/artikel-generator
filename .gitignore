@@ -21,3 +21,11 @@ out
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env*.local
+nextjs_space/.env
+nextjs_space/.env.local
+nextjs_space/.env*.local
